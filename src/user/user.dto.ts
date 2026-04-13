@@ -4,7 +4,7 @@
  * podemos controlar qué datos se devuelven y cuáles no
  * */
 
-export class UserResponseDTO {
+export class UserDTO {
     id_user: number;
     email: string;
 }

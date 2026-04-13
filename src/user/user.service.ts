@@ -5,7 +5,7 @@
  * */
 
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { UserResponseDTO } from './user.dto';
+import { UserDTO } from './user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './user.entity'; // Se importa la entidad, la que define cómo es la tabla
 import { Repository } from 'typeorm';
@@ -17,14 +17,14 @@ export class UserService {
         private readonly userRepository: Repository<UserEntity>
     ) { };
 
-    async get_all(): Promise<UserResponseDTO[]> {
+    async get_all(): Promise<UserDTO[]> {
         const users = await this.userRepository.find();
         if (!users)
             throw new InternalServerErrorException('Users is empty');
         return users;
     }
 
-    async get_by_email(email: string): Promise<UserResponseDTO | null> {
+    async get_by_email(email: string): Promise<UserDTO | null> {
         const user = await this.userRepository.findOneBy({
             email
         })
