@@ -2,12 +2,12 @@
  * En los archivos .entity.ts se define la
  * estructura de la tabla
  * */
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, Column, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class UserEntity {
-    @PrimaryGeneratedColumn({ type: 'int', name: 'id_user' })
-    id_user: number
+    @PrimaryColumn({ length: 36, type: 'varchar', name: 'uuid' })
+    uuid: string;
 
     @Column({ length: 50, type: 'varchar', name: 'email' })
     email: string;
