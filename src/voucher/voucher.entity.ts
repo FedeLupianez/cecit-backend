@@ -9,20 +9,20 @@ export class VoucherEntity {
     id_voucher: number
 
     @Column()
-    id_user: number
+    id_user: number;
 
     @Column()
-    id_benefit: number
+    id_benefit: number;
 
     @Column()
-    token: string
+    token: string;
 
     @Column()
-    application_date: Date
+    application_date: Date;
 
     @Column({ default: null })
-    delibery_date: Date
+    delibery_date: Date;
 
     @Column()
-    status: Enumerator
+    status: Enumerator;
 }
