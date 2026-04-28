@@ -7,4 +7,8 @@
 export class UserDTO {
     id_user: number;
     email: string;
+    name: string;
+    dni: string;
+    lastname: string;
+    last_activity: string;
 }
