@@ -6,7 +6,6 @@ import { ConfigModule } from '@nestjs/config';
 import { UserController } from './user/user.controller';
 import { UserService } from './user/user.service';
 import { UserModule } from './user/user.module';
-import { CecitAdminsModule } from './cecit-admins/cecit-admins.module';
 
 @Module({
     imports: [
@@ -14,7 +13,6 @@ import { CecitAdminsModule } from './cecit-admins/cecit-admins.module';
         // Cargar la config del archivo .env para uso global
         ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env.development' }),
         UserModule,
-        CecitAdminsModule,
     ],
     controllers: [AppController, UserController],
     providers: [AppService, UserService],
