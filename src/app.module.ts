@@ -6,10 +6,14 @@ import { ConfigModule } from '@nestjs/config';
 import { UserController } from './user/user.controller';
 import { UserService } from './user/user.service';
 import { UserModule } from './user/user.module';
+
 import { BenefitsModule } from './benefits/benefits.module';
 import {BenefitsService} from './benefits/benefits.service';
 import { BenefitTypeModule } from './benefit_type/benefit_type.module';
 import { BenefitTypeService } from './benefit_type/benefit_type.service';
+
+import { CecitAdminsModule } from './cecit-admins/cecit-admins.module';
+
 @Module({
     imports: [
         TypeOrmModule,
@@ -18,8 +22,9 @@ import { BenefitTypeService } from './benefit_type/benefit_type.service';
         UserModule,
         BenefitsModule,
         BenefitTypeModule,
+        CecitAdminsModule
     ],
     controllers: [AppController, UserController],
-    providers: [AppService, UserService, BenefitTypeService],
+    providers: [AppService, UserService, BenefitTypeService, BenefitsService],
 })
 export class AppModule { }
