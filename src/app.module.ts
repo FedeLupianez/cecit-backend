@@ -26,6 +26,9 @@ import { VoucherController } from './vouchers/voucher.controller';
 import { VoucherService } from './vouchers/voucher.service';
 
 
+import { PartnersModule } from './partners/partners.module';
+import { PartnersAdminsModule } from './partners-admins/partners-admins.module';
+
 @Module({
     imports: [
         TypeOrmModule,
@@ -36,9 +39,11 @@ import { VoucherService } from './vouchers/voucher.service';
         BenefitsModule,
         BenefitTypeModule,
         CecitAdminsModule,
-        VoucherModule
+        VoucherModule,
+        PartnersModule,
+        PartnersAdminsModule,
     ],
     controllers: [AppController, UsersController, VoucherController, BenefitsController, BenefitTypeController],
-    providers: [AppService, UsersService, BenefitTypeService, BenefitsService, VoucherService],
+    providers: [AppService, UsersService, BenefitTypeService, BenefitsService, VoucherService]
 })
 export class AppModule { }
