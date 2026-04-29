@@ -1,14 +1,14 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('categories')
-export class Category {
+export class CategoriesEntity {
 
-  @PrimaryGeneratedColumn()
-  id_category: number;
+    @PrimaryGeneratedColumn()
+    id_category: number;
 
-  @Column({ length: 50 })
-  name: string;
+    @Column({ name: 'name', type: 'varchar', length: 50 })
+    name: string;
 
-  @Column({ default: true })
-  active: boolean;
+    @Column({ default: true })
+    active: boolean;
 }

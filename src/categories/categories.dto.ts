@@ -1,4 +1,4 @@
-export class CreateCategoryDto {
-  name: string;
-  active?: boolean;
+export class CategoriesDTO {
+    name: string;
+    active?: boolean;
 }
