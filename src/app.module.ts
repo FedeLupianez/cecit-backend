@@ -4,7 +4,6 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from './datasource/typeorm.module';
 import { ConfigModule } from '@nestjs/config';
 
-import { CategoriesModule } from './categories/categories.module';
 
 import { UsersModule } from './users/users.module';
 import { UsersController } from './users/users.controller';
@@ -17,6 +16,15 @@ import { BenefitsController } from './benefits/benefits.controller';
 
 import { BenefitTypeModule } from './benefit_type/benefit_type.module';
 import { BenefitTypeService } from './benefit_type/benefit_type.service';
+
+import { PartnersCategoriesModule } from './partners_categories/partners_categories.module';
+import { PartnersCategoriesController } from './partners_categories/partners_categories.controller';
+import { PartnersCategoriesService } from './partners_categories/partners_categories.service';
+
+import { CategoriesModule } from './categories/categories.module';
+import { CategoriesController } from './categories/categories.controller';
+import { CategoriesService } from './categories/categories.service';
+
 import { BenefitTypeController } from './benefit_type/benefit_type.controller';
 
 import { CecitAdminsModule } from './cecit-admins/cecit-admins.module';
@@ -49,8 +57,9 @@ import { PartnersAdminsController } from './partnersadmins/partnersadmins.contro
         VoucherModule,
         PartnersModule,
         PartnersAdminsModule,
+        PartnersCategoriesModule,
     ],
-    controllers: [AppController, UsersController, VoucherController, BenefitsController, BenefitTypeController, PartnersAdminsController, PartnersController, CecitAdminsController],
-    providers: [AppService, UsersService, BenefitTypeService, BenefitsService, VoucherService, PartnersAdminsService, PartnersService, CecitAdminsService]
+    controllers: [AppController, UsersController, VoucherController, BenefitsController, BenefitTypeController, PartnersAdminsController, PartnersController, CecitAdminsController, PartnersCategoriesController, CategoriesController],
+    providers: [AppService, UsersService, BenefitTypeService, BenefitsService, VoucherService, PartnersAdminsService, PartnersService, CecitAdminsService, PartnersCategoriesService, CategoriesService]
 })
 export class AppModule { }
