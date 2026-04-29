@@ -1,21 +1,21 @@
 import { Entity, ManyToOne, JoinColumn, PrimaryColumn } from 'typeorm';
-import { Partner } from '../partners/partner.entity';
-import { Category } from '../categories/category.entity';
+import { PartnersEntity } from 'src/partners/partners.entity';
+import { CategoriesEntity } from 'src/categories/categories.entity';
 
 @Entity('partners_categories')
-export class PartnersCategories {
+export class PartnersCategoriesEntity {
 
-  @PrimaryColumn()
-  id_partner: number;
+    @PrimaryColumn({ type: 'varchar', length: 4, name: 'id_partner' })
+    id_partner: string;
 
-  @PrimaryColumn()
-  id_category: number;
+    @PrimaryColumn({ type: 'int', name: 'id_category' })
+    id_category: number;
 
-  @ManyToOne(() => Partner)
-  @JoinColumn({ name: 'id_partner' })
-  partner: Partner;
+    @ManyToOne(() => PartnersEntity)
+    @JoinColumn({ name: 'id_partner' })
+    partner: PartnersEntity;
 
-  @ManyToOne(() => Category)
-  @JoinColumn({ name: 'id_category' })
-  category: Category;
+    @ManyToOne(() => CategoriesEntity)
+    @JoinColumn({ name: 'id_category' })
+    category: CategoriesEntity;
 }
