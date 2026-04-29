@@ -11,6 +11,7 @@ import { BenefitsModule } from './benefits/benefits.module';
 import {BenefitsService} from './benefits/benefits.service';
 import { BenefitTypeModule } from './benefit_type/benefit_type.module';
 import { BenefitTypeService } from './benefit_type/benefit_type.service';
+import { PartnersCategoriesModule } from './partners_categories/partners_categories.module';
 
 import { CecitAdminsModule } from './cecit-admins/cecit-admins.module';
 
@@ -23,6 +24,7 @@ import { CecitAdminsModule } from './cecit-admins/cecit-admins.module';
         BenefitsModule,
         BenefitTypeModule,
         CecitAdminsModule
+        PartnersCategoriesModule,
     ],
     controllers: [AppController, UserController],
     providers: [AppService, UserService, BenefitTypeService, BenefitsService],
