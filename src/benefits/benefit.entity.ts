@@ -1,31 +1,31 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 
 export enum BenefitStatus {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-  PENDING = 'PENDING',
+    ACTIVE = 'ACTIVE',
+    INACTIVE = 'INACTIVE',
+    PENDING = 'PENDING',
 }
 
 @Entity('benefit')
-export class BenefitEntity{
+export class BenefitEntity {
     @PrimaryGeneratedColumn()
-    id_benefit!:number;
+    id_benefit!: number;
 
     @ManyToOne(() => CecitAdmin)
     @JoinColumn({ name: 'id_admin' })
     admin: CecitAdmin;
-    
+
     @ManyToOne(() => Partner)
     @JoinColumn({ name: 'id_partner' })
     partner: Partner;
 
-    @Column({ type:'date'})
+    @Column({ type: 'date' })
     date_entered!: Date;
 
-    @Column({type: 'date'})
+    @Column({ type: 'date' })
     start_date!: Date;
 
-    @Column({type: 'date'})
+    @Column({ type: 'date' })
     end_date!: Date;
 
     @Column({ length: 100 })
@@ -34,10 +34,10 @@ export class BenefitEntity{
     @Column()
     title!: string
 
-    @Column({length: 500})
+    @Column({ length: 500 })
     description!: string
 
-    @Column({type: 'enum', enum: BenefitStatus, default: BenefitStatus.ACTIVE,})
+    @Column({ type: 'enum', enum: BenefitStatus, default: BenefitStatus.ACTIVE, })
     status!: BenefitStatus;
 
     @ManyToOne(() => BenefitType)
