@@ -1,9 +1,9 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class CecitAdminsEntity {
-    @PrimaryGeneratedColumn()
-    id_c_admin: number;
+    @PrimaryColumn({ type: 'varchar', length: 4 })
+    id_c_admin: string;
 
     @Column({ type: 'varchar', length: 50 })
     email: string;
