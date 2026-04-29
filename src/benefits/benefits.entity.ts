@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn } from 'typeorm';
+import { CecitAdminsEntity } from 'src/cecit-admins/cecit-admins.entity';
 
 export enum BenefitStatus {
     ACTIVE = 'ACTIVE',
@@ -6,14 +7,14 @@ export enum BenefitStatus {
     PENDING = 'PENDING',
 }
 
-@Entity('benefit')
-export class BenefitEntity {
-    @PrimaryGeneratedColumn()
+@Entity('benefits')
+export class BenefitsEntity {
+    @PrimaryColumn({ type: 'varchar', length: 4 })
     id_benefit!: number;
 
-    @ManyToOne(() => CecitAdmin)
+    @ManyToOne(() => CecitAdminsEntity)
     @JoinColumn({ name: 'id_admin' })
-    admin: CecitAdmin;
+    admin: CecitAdminsEntity;
 
     @ManyToOne(() => Partner)
     @JoinColumn({ name: 'id_partner' })
