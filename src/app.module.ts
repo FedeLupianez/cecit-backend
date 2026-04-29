@@ -20,6 +20,8 @@ import { BenefitTypeService } from './benefit_type/benefit_type.service';
 import { BenefitTypeController } from './benefit_type/benefit_type.controller';
 
 import { CecitAdminsModule } from './cecit-admins/cecit-admins.module';
+import { CecitAdminsController } from './cecit-admins/cecit-admins.controller';
+import { CecitAdminsService } from './cecit-admins/cecit-admins.service';
 
 import { VoucherModule } from './vouchers/voucher.module';
 import { VoucherController } from './vouchers/voucher.controller';
@@ -27,7 +29,12 @@ import { VoucherService } from './vouchers/voucher.service';
 
 
 import { PartnersModule } from './partners/partners.module';
-import { PartnersAdminsModule } from './partners-admins/partners-admins.module';
+import { PartnersService } from './partners/partners.service';
+import { PartnersController } from './partners/partners.controller';
+
+import { PartnersAdminsModule } from './partnersadmins/partnersadmins.module';
+import { PartnersAdminsService } from './partnersadmins/partnersadmins.service';
+import { PartnersAdminsController } from './partnersadmins/partnersadmins.controller';
 
 @Module({
     imports: [
@@ -43,7 +50,7 @@ import { PartnersAdminsModule } from './partners-admins/partners-admins.module';
         PartnersModule,
         PartnersAdminsModule,
     ],
-    controllers: [AppController, UsersController, VoucherController, BenefitsController, BenefitTypeController],
-    providers: [AppService, UsersService, BenefitTypeService, BenefitsService, VoucherService]
+    controllers: [AppController, UsersController, VoucherController, BenefitsController, BenefitTypeController, PartnersAdminsController, PartnersController, CecitAdminsController],
+    providers: [AppService, UsersService, BenefitTypeService, BenefitsService, VoucherService, PartnersAdminsService, PartnersService, CecitAdminsService]
 })
 export class AppModule { }

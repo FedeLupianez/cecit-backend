@@ -1,5 +1,6 @@
 import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn } from 'typeorm';
 import { CecitAdminsEntity } from 'src/cecit-admins/cecit-admins.entity';
+import { PartnersEntity } from 'src/partners/partners.entity';
 
 export enum BenefitStatus {
     ACTIVE = 'ACTIVE',
@@ -16,9 +17,9 @@ export class BenefitsEntity {
     @JoinColumn({ name: 'id_admin' })
     admin: CecitAdminsEntity;
 
-    @ManyToOne(() => Partner)
+    @ManyToOne(() => PartnersEntity)
     @JoinColumn({ name: 'id_partner' })
-    partner: Partner;
+    partner: PartnersEntity;
 
     @Column({ type: 'date' })
     date_entered!: Date;
