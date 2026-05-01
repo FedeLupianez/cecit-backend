@@ -1,6 +1,6 @@
 import { Entity, ManyToOne, JoinColumn, PrimaryColumn } from 'typeorm';
-import { PartnersEntity } from 'src/partners/partners.entity';
-import { CategoriesEntity } from 'src/categories/categories.entity';
+import { PartnersEntity } from 'src/entities/partners/partners.entity';
+import { CategoriesEntity } from 'src/entities/categories/categories.entity';
 
 @Entity('partners_categories')
 export class PartnersCategoriesEntity {

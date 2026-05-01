@@ -1,6 +1,7 @@
 import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn } from 'typeorm';
-import { CecitAdminsEntity } from 'src/cecit-admins/cecit-admins.entity';
-import { PartnersEntity } from 'src/partners/partners.entity';
+import { CecitAdminsEntity } from 'src/entities/cecit-admins/cecit-admins.entity';
+import { BenefitTypeEntity } from 'src/entities/benefit_type/benefit_type.entity';
+import { PartnersEntity } from 'src/entities/partners/partners.entity';
 
 export enum BenefitStatus {
     ACTIVE = 'ACTIVE',
@@ -42,9 +43,9 @@ export class BenefitsEntity {
     @Column({ type: 'enum', enum: BenefitStatus, default: BenefitStatus.ACTIVE, })
     status!: BenefitStatus;
 
-    @ManyToOne(() => BenefitType)
+    @ManyToOne(() => BenefitTypeEntity)
     @JoinColumn({ name: 'id_type' })
-    type!: BenefitType;
+    type!: BenefitTypeEntity;
 
     @Column()
     coupons!: number;
