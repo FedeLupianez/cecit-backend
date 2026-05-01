@@ -7,7 +7,7 @@ import { Entity, Column, PrimaryColumn } from 'typeorm';
 @Entity()
 export class UsersEntity {
     @PrimaryColumn({ length: 4, type: 'varchar', name: 'uuid' })
-    uuid: string;
+    id_user: string;
 
     @Column({ length: 50, type: 'varchar', name: 'email' })
     email: string;

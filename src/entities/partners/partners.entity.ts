@@ -12,6 +12,9 @@ export class PartnersEntity {
     @Column({ type: 'varchar', length: 255, name: 'logo' })
     logo: string;
 
+    @Column({ type: 'varchar', length: 255, name: 'direction' })
+    direction: string;
+
     @Column({ type: 'boolean', name: 'active', default: true })
     active: boolean;
 }

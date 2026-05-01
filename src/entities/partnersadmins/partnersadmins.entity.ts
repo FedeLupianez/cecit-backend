@@ -1,6 +1,6 @@
 
 import { PartnersEntity } from 'src/entities/partners/partners.entity';
-import { Column, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class PartnersAdminsEntity {
@@ -8,7 +8,8 @@ export class PartnersAdminsEntity {
     id_p_admin: string;
 
     @ManyToOne(() => PartnersEntity)
-    id_partner: string;
+    @JoinColumn({ name: 'id_partner' })
+    partner: PartnersEntity;
 
     @Column({ type: 'varchar', length: 50, name: 'email' })
     email !: string;

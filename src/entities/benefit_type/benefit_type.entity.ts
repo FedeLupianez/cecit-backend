@@ -5,10 +5,10 @@ export class BenefitTypeEntity {
     @PrimaryGeneratedColumn()
     id_type!: number;
 
-    @Column({length: 50})
+    @Column({ type: 'varchar', length: 50 })
     name!: string;
 
-    @Column({default: true})
+    @Column({ type: 'boolean', default: true })
     active!: boolean;
 
 }

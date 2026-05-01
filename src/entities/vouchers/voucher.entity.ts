@@ -1,27 +1,31 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne, PrimaryColumn, JoinColumn } from 'typeorm';
 import { UsersEntity } from 'src/entities/users/users.entity';
 import { BenefitsEntity } from 'src/entities/benefits/benefits.entity';
 
+export enum VoucherStatus {
+    PENDING = 'PENDING',
+    DELIVERED = 'DELIVERED'
+}
+
 @Entity()
 export class VoucherEntity {
-    @PrimaryGeneratedColumn()
-    id_voucher: number
-
-    @ManyToOne(() => UsersEntity)
-    id_user: UsersEntity;
-
-    @ManyToOne(() => BenefitsEntity)
-    id_benefit: BenefitsEntity;
-
-    @Column({ type: 'varchar', length: 6 })
+    @PrimaryColumn({ type: 'varchar', length: 6 })
     token: string;
 
-    @Column()
-    application_date: Date;
+    @ManyToOne(() => UsersEntity)
+    @JoinColumn({ name: 'id_user' })
+    user: UsersEntity;
 
-    @Column({ default: null })
-    delibery_date: Date;
+    @ManyToOne(() => BenefitsEntity)
+    @JoinColumn({ name: 'id_benefit' })
+    benefit: BenefitsEntity;
 
-    @Column()
-    status: Enumerator;
+    @Column({ type: 'date' })
+    application_date: string;
+
+    @Column({ default: null, type: 'date' })
+    delivery_date: string;
+
+    @Column({ type: 'enum', enum: VoucherStatus, default: VoucherStatus.PENDING })
+    status: VoucherStatus;
 }

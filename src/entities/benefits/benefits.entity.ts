@@ -12,7 +12,7 @@ export enum BenefitStatus {
 @Entity('benefits')
 export class BenefitsEntity {
     @PrimaryColumn({ type: 'varchar', length: 4 })
-    id_benefit!: number;
+    id_benefit!: string;
 
     @ManyToOne(() => CecitAdminsEntity)
     @JoinColumn({ name: 'id_admin' })
@@ -26,18 +26,18 @@ export class BenefitsEntity {
     date_entered!: Date;
 
     @Column({ type: 'date' })
-    start_date!: Date;
+    start_date!: string;
 
     @Column({ type: 'date' })
-    end_date!: Date;
+    end_date!: string;
 
-    @Column({ length: 100 })
+    @Column({ type: 'varchar', length: 100 })
     image!: string;
 
-    @Column()
+    @Column({ type: 'varchar', length: 100 })
     title!: string
 
-    @Column({ length: 500 })
+    @Column({ type: 'varchar', length: 500 })
     description!: string
 
     @Column({ type: 'enum', enum: BenefitStatus, default: BenefitStatus.ACTIVE, })
@@ -47,7 +47,7 @@ export class BenefitsEntity {
     @JoinColumn({ name: 'id_type' })
     type!: BenefitTypeEntity;
 
-    @Column()
+    @Column({ type: 'int' })
     coupons!: number;
 
 }
