@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 
-@Entity()
+@Entity('CecitAdmins')
 export class CecitAdminsEntity {
     @PrimaryColumn({ type: 'varchar', length: 4 })
     id_c_admin: string;

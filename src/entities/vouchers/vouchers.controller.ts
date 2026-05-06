@@ -3,11 +3,11 @@
 */
 
 import { Controller, Get, Query } from "@nestjs/common";
-import { VoucherService } from "./voucher.service";
+import { VouchersService } from "./vouchers.service";
 
 @Controller('voucher')
-export class VoucherController {
-    constructor(private readonly voucherService: VoucherService) { };
+export class VouchersController {
+    constructor(private readonly voucherService: VouchersService) { };
 
     @Get('all')
     get_all() {

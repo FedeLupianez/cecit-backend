@@ -7,17 +7,17 @@ export enum VoucherStatus {
     DELIVERED = 'DELIVERED'
 }
 
-@Entity()
-export class VoucherEntity {
+@Entity('Vouchers')
+export class VouchersEntity {
     @PrimaryColumn({ type: 'varchar', length: 6 })
     token: string;
 
-    @ManyToOne(() => UsersEntity)
-    @JoinColumn({ name: 'id_user' })
+    @ManyToOne(() => UsersEntity, (user) => user.id_user)
+    @JoinColumn({ name: 'id_user', referencedColumnName: 'id_user' })
     user: UsersEntity;
 
-    @ManyToOne(() => BenefitsEntity)
-    @JoinColumn({ name: 'id_benefit' })
+    @ManyToOne(() => BenefitsEntity, (benefit) => benefit.id_benefit)
+    @JoinColumn({ name: 'id_benefit', referencedColumnName: 'id_benefit' })
     benefit: BenefitsEntity;
 
     @Column({ type: 'date' })

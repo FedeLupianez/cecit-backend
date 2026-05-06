@@ -9,17 +9,17 @@ export enum BenefitStatus {
     PENDING = 'PENDING',
 }
 
-@Entity('benefits')
+@Entity('Benefits')
 export class BenefitsEntity {
     @PrimaryColumn({ type: 'varchar', length: 4 })
     id_benefit!: string;
 
-    @ManyToOne(() => CecitAdminsEntity)
-    @JoinColumn({ name: 'id_admin' })
+    @ManyToOne(() => CecitAdminsEntity, (cecit_admin) => cecit_admin.id_c_admin)
+    @JoinColumn({ name: 'id_admin', referencedColumnName: 'id_c_admin' })
     admin: CecitAdminsEntity;
 
-    @ManyToOne(() => PartnersEntity)
-    @JoinColumn({ name: 'id_partner' })
+    @ManyToOne(() => PartnersEntity, (partner) => partner.id_partner)
+    @JoinColumn({ name: 'id_partner', referencedColumnName: 'id_partner' })
     partner: PartnersEntity;
 
     @Column({ type: 'date' })
@@ -43,8 +43,8 @@ export class BenefitsEntity {
     @Column({ type: 'enum', enum: BenefitStatus, default: BenefitStatus.ACTIVE, })
     status!: BenefitStatus;
 
-    @ManyToOne(() => BenefitTypeEntity)
-    @JoinColumn({ name: 'id_type' })
+    @ManyToOne(() => BenefitTypeEntity, (type) => type.id_type)
+    @JoinColumn({ name: 'id_type', referencedColumnName: 'id_type' })
     type!: BenefitTypeEntity;
 
     @Column({ type: 'int' })

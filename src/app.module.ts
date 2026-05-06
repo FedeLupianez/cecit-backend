@@ -30,9 +30,9 @@ import { CecitAdminsModule } from 'src/entities/cecit-admins/cecit-admins.module
 import { CecitAdminsController } from 'src/entities/cecit-admins/cecit-admins.controller';
 import { CecitAdminsService } from 'src/entities/cecit-admins/cecit-admins.service';
 
-import { VoucherModule } from 'src/entities/vouchers/voucher.module';
-import { VoucherController } from 'src/entities/vouchers/voucher.controller';
-import { VoucherService } from 'src/entities/vouchers/voucher.service';
+import { VouchersModule } from 'src/entities/vouchers/vouchers.module';
+import { VouchersController } from 'src/entities/vouchers/vouchers.controller';
+import { VouchersService } from 'src/entities/vouchers/vouchers.service';
 
 import { PartnersModule } from 'src/entities/partners/partners.module';
 import { PartnersService } from 'src/entities/partners/partners.service';
@@ -52,12 +52,12 @@ import { PartnersAdminsController } from 'src/entities/partnersadmins/partnersad
         BenefitsModule,
         BenefitTypeModule,
         CecitAdminsModule,
-        VoucherModule,
+        VouchersModule,
         PartnersModule,
         PartnersAdminsModule,
         PartnersCategoriesModule,
     ],
-    controllers: [AppController, UsersController, VoucherController, BenefitsController, BenefitTypeController, PartnersAdminsController, PartnersController, CecitAdminsController, PartnersCategoriesController, CategoriesController],
-    providers: [AppService, UsersService, BenefitTypeService, BenefitsService, VoucherService, PartnersAdminsService, PartnersService, CecitAdminsService, PartnersCategoriesService, CategoriesService]
+    controllers: [AppController, UsersController, VouchersController, BenefitsController, BenefitTypeController, PartnersAdminsController, PartnersController, CecitAdminsController, PartnersCategoriesController, CategoriesController],
+    providers: [AppService, UsersService, BenefitTypeService, BenefitsService, VouchersService, PartnersAdminsService, PartnersService, CecitAdminsService, PartnersCategoriesService, CategoriesService]
 })
 export class AppModule { }

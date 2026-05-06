@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-@Entity('benefit_type')
+@Entity('Benefit_Type')
 export class BenefitTypeEntity {
     @PrimaryGeneratedColumn()
     id_type!: number;

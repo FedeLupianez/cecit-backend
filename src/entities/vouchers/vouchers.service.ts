@@ -3,27 +3,27 @@
 * */
 
 import { Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
-import { VoucherResponseDTO } from "./voucher.dto";
+import { VouchersDTO } from "./vouchers.dto";
 import { InjectRepository } from "@nestjs/typeorm";
-import { VoucherEntity } from "./voucher.entity";
+import { VouchersEntity } from "./vouchers.entity";
 import { Repository } from "typeorm";
 
 @Injectable()
-export class VoucherService {
+export class VouchersService {
     constructor(
-        @InjectRepository(VoucherEntity)
-        private readonly voucherRepository: Repository<VoucherEntity>
+        @InjectRepository(VouchersEntity)
+        private readonly vouchersRepository: Repository<VouchersEntity>
     ) { };
 
-    async get_all(): Promise<VoucherResponseDTO[]> {
-        const vouchers = await this.voucherRepository.find();
+    async get_all(): Promise<VouchersDTO[]> {
+        const vouchers = await this.vouchersRepository.find();
         if (!vouchers)
             throw new InternalServerErrorException("Vouchers is empty");
         return vouchers;
     }
 
-    async get_by_user(id_user: number): Promise<VoucherResponseDTO[] | null> {
-        const vouchers = await this.voucherRepository.findBy({
+    async get_by_user(id_user: number): Promise<VouchersDTO[] | null> {
+        const vouchers = await this.vouchersRepository.findBy({
             id_user
         })
         if (!vouchers)
@@ -31,8 +31,8 @@ export class VoucherService {
         return vouchers;
     }
 
-    async get_by_benefit(id_benefit: number): Promise<VoucherResponseDTO[] | null> {
-        const vouchers = await this.voucherRepository.findBy({
+    async get_by_benefit(id_benefit: number): Promise<VouchersDTO[] | null> {
+        const vouchers = await this.vouchersRepository.findBy({
             id_benefit
         })
         if (!vouchers)
@@ -40,8 +40,8 @@ export class VoucherService {
         return vouchers;
     }
 
-    async get_by_token(token: string): Promise<VoucherResponseDTO | null> {
-        const voucher = await this.voucherRepository.findOneBy({
+    async get_by_token(token: string): Promise<VouchersDTO | null> {
+        const voucher = await this.vouchersRepository.findOneBy({
             token
         })
         if (!voucher)
@@ -49,8 +49,8 @@ export class VoucherService {
         return voucher;
     }
 
-    async get_by_status(status: Enumerator): Promise<VoucherResponseDTO[] | null> {
-        const vouchers = await this.voucherRepository.findBy({
+    async get_by_status(status: Enumerator): Promise<VouchersDTO[] | null> {
+        const vouchers = await this.vouchersRepository.findBy({
             status
         })
         if (!vouchers)
