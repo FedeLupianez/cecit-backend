@@ -1,3 +1,4 @@
+import "reflect-metadata"
 import { DataSource } from 'typeorm';
 import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -19,6 +20,7 @@ import { ConfigService } from '@nestjs/config';
                         password: config_service.get<string>('DB_PASSWORD'),
                         database: config_service.get<string>('DB_NAME'),
                         entities: [`${__dirname}/../**/**.entity{.ts,.js}`], // Carga las entidades de src
+                        migrations: ["src/migration/**/*.ts"]
                     });
                     await dataSource.initialize();
                     console.log('Database connected successfully');
