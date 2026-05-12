@@ -5,7 +5,7 @@
  * */
 
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { UsersDTO } from './users.dto';
+import { UsersDTO, UsersMapper } from './users.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersEntity } from './users.entity';
 import { Repository } from 'typeorm';
@@ -21,7 +21,9 @@ export class UsersService {
         const users = await this.userRepository.find();
         if (!users)
             throw new InternalServerErrorException('Users is empty');
-        return users;
+        // Cambio los usuarios al DTO
+        let users_list = users.map((u) => UsersMapper.toDTO(u));
+        return users_list;
     }
 
     async get_by_email(email: string): Promise<UsersDTO | null> {
@@ -30,6 +32,6 @@ export class UsersService {
         })
         if (!user)
             throw new NotFoundException(`User with email ${email} not found`);
-        return user;
+        return UsersMapper.toDTO(user);
     }
 }
