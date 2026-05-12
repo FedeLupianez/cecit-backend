@@ -3,7 +3,7 @@ import { BenefitsService } from './benefits.service';
 import { BenefitsController } from './benefits.controller';
 
 @Module({
-  providers: [BenefitsService],
-  controllers: [BenefitsController]
+    providers: [BenefitsService],
+    controllers: [BenefitsController]
 })
-export class BenefitsModule {}
+export class BenefitsModule { }

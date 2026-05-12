@@ -1,5 +1,5 @@
 
-import { PartnersEntity } from 'src/entities/partners/partners.entity';
+import { PartnersEntity } from '../partners/partners.entity';
 import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
 @Entity('PartnersAdmins')

@@ -1,6 +1,6 @@
 import { Entity, Column, ManyToOne, PrimaryColumn, JoinColumn, Index } from 'typeorm';
-import { UsersEntity } from 'src/entities/users/users.entity';
-import { BenefitsEntity } from 'src/entities/benefits/benefits.entity';
+import { UsersEntity } from '../users/users.entity';
+import { BenefitsEntity } from '../benefits/benefits.entity';
 
 export enum VoucherStatus {
     PENDING = 'PENDING',

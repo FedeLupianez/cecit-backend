@@ -5,46 +5,48 @@ import { TypeOrmModule } from './datasource/typeorm.module';
 import { ConfigModule } from '@nestjs/config';
 
 
-import { UsersModule } from 'src/entities/users/users.module';
-import { UsersController } from 'src/entities/users/users.controller';
-import { UsersService } from 'src/entities/users/users.service';
+import { UsersModule } from './entities/users/users.module';
+import { UsersController } from './entities/users/users.controller';
+import { UsersService } from './entities/users/users.service';
 
-import { BenefitsModule } from 'src/entities/benefits/benefits.module';
-import { BenefitsService } from 'src/entities/benefits/benefits.service';
-import { BenefitsController } from 'src/entities/benefits/benefits.controller';
+import { BenefitsModule } from './entities/benefits/benefits.module';
+import { BenefitsService } from './entities/benefits/benefits.service';
+import { BenefitsController } from './entities/benefits/benefits.controller';
 
-import { BenefitTypeModule } from 'src/entities/benefit_type/benefit_type.module';
-import { BenefitTypeService } from 'src/entities/benefit_type/benefit_type.service';
+import { BenefitTypeModule } from './entities/benefit_type/benefit_type.module';
+import { BenefitTypeService } from './entities/benefit_type/benefit_type.service';
 
-import { PartnersCategoriesModule } from 'src/entities/partners_categories/partners_categories.module';
-import { PartnersCategoriesController } from 'src/entities/partners_categories/partners_categories.controller';
-import { PartnersCategoriesService } from 'src/entities/partners_categories/partners_categories.service';
+import { PartnersCategoriesModule } from './entities/partners_categories/partners_categories.module';
+import { PartnersCategoriesController } from './entities/partners_categories/partners_categories.controller';
+import { PartnersCategoriesService } from './entities/partners_categories/partners_categories.service';
 
-import { CategoriesModule } from 'src/entities/categories/categories.module';
-import { CategoriesController } from 'src/entities/categories/categories.controller';
-import { CategoriesService } from 'src/entities/categories/categories.service';
+import { CategoriesModule } from './entities/categories/categories.module';
+import { CategoriesController } from './entities/categories/categories.controller';
+import { CategoriesService } from './entities/categories/categories.service';
 
-import { BenefitTypeController } from 'src/entities/benefit_type/benefit_type.controller';
+import { BenefitTypeController } from './entities/benefit_type/benefit_type.controller';
 
-import { CecitAdminsModule } from 'src/entities/cecit-admins/cecit-admins.module';
-import { CecitAdminsController } from 'src/entities/cecit-admins/cecit-admins.controller';
-import { CecitAdminsService } from 'src/entities/cecit-admins/cecit-admins.service';
+import { CecitAdminsModule } from './entities/cecit-admins/cecit-admins.module';
+import { CecitAdminsController } from './entities/cecit-admins/cecit-admins.controller';
+import { CecitAdminsService } from './entities/cecit-admins/cecit-admins.service';
 
-import { VouchersModule } from 'src/entities/vouchers/vouchers.module';
-import { VouchersController } from 'src/entities/vouchers/vouchers.controller';
-import { VouchersService } from 'src/entities/vouchers/vouchers.service';
+import { VouchersModule } from './entities/vouchers/vouchers.module';
+import { VouchersController } from './entities/vouchers/vouchers.controller';
+import { VouchersService } from './entities/vouchers/vouchers.service';
 
-import { PartnersModule } from 'src/entities/partners/partners.module';
-import { PartnersService } from 'src/entities/partners/partners.service';
-import { PartnersController } from 'src/entities/partners/partners.controller';
+import { PartnersModule } from './entities/partners/partners.module';
+import { PartnersService } from './entities/partners/partners.service';
+import { PartnersController } from './entities/partners/partners.controller';
 
-import { PartnersAdminsModule } from 'src/entities/partnersadmins/partnersadmins.module';
-import { PartnersAdminsService } from 'src/entities/partnersadmins/partnersadmins.service';
-import { PartnersAdminsController } from 'src/entities/partnersadmins/partnersadmins.controller';
-import { PaymentMethodsModule } from './payment-methods/payment-methods.module';
-import { PaymentBenefitController } from './payment_benefit/payment_benefit.controller';
-import { PaymentBenefitService } from './payment_benefit/payment_benefit.service';
-import { PaymentBenefitModule } from './payment_benefit/payment_benefit.module';
+import { PartnersAdminsModule } from './entities/partnersadmins/partnersadmins.module';
+import { PartnersAdminsService } from './entities/partnersadmins/partnersadmins.service';
+import { PartnersAdminsController } from './entities/partnersadmins/partnersadmins.controller';
+
+import { PaymentMethodsModule } from './entities/payment-methods/payment-methods.module';
+
+import { PaymentBenefitController } from './entities/payment_benefit/payment_benefit.controller';
+import { PaymentBenefitService } from './entities/payment_benefit/payment_benefit.service';
+import { PaymentBenefitModule } from './entities/payment_benefit/payment_benefit.module';
 
 @Module({
     imports: [

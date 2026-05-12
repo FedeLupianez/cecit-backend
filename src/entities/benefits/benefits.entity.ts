@@ -1,7 +1,7 @@
 import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn, Index } from 'typeorm';
-import { CecitAdminsEntity } from 'src/entities/cecit-admins/cecit-admins.entity';
-import { BenefitTypeEntity } from 'src/entities/benefit_type/benefit_type.entity';
-import { PartnersEntity } from 'src/entities/partners/partners.entity';
+import { CecitAdminsEntity } from '../cecit-admins/cecit-admins.entity';
+import { BenefitTypeEntity } from '../benefit_type/benefit_type.entity';
+import { PartnersEntity } from '../partners/partners.entity';
 
 export enum BenefitStatus {
     ACTIVE = 'ACTIVE',
