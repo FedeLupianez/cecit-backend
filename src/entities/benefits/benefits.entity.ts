@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn, Index } from 'typeorm';
 import { CecitAdminsEntity } from 'src/entities/cecit-admins/cecit-admins.entity';
 import { BenefitTypeEntity } from 'src/entities/benefit_type/benefit_type.entity';
 import { PartnersEntity } from 'src/entities/partners/partners.entity';
@@ -14,16 +14,24 @@ export class BenefitsEntity {
     @PrimaryColumn({ type: 'varchar', length: 4 })
     id_benefit!: string;
 
-    @ManyToOne(() => CecitAdminsEntity, (cecit_admin) => cecit_admin.id_c_admin)
+    @Index()
+    @Column({ type: 'varchar', length: 4 })
+    id_admin !: string;
+
+    @Index()
+    @Column({ type: 'varchar', length: 4 })
+    id_partner !: string;
+
+    @ManyToOne(() => CecitAdminsEntity, { nullable: false })
     @JoinColumn({ name: 'id_admin', referencedColumnName: 'id_c_admin' })
     admin: CecitAdminsEntity;
 
-    @ManyToOne(() => PartnersEntity, (partner) => partner.id_partner)
+    @ManyToOne(() => PartnersEntity, { nullable: false })
     @JoinColumn({ name: 'id_partner', referencedColumnName: 'id_partner' })
     partner: PartnersEntity;
 
     @Column({ type: 'date' })
-    date_entered!: Date;
+    date_entered!: string;
 
     @Column({ type: 'date' })
     start_date!: string;
@@ -43,7 +51,10 @@ export class BenefitsEntity {
     @Column({ type: 'enum', enum: BenefitStatus, default: BenefitStatus.ACTIVE, })
     status!: BenefitStatus;
 
-    @ManyToOne(() => BenefitTypeEntity, (type) => type.id_type)
+    @Column({ type: 'int' })
+    id_type: number;
+
+    @ManyToOne(() => BenefitTypeEntity, { nullable: false })
     @JoinColumn({ name: 'id_type', referencedColumnName: 'id_type' })
     type!: BenefitTypeEntity;
 

@@ -1,11 +1,12 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity('CecitAdmins')
 export class CecitAdminsEntity {
     @PrimaryColumn({ type: 'varchar', length: 4 })
     id_c_admin: string;
 
-    @Column({ type: 'varchar', length: 50 })
+    @Index()
+    @Column({ type: 'varchar', length: 50, name: 'email' })
     email: string;
 
     @Column({ type: 'varchar', length: 255 })

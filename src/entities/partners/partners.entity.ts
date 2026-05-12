@@ -1,7 +1,7 @@
 
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 
-@Entity()
+@Entity('Partners')
 export class PartnersEntity {
     @PrimaryColumn({ type: 'varchar', length: 4, name: 'id_partner' })
     id_partner: string;

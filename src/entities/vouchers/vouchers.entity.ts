@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, PrimaryColumn, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, PrimaryColumn, JoinColumn, Index } from 'typeorm';
 import { UsersEntity } from 'src/entities/users/users.entity';
 import { BenefitsEntity } from 'src/entities/benefits/benefits.entity';
 
@@ -12,11 +12,19 @@ export class VouchersEntity {
     @PrimaryColumn({ type: 'varchar', length: 6 })
     token: string;
 
-    @ManyToOne(() => UsersEntity, (user) => user.id_user)
+    @Index()
+    @Column({ type: 'varchar', length: 4 })
+    id_user !: string;
+
+    @Index()
+    @Column({ type: 'varchar', length: 4 })
+    id_benefit !: string;
+
+    @ManyToOne(() => UsersEntity, { nullable: false })
     @JoinColumn({ name: 'id_user', referencedColumnName: 'id_user' })
     user: UsersEntity;
 
-    @ManyToOne(() => BenefitsEntity, (benefit) => benefit.id_benefit)
+    @ManyToOne(() => BenefitsEntity, { nullable: false })
     @JoinColumn({ name: 'id_benefit', referencedColumnName: 'id_benefit' })
     benefit: BenefitsEntity;
 
