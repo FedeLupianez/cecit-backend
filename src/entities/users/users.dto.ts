@@ -15,6 +15,12 @@ export interface UsersDTO {
     last_activity: string;
 }
 
+export interface UsersCreateDTO {
+    id_user: string;
+    email: string;
+    password: string;
+}
+
 export class UsersMapper {
     static toDTO(user: UsersEntity): UsersDTO {
         return {

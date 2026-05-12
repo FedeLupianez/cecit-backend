@@ -17,8 +17,9 @@
  * y retornamos.
  * */
 
-import { Controller, Get, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { UsersMapper, type UsersCreateDTO } from './users.dto';
 
 @Controller('user')
 export class UsersController {
@@ -33,5 +34,12 @@ export class UsersController {
     @Get('byemail')
     get_by_email(@Query('email') email: string) {
         return this.userService.get_by_email(email);
+    }
+
+    @Post()
+    async create(@Body() user: UsersCreateDTO) {
+        const new_user = await this.userService.create(user);
+        return UsersMapper.toDTO(new_user);
+
     }
 }

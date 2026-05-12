@@ -5,7 +5,7 @@
  * */
 
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { UsersDTO, UsersMapper } from './users.dto';
+import { UsersCreateDTO, UsersDTO, UsersMapper } from './users.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersEntity } from './users.entity';
 import { Repository } from 'typeorm';
@@ -14,7 +14,7 @@ import { Repository } from 'typeorm';
 export class UsersService {
     constructor(
         @InjectRepository(UsersEntity)
-        private readonly userRepository: Repository<UsersEntity>
+        private readonly userRepository: Repository<UsersEntity>,
     ) { };
 
     async get_all(): Promise<UsersDTO[]> {
@@ -33,5 +33,18 @@ export class UsersService {
         if (!user)
             throw new NotFoundException(`User with email ${email} not found`);
         return UsersMapper.toDTO(user);
+    }
+
+    async create(user: UsersCreateDTO) {
+        const partner: UsersEntity | null = await this.userRepository.findOneBy({ id_user: user.id_user })
+
+        if (!partner) {
+            throw new NotFoundException('El usuario no es socio');
+        }
+
+        partner.email = user.email;
+        // Falta encriptar la contraseña, en otra feature se agrega
+        partner.password = user.password;
+        return await this.userRepository.save(partner);
     }
 }
