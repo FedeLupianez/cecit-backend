@@ -11,11 +11,11 @@ export class PartnersCategoriesEntity {
     @PrimaryColumn({ type: 'int', name: 'id_category' })
     id_category: number;
 
-    @ManyToOne(() => PartnersEntity)
-    @JoinColumn({ name: 'id_partner' })
+    @ManyToOne(() => PartnersEntity, { nullable: false })
+    @JoinColumn({ name: 'id_partner', referencedColumnName: 'id_partner' })
     partner: PartnersEntity;
 
-    @ManyToOne(() => CategoriesEntity)
-    @JoinColumn({ name: 'id_category' })
+    @ManyToOne(() => CategoriesEntity, { nullable: false })
+    @JoinColumn({ name: 'id_category', referencedColumnName: 'id_category' })
     category: CategoriesEntity;
 }

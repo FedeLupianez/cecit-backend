@@ -41,6 +41,10 @@ import { PartnersController } from 'src/entities/partners/partners.controller';
 import { PartnersAdminsModule } from 'src/entities/partnersadmins/partnersadmins.module';
 import { PartnersAdminsService } from 'src/entities/partnersadmins/partnersadmins.service';
 import { PartnersAdminsController } from 'src/entities/partnersadmins/partnersadmins.controller';
+import { PaymentMethodsModule } from './payment-methods/payment-methods.module';
+import { PaymentBenefitController } from './payment_benefit/payment_benefit.controller';
+import { PaymentBenefitService } from './payment_benefit/payment_benefit.service';
+import { PaymentBenefitModule } from './payment_benefit/payment_benefit.module';
 
 @Module({
     imports: [
@@ -56,8 +60,10 @@ import { PartnersAdminsController } from 'src/entities/partnersadmins/partnersad
         PartnersModule,
         PartnersAdminsModule,
         PartnersCategoriesModule,
+        PaymentMethodsModule,
+        PaymentBenefitModule,
     ],
-    controllers: [AppController, UsersController, VouchersController, BenefitsController, BenefitTypeController, PartnersAdminsController, PartnersController, CecitAdminsController, PartnersCategoriesController, CategoriesController],
-    providers: [AppService, UsersService, BenefitTypeService, BenefitsService, VouchersService, PartnersAdminsService, PartnersService, CecitAdminsService, PartnersCategoriesService, CategoriesService]
+    controllers: [AppController, UsersController, VouchersController, BenefitsController, BenefitTypeController, PartnersAdminsController, PartnersController, CecitAdminsController, PartnersCategoriesController, CategoriesController, PaymentBenefitController],
+    providers: [AppService, UsersService, BenefitTypeService, BenefitsService, VouchersService, PartnersAdminsService, PartnersService, CecitAdminsService, PartnersCategoriesService, CategoriesService, PaymentBenefitService]
 })
 export class AppModule { }
