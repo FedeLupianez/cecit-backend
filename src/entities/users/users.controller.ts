@@ -17,9 +17,9 @@
  * y retornamos.
  * */
 
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UsersMapper, type UsersCreateDTO } from './users.dto';
+import { UsersMapper, type UsersCreateDTO, type UsersDeleteDTO } from './users.dto';
 
 @Controller('user')
 export class UsersController {
@@ -40,6 +40,13 @@ export class UsersController {
     async create(@Body() user: UsersCreateDTO) {
         const new_user = await this.userService.create(user);
         return UsersMapper.toDTO(new_user);
+    }
 
+    @Delete()
+    async delete(@Body() user: UsersDeleteDTO) {
+        const result = await this.userService.delete(user);
+        if (!result)
+            return { result: 'error' }
+        return { result: 'ok' }
     }
 }

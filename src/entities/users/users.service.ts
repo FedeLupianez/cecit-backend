@@ -4,17 +4,19 @@
  * que se ajusten a estos.
  * */
 
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { UsersCreateDTO, UsersDTO, UsersMapper } from './users.dto';
+import { Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { UsersCreateDTO, UsersDeleteDTO, UsersDTO, UsersMapper } from './users.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersEntity } from './users.entity';
 import { Repository } from 'typeorm';
+import { DbService } from 'src/common/database/db.service';
 
 @Injectable()
 export class UsersService {
     constructor(
         @InjectRepository(UsersEntity)
         private readonly userRepository: Repository<UsersEntity>,
+        @Inject() private readonly db_service: DbService
     ) { };
 
     async get_all(): Promise<UsersDTO[]> {
@@ -38,6 +40,8 @@ export class UsersService {
     async create(user: UsersCreateDTO) {
         const partner: UsersEntity | null = await this.userRepository.findOneBy({ id_user: user.id_user })
 
+        const new_id = this.db_service.gen_new_id('Users', 'id_user');
+
         if (!partner) {
             throw new NotFoundException('El usuario no es socio');
         }
@@ -46,5 +50,13 @@ export class UsersService {
         // Falta encriptar la contraseña, en otra feature se agrega
         partner.password = user.password;
         return await this.userRepository.save(partner);
+    }
+
+    async delete(user: UsersDeleteDTO): Promise<boolean> {
+        const result = await this.userRepository.delete({ id_user: user.id_user })
+        if (!result) {
+            throw new NotFoundException('El usuario que se quiere borrar no fué encontrado')
+        }
+        return true;
     }
 }
