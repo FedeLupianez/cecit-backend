@@ -4,19 +4,18 @@
  * que se ajusten a estos.
  * */
 
-import { BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { UsersCreateDTO, UsersDeleteDTO, UsersDTO, UsersMapper } from './users.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersEntity } from './users.entity';
 import { Repository } from 'typeorm';
-import { DbService } from 'src/common/database/db.service';
+import { hash } from 'argon2';
 
 @Injectable()
 export class UsersService {
     constructor(
         @InjectRepository(UsersEntity)
         private readonly userRepository: Repository<UsersEntity>,
-        @Inject() private readonly db_service: DbService
     ) { };
 
     async get_by_user_id(partner_id: string): Promise<UsersDTO> {
@@ -36,13 +35,13 @@ export class UsersService {
         return users_list;
     }
 
-    async get_by_email(email: string): Promise<UsersDTO | null> {
+    async get_by_email(email: string): Promise<UsersEntity> {
         const user = await this.userRepository.findOneBy({
             email
         })
         if (!user)
             throw new NotFoundException(`User with email ${email} not found`);
-        return UsersMapper.toDTO(user);
+        return user;
     }
 
     async create(user: UsersCreateDTO) {
@@ -56,7 +55,7 @@ export class UsersService {
         }
         partner.email = user.email;
         // Falta encriptar la contraseña, en otra feature se agrega
-        partner.password = user.password;
+        partner.password = await hash(user.password);
         return await this.userRepository.save(partner);
     }
 

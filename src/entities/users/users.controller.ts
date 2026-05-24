@@ -17,7 +17,7 @@
  * y retornamos.
  * */
 
-import { Body, Controller, Delete, Get, NotFoundException, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersMapper } from './users.dto';
 import type { UsersCreateDTO, UsersDeleteDTO, UserLoginDTO } from './users.dto';
@@ -39,11 +39,7 @@ export class UsersController {
 
     @Post()
     async login(@Body() user_login: UserLoginDTO) {
-        const user = await this.userService.get_by_email(user_login.email);
-        if (!user) {
-            throw new NotFoundException('User does not exists')
-        }
-        return user;
+
     }
 
     @Post()
