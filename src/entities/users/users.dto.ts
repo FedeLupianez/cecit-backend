@@ -23,7 +23,6 @@ export interface UsersCreateDTO {
 
 export interface UsersDeleteDTO {
     id_user: string;
-    token: string;
 }
 
 export interface UserLoginDTO {

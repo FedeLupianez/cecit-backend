@@ -1,24 +1,42 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from 'src/entities/users/users.service';
-import { verify } from 'argon2';
 import { UserLoginDTO } from 'src/entities/users/users.dto';
+import { verify } from 'argon2';
+import { type UsersEntity } from 'src/entities/users/users.entity';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-    constructor(private readonly userService: UsersService) { }
+    constructor(private readonly userService: UsersService, private readonly jwtService: JwtService) { }
 
-    async singIn(user_login: UserLoginDTO): Promise<string> {
-        const user = await this.userService.get_by_email(user_login.email);
-        if (!user) {
-            throw new NotFoundException('User not found');
-        }
+    async validateUser(email: string, passwd: string): Promise<UsersEntity | null> {
+        const user = await this.userService.get_by_email(email);
 
-        if (!verify(user.password, user_login.password)) {
-            throw new UnauthorizedException();
+        if (!user)
+            return null;
+
+        const passwordValid = await verify(user.password, passwd);
+
+        if (!passwordValid)
+            return null;
+        return user;
+    }
+
+
+    async login(user_login: UserLoginDTO): Promise<Record<string, string>> {
+        const user = await this.validateUser(user_login.email, user_login.password);
+        if (!user)
+            throw new UnauthorizedException('Invalid Credentials');
+
+        const payload = {
+            sub: user.id_user,
+            email: user.email,
+            jti: randomUUID()
         }
-        // TODO: Create JWT
-        const token = `${user.id_user}-${user.dni}`
-        return token;
+        return {
+            access_token: this.jwtService.sign(payload),
+        }
     }
 
 }

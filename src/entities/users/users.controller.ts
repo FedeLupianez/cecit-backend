@@ -17,24 +17,33 @@
  * y retornamos.
  * */
 
-import { Body, Controller, Delete, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersMapper } from './users.dto';
-import type { UsersCreateDTO, UsersDeleteDTO } from './users.dto';
+import type { UsersCreateDTO, UsersDeleteDTO, UsersDTO } from './users.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('user')
 export class UsersController {
     constructor(private readonly userService: UsersService) { };
 
+    @Get('profile')
+    @UseGuards(AuthGuard('jwt'))
+    profile(@Req() request) {
+        return request.user;
+    }
+
     @Get('all')
+    @UseGuards(AuthGuard('jwt'))
     get_all() {
         // Se llama al service para obtener los registrost 
         return this.userService.get_all();
     }
 
     @Get('byemail')
-    get_by_email(@Query('email') email: string) {
-        return this.userService.get_by_email(email);
+    async get_by_email(@Query('email') email: string): Promise<UsersDTO> {
+        const user = await this.userService.get_by_email(email);
+        return UsersMapper.toDTO(user);
     }
 
     @Post()
@@ -44,6 +53,7 @@ export class UsersController {
     }
 
     @Delete()
+    @UseGuards(AuthGuard('jwt'))
     async delete(@Body() user: UsersDeleteDTO) {
         const result = await this.userService.delete(user);
         if (!result)
