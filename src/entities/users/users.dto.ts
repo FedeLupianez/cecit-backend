@@ -26,6 +26,11 @@ export interface UsersDeleteDTO {
     token: string;
 }
 
+export interface UserLoginDTO {
+    email: string;
+    password: string;
+}
+
 export class UsersMapper {
     static toDTO(user: UsersEntity): UsersDTO {
         return {

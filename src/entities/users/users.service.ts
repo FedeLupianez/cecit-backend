@@ -4,7 +4,7 @@
  * que se ajusten a estos.
  * */
 
-import { Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { UsersCreateDTO, UsersDeleteDTO, UsersDTO, UsersMapper } from './users.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersEntity } from './users.entity';
@@ -18,6 +18,14 @@ export class UsersService {
         private readonly userRepository: Repository<UsersEntity>,
         @Inject() private readonly db_service: DbService
     ) { };
+
+    async get_by_user_id(partner_id: string): Promise<UsersDTO> {
+        const user = await this.userRepository.findOneBy({ id_user: partner_id })
+        if (!user) {
+            throw new NotFoundException(`User does not exists`);
+        }
+        return UsersMapper.toDTO(user);
+    }
 
     async get_all(): Promise<UsersDTO[]> {
         const users = await this.userRepository.find();
@@ -38,14 +46,14 @@ export class UsersService {
     }
 
     async create(user: UsersCreateDTO) {
-        const partner: UsersEntity | null = await this.userRepository.findOneBy({ id_user: user.id_user })
-
-        const new_id = this.db_service.gen_new_id('Users', 'id_user');
+        const partner = await this.userRepository.findOneBy({ id_user: user.id_user });
 
         if (!partner) {
             throw new NotFoundException('El usuario no es socio');
         }
-
+        if (partner.email) {
+            throw new BadRequestException('The user already exists');
+        }
         partner.email = user.email;
         // Falta encriptar la contraseña, en otra feature se agrega
         partner.password = user.password;
