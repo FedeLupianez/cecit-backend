@@ -20,7 +20,7 @@
 import { Body, Controller, Delete, Get, Post, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersMapper } from './users.dto';
-import type { UsersCreateDTO, UsersDeleteDTO, UserLoginDTO } from './users.dto';
+import type { UsersCreateDTO, UsersDeleteDTO } from './users.dto';
 
 @Controller('user')
 export class UsersController {
@@ -35,11 +35,6 @@ export class UsersController {
     @Get('byemail')
     get_by_email(@Query('email') email: string) {
         return this.userService.get_by_email(email);
-    }
-
-    @Post()
-    async login(@Body() user_login: UserLoginDTO) {
-
     }
 
     @Post()

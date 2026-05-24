@@ -30,6 +30,8 @@
     "@nestjs/typeorm": "^11.0.1",
     "argon2": "^0.44.0",
     "mysql2": "^3.20.0",
+    "nest": "^0.1.6",
+    "nest-cli": "^0.0.5",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },

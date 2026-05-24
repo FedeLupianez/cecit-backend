@@ -47,6 +47,7 @@ import { PaymentMethodsModule } from './entities/payment-methods/payment-methods
 import { PaymentBenefitController } from './entities/payment_benefit/payment_benefit.controller';
 import { PaymentBenefitService } from './entities/payment_benefit/payment_benefit.service';
 import { PaymentBenefitModule } from './entities/payment_benefit/payment_benefit.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
     imports: [
@@ -64,6 +65,7 @@ import { PaymentBenefitModule } from './entities/payment_benefit/payment_benefit
         PartnersCategoriesModule,
         PaymentMethodsModule,
         PaymentBenefitModule,
+        AuthModule,
     ],
     controllers: [AppController, UsersController, VouchersController, BenefitsController, BenefitTypeController, PartnersAdminsController, PartnersController, CecitAdminsController, PartnersCategoriesController, CategoriesController, PaymentBenefitController],
     providers: [AppService, UsersService, BenefitTypeService, BenefitsService, VouchersService, PartnersAdminsService, PartnersService, CecitAdminsService, PartnersCategoriesService, CategoriesService, PaymentBenefitService]
