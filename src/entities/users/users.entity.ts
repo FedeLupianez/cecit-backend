@@ -10,10 +10,10 @@ export class UsersEntity {
     id_user: string;
 
     @Index()
-    @Column({ length: 50, type: 'varchar', name: 'email' })
+    @Column({ length: 50, type: 'varchar', name: 'email', nullable: true })
     email: string;
 
-    @Column({ length: 255, type: 'varchar', name: 'password' })
+    @Column({ length: 255, type: 'varchar', name: 'password', nullable: true })
     password: string;
 
     @Column({ length: 50, type: 'varchar', name: 'name' })
@@ -26,7 +26,7 @@ export class UsersEntity {
     @Column({ length: 8, type: 'varchar', name: 'dni' })
     dni: string;
 
-    @Column({ type: 'date' })
+    @Column({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP" })
     last_activity: string;
 
     @Column({ type: 'boolean', default: true })

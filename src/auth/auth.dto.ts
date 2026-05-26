@@ -3,3 +3,7 @@ export interface jwt_payload {
     email: string;
     jti?: string;
 }
+
+export interface RefreshTokenDTO {
+    refresh_token: string;
+}
