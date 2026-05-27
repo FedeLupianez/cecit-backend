@@ -9,6 +9,9 @@ export class CategoriesEntity {
     @Column({ name: 'name', type: 'varchar', length: 50 })
     name: string;
 
+    @Column({ name: 'icon_url', type: 'varchar', length: 255 })
+    icon_url: string;
+
     @Column({ default: true })
     active: boolean;
 }
