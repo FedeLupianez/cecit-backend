@@ -45,18 +45,20 @@ export class UsersService {
     }
 
     async create(user: UsersCreateDTO) {
-        const partner = await this.userRepository.findOneBy({ id_user: user.id_user });
-
-        if (!partner) {
+        if (!user.email || !user.password) {
+            throw new BadRequestException('Email or password can not be empty');
+        }
+        const new_user = await this.userRepository.findOneBy({ id_user: user.id_user });
+        if (!new_user) {
             throw new NotFoundException('El usuario no es socio');
         }
-        if (partner.email) {
+        if (new_user.email) {
             throw new BadRequestException('The user already exists');
         }
-        partner.email = user.email;
-        // Falta encriptar la contraseña, en otra feature se agrega
-        partner.password = await hash(user.password);
-        return await this.userRepository.save(partner);
+        new_user.email = user.email;
+        new_user.password = await hash(user.password);
+        await this.userRepository.save(new_user);
+        return new_user;
     }
 
     async delete(user: UsersDeleteDTO): Promise<boolean> {

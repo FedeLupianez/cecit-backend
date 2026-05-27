@@ -20,7 +20,7 @@
 import { Body, Controller, Delete, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersMapper } from './users.dto';
-import type { UsersCreateDTO, UsersDeleteDTO, UsersDTO } from './users.dto';
+import type { UsersDeleteDTO, UsersDTO } from './users.dto';
 import { AuthGuard } from '@nestjs/passport';
 
 @Controller('user')
@@ -46,11 +46,6 @@ export class UsersController {
         return UsersMapper.toDTO(user);
     }
 
-    @Post()
-    async create(@Body() user: UsersCreateDTO) {
-        const new_user = await this.userService.create(user);
-        return UsersMapper.toDTO(new_user);
-    }
 
     @Delete()
     @UseGuards(AuthGuard('jwt'))

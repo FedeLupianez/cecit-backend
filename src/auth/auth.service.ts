@@ -1,14 +1,14 @@
 import { randomUUID } from 'node:crypto';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from 'src/entities/users/users.service';
-import { UserLoginDTO } from 'src/entities/users/users.dto';
+import { UserLoginDTO, UsersCreateDTO } from 'src/entities/users/users.dto';
 import { hash, verify } from 'argon2';
 import { type UsersEntity } from 'src/entities/users/users.entity';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RefreshTokenEntity } from '../entities/refresh-token.entity';
 import { Repository } from 'typeorm';
-import type { RefreshTokenDTO } from './auth.dto';
+import { type RefreshTokenDTO } from './auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -19,17 +19,22 @@ export class AuthService {
         private readonly refreshTokenRepo: Repository<RefreshTokenEntity>,
     ) { }
 
-    async validateUser(email: string, passwd: string): Promise<UsersEntity | null> {
+    async validateUser(email: string, passwd: string): Promise<UsersEntity> {
         const user = await this.userService.get_by_email(email);
 
         if (!user)
-            return null;
+            throw new BadRequestException('User not found');
 
         const passwordValid = await verify(user.password, passwd);
 
         if (!passwordValid)
-            return null;
+            throw new BadRequestException('Passoword does not match')
         return user;
+    }
+
+    async register(user: UsersCreateDTO) {
+        const new_user = await this.userService.create(user);
+        return this.login({ email: new_user.email, password: user.password });
     }
 
     async login(user_login: UserLoginDTO): Promise<Record<string, string>> {
