@@ -45,8 +45,8 @@ export class UsersService {
     }
 
     async create(user: UsersCreateDTO) {
-        if (!user.email || !user.password) {
-            throw new BadRequestException('Email or password can not be empty');
+        if (!user.email || !user.password || !user.id_user) {
+            throw new BadRequestException('Data incomplete');
         }
         const new_user = await this.userRepository.findOneBy({ id_user: user.id_user });
         if (!new_user) {
