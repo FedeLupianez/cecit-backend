@@ -58,6 +58,9 @@ export class BenefitsEntity {
     @JoinColumn({ name: 'id_type', referencedColumnName: 'id_type' })
     type!: BenefitTypeEntity;
 
+    @Column({ type: 'int', name: 'max_cupouns' })
+    max_cupouns!: number;
+
     @Column({ type: 'int' })
     coupons!: number;
 
