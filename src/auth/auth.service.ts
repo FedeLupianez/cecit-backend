@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from 'src/entities/users/users.service';
 import { UserLoginDTO, UsersCreateDTO } from 'src/entities/users/users.dto';
 import { hash, verify } from 'argon2';
@@ -9,6 +9,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { RefreshTokenEntity } from '../entities/refresh-token.entity';
 import { Repository } from 'typeorm';
 import { type RefreshTokenDTO } from './auth.dto';
+
+export interface TokensInterface {
+    access_token: string;
+    refresh_token: string;
+}
 
 @Injectable()
 export class AuthService {
@@ -28,16 +33,32 @@ export class AuthService {
         const passwordValid = await verify(user.password, passwd);
 
         if (!passwordValid)
-            throw new BadRequestException('Passoword does not match')
+            throw new BadRequestException('Password does not match')
         return user;
     }
 
-    async register(user: UsersCreateDTO) {
+    async validateRefreshToken(token: string): Promise<boolean> {
+        const hashed = await hash(token);
+        const stored = await this.refreshTokenRepo.findOneBy({ token_hash: hashed });
+        if (!stored) {
+            throw new NotFoundException('Refresh token not found');
+        }
+        if (stored.revoked) {
+            throw new UnauthorizedException('Refresh token revoked');
+        }
+        const expires_at: Date = new Date(stored.expires_at);
+        if (expires_at.getTime() >= Date.now()) {
+            throw new UnauthorizedException('Refresh token expired');
+        }
+        return true;
+    }
+
+    async register(user: UsersCreateDTO): Promise<TokensInterface> {
         const new_user = await this.userService.create(user);
         return this.login({ email: new_user.email, password: user.password });
     }
 
-    async login(user_login: UserLoginDTO): Promise<Record<string, string>> {
+    async login(user_login: UserLoginDTO): Promise<TokensInterface> {
         const user = await this.validateUser(user_login.email, user_login.password);
         if (!user)
             throw new UnauthorizedException('Invalid Credentials');
@@ -53,7 +74,7 @@ export class AuthService {
         }
     }
 
-    async refresh(refreshDto: RefreshTokenDTO): Promise<Record<string, string>> {
+    async refresh(refreshDto: RefreshTokenDTO): Promise<TokensInterface> {
         const tokenHash = await hash(refreshDto.refresh_token);
 
         const stored = await this.refreshTokenRepo.findOne({
@@ -62,12 +83,12 @@ export class AuthService {
 
         if (!stored || stored.expires_at < new Date()) {
             if (stored) {
-                await this.refreshTokenRepo.update(stored.id, { revoked: true });
+                await this.refreshTokenRepo.update(stored.id_token, { revoked: true });
             }
             throw new UnauthorizedException('Invalid or expired refresh token');
         }
 
-        await this.refreshTokenRepo.update(stored.id, { revoked: true });
+        await this.refreshTokenRepo.update(stored.id_token, { revoked: true });
 
         const payload = {
             sub: stored.user_id,
