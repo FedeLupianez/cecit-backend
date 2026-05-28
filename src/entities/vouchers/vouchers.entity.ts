@@ -4,13 +4,14 @@ import { BenefitsEntity } from '../benefits/benefits.entity';
 
 export enum VoucherStatus {
     PENDING = 'PENDING',
-    DELIVERED = 'DELIVERED'
+    DELIVERED = 'DELIVERED',
+    EXPIRED = 'EXPIRED'
 }
 
 @Entity('Vouchers')
 export class VouchersEntity {
     @PrimaryColumn({ type: 'varchar', length: 6 })
-    token: string;
+    token !: string;
 
     @Index()
     @Column({ type: 'varchar', length: 4 })
@@ -22,18 +23,18 @@ export class VouchersEntity {
 
     @ManyToOne(() => UsersEntity, { nullable: false })
     @JoinColumn({ name: 'id_user', referencedColumnName: 'id_user' })
-    user: UsersEntity;
+    user !: UsersEntity;
 
     @ManyToOne(() => BenefitsEntity, { nullable: false })
     @JoinColumn({ name: 'id_benefit', referencedColumnName: 'id_benefit' })
-    benefit: BenefitsEntity;
+    benefit !: BenefitsEntity;
 
     @Column({ type: 'date' })
-    application_date: string;
+    application_date !: string;
 
     @Column({ default: null, type: 'date' })
-    delivery_date: string;
+    delibery_date !: string;
 
     @Column({ type: 'enum', enum: VoucherStatus, default: VoucherStatus.PENDING })
-    status: VoucherStatus;
+    status !: VoucherStatus;
 }
