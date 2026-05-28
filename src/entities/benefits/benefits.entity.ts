@@ -12,7 +12,7 @@ export enum BenefitStatus {
 @Entity('Benefits')
 export class BenefitsEntity {
     @PrimaryColumn({ type: 'varchar', length: 4 })
-    id_benefit!: string;
+    id_benefit !: string;
 
     @Index()
     @Column({ type: 'varchar', length: 4 })
@@ -24,42 +24,43 @@ export class BenefitsEntity {
 
     @ManyToOne(() => CecitAdminsEntity, { nullable: false })
     @JoinColumn({ name: 'id_admin', referencedColumnName: 'id_c_admin' })
-    admin: CecitAdminsEntity;
+    admin !: CecitAdminsEntity; 
 
     @ManyToOne(() => PartnersEntity, { nullable: false })
     @JoinColumn({ name: 'id_partner', referencedColumnName: 'id_partner' })
-    partner: PartnersEntity;
+    partner !: PartnersEntity;
 
     @Column({ type: 'date' })
-    date_entered!: string;
+    date_entered !: string;
 
     @Column({ type: 'date' })
-    start_date!: string;
+    start_date !: string;
 
     @Column({ type: 'date' })
-    end_date!: string;
+    end_date !: string;
 
     @Column({ type: 'varchar', length: 100 })
-    image!: string;
+    image !: string;
 
     @Column({ type: 'varchar', length: 100 })
-    title!: string
+    title !: string
 
     @Column({ type: 'varchar', length: 500 })
-    description!: string
+    description !: string
 
     @Column({ type: 'enum', enum: BenefitStatus, default: BenefitStatus.ACTIVE, })
-    status!: BenefitStatus;
+    status !: BenefitStatus;
 
-    @Column({ type: 'int' })
-    id_type: number;
+    @Index()
+    @Column({ type: 'varchar', length: 4 })
+    id_type !: string;
 
     @ManyToOne(() => BenefitTypeEntity, { nullable: false })
     @JoinColumn({ name: 'id_type', referencedColumnName: 'id_type' })
-    type!: BenefitTypeEntity;
+    type !: BenefitTypeEntity;
 
     @Column({ type: 'int' })
-    coupons!: number;
+    coupons !: number;
 
 }
 
