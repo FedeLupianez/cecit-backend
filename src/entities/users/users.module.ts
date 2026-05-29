@@ -6,15 +6,15 @@
 
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { UserEntity } from './user.entity';
-import { UserController } from './user.controller';
-import { UserService } from './user.service';
+import { UsersEntity } from './users.entity';
+import { UsersController } from './users.controller';
+import { UsersService } from './users.service';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([UserEntity])],
-    controllers: [UserController],
-    providers: [UserService],
-    exports: [UserService]
+    imports: [TypeOrmModule.forFeature([UsersEntity])],
+    controllers: [UsersController],
+    providers: [UsersService],
+    exports: [UsersService]
     // Ejemplo: Si se debe buscar el usuario que generó un beneficio desde la parte de Benefit, se necesita el Service de User.
 })
-export class UserModule { }
+export class UsersModule { }

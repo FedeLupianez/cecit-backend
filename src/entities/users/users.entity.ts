@@ -2,17 +2,18 @@
  * En los archivos .entity.ts se define la
  * estructura de la tabla
  * */
-import { Entity, Column, PrimaryColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 
-@Entity()
-export class UserEntity {
-    @PrimaryColumn({ length: 36, type: 'varchar', name: 'uuid' })
-    uuid: string;
+@Entity('Users')
+export class UsersEntity {
+    @PrimaryColumn({ length: 4, type: 'varchar', name: 'id_user' })
+    id_user: string;
 
-    @Column({ length: 50, type: 'varchar', name: 'email' })
+    @Index()
+    @Column({ length: 50, type: 'varchar', name: 'email', nullable: true })
     email: string;
 
-    @Column({ length: 255, type: 'varchar', name: 'password' })
+    @Column({ length: 255, type: 'varchar', name: 'password', nullable: true })
     password: string;
 
     @Column({ length: 50, type: 'varchar', name: 'name' })
@@ -21,10 +22,11 @@ export class UserEntity {
     @Column({ length: 50, type: 'varchar', name: 'lastname' })
     lastname: string;
 
+    @Index()
     @Column({ length: 8, type: 'varchar', name: 'dni' })
     dni: string;
 
-    @Column({ type: 'date' })
+    @Column({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP" })
     last_activity: string;
 
     @Column({ type: 'boolean', default: true })
