@@ -1,18 +1,17 @@
 import { BenefitTypeEntity } from "./benefit_type.entity";
 
 export interface BenefitTypeDTO {
-    id_type: string;
+    id_type: number;
     name: string;
 }
 
 export interface BenefitTypeCreateDTO {
-    id_type: string;
     name: string;
     active: boolean;
 }
 
 export interface BenefitTypeDeleteDTO {
-    id_type: string
+    id_type: number;
 }
 
 export class BenefitTypeMapper {

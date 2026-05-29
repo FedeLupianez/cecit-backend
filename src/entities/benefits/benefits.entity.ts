@@ -14,21 +14,13 @@ export class BenefitsEntity {
     @PrimaryColumn({ type: 'varchar', length: 4 })
     id_benefit !: string;
 
-    @Index()
-    @Column({ type: 'varchar', length: 4 })
-    id_admin !: string;
-
-    @Index()
-    @Column({ type: 'varchar', length: 4 })
-    id_partner !: string;
-
     @ManyToOne(() => CecitAdminsEntity, { nullable: false })
     @JoinColumn({ name: 'id_admin', referencedColumnName: 'id_c_admin' })
-    admin !: CecitAdminsEntity;
+    id_c_admin !: CecitAdminsEntity;
 
     @ManyToOne(() => PartnersEntity, { nullable: false })
     @JoinColumn({ name: 'id_partner', referencedColumnName: 'id_partner' })
-    partner !: PartnersEntity;
+    id_partner !: PartnersEntity;
 
     @Column({ type: 'date' })
     date_entered !: string;
@@ -51,13 +43,9 @@ export class BenefitsEntity {
     @Column({ type: 'enum', enum: BenefitStatus, default: BenefitStatus.ACTIVE, })
     status !: BenefitStatus;
 
-    @Index()
-    @Column({ type: 'varchar', length: 4 })
-    id_type !: string;
-
     @ManyToOne(() => BenefitTypeEntity, { nullable: false })
     @JoinColumn({ name: 'id_type', referencedColumnName: 'id_type' })
-    type !: BenefitTypeEntity;
+    id_type !: BenefitTypeEntity;
 
     @Column({ type: 'int', name: 'max_cupouns' })
     max_cupouns!: number;
