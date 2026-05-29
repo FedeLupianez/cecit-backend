@@ -1,16 +1,16 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, Index } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { UsersEntity } from './users/users.entity';
 
 @Entity('RefreshTokens')
 export class RefreshTokenEntity {
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryGeneratedColumn("uuid", { name: "id_token" })
+    id_token: string;
 
-    @Index()
     @Column({ type: 'varchar', length: 255 })
     token_hash: string;
 
-    @Index()
-    @Column({ type: 'varchar', length: 4, name: 'user_id' })
+    @ManyToOne(() => UsersEntity)
+    @JoinColumn({ name: 'id_user', referencedColumnName: 'id_user' })
     user_id: string;
 
     @Column({ type: 'datetime' })
