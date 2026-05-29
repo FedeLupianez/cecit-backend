@@ -16,6 +16,7 @@ import { PartnersAdminsModule } from './entities/partnersadmins/partnersadmins.m
 import { PaymentMethodsModule } from './entities/payment-methods/payment-methods.module';
 import { PaymentBenefitModule } from './entities/payment_benefit/payment_benefit.module';
 import { AuthModule } from './auth/auth.module';
+import { DbModule } from './common/database/db.module';
 
 @Module({
     imports: [
@@ -33,6 +34,7 @@ import { AuthModule } from './auth/auth.module';
         PaymentMethodsModule,
         PaymentBenefitModule,
         AuthModule,
+        DbModule
     ],
     controllers: [AppController],
     providers: [AppService]

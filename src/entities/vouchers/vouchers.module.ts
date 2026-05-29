@@ -6,9 +6,11 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { VouchersEntity } from "./vouchers.entity"
 import { VouchersController } from "./vouchers.controller"
 import { VouchersService } from "./vouchers.service"
+import { DbModule } from "src/common/database/db.module";
+import { BenefitsEntity } from "../benefits/benefits.entity";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([VouchersEntity])],
+    imports: [TypeOrmModule.forFeature([VouchersEntity, BenefitsEntity]), DbModule],
     controllers: [VouchersController],
     providers: [VouchersService],
     exports: [VouchersService]

@@ -1,4 +1,4 @@
 export class PartnersCategoriesDto {
-    id_partner: number;
+    id_partner: string;
     id_category: number;
 }

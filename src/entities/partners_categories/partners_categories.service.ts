@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PartnersCategoriesEntity } from './partners_categories.entity';
+import { PartnersCategoriesDto } from './partners_categories.dto';
 
 @Injectable()
 export class PartnersCategoriesService {
@@ -10,13 +11,13 @@ export class PartnersCategoriesService {
         private repo: Repository<PartnersCategoriesEntity>,
     ) { }
 
-    create(data: PartnersCategoriesEntity) {
+    async create(data: PartnersCategoriesDto) {
         const relation = this.repo.create(data);
-        return this.repo.save(relation);
+        return await this.repo.save(relation);
     }
 
-    findAll() {
-        return this.repo.find({
+    async findAll() {
+        return await this.repo.find({
             relations: ['partners', 'categories'],
         });
     }
