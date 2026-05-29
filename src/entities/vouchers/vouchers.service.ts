@@ -2,7 +2,7 @@
 *  servicios para get_all(), get_by_user() y get_by_benefit()
 * */
 
-import { Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { VouchersDTO, VouchersCreateDTO, VouchersDeleteDTO, VouchersMapper } from "./vouchers.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { VouchersEntity, VoucherStatus } from "./vouchers.entity";
@@ -28,7 +28,7 @@ export class VouchersService {
         return vouchers_list;
     }
 
-    async get_by_user(id_user: string): Promise<VouchersDTO[] | null> {
+    async get_by_user(id_user: string): Promise<VouchersDTO[]> {
         const vouchers = await this.vouchersRepository.findBy({
             id_user
         })
@@ -38,7 +38,7 @@ export class VouchersService {
         return vouchers_list;
     }
 
-    async get_by_benefit(id_benefit: string): Promise<VouchersDTO[] | null> {
+    async get_by_benefit(id_benefit: string): Promise<VouchersDTO[]> {
         const vouchers = await this.vouchersRepository.findBy({
             id_benefit
         })
@@ -48,7 +48,7 @@ export class VouchersService {
         return vouchers_list;
     }
 
-    async get_by_token(token: string): Promise<VouchersDTO | null> {
+    async get_by_token(token: string): Promise<VouchersDTO> {
         const voucher = await this.vouchersRepository.findOneBy({
             token
         })
@@ -76,9 +76,9 @@ export class VouchersService {
         if (!benefit)
             throw new NotFoundException(`Benefit with id ${voucher.id_benefit} not found`);
 
-        if (benefit.coupons >= benefit.max_coupons) //falta el campo max_coupons en la entidad de beneficios
-            throw new InternalServerErrorException(`ya no quedan cupones disponibles para el beneficio`);
-        
+        if (benefit.coupons >= benefit.max_cupouns) //falta el campo max_coupons en la entidad de beneficios
+            throw new ConflictException(`ya no quedan cupones disponibles para el beneficio`);
+
         const new_voucher = this.vouchersRepository.create(voucher);
 
         new_voucher.status = VoucherStatus.PENDING;
@@ -87,9 +87,9 @@ export class VouchersService {
         return await this.vouchersRepository.save(new_voucher);
     }
 
-    async delete(voucher: VouchersDeleteDTO): Promise <boolean> {
+    async delete(voucher: VouchersDeleteDTO): Promise<boolean> {
 
-        const result = await this.vouchersRepository.delete({token: voucher.token})
+        const result = await this.vouchersRepository.delete({ token: voucher.token })
         if (!result)
             throw new NotFoundException('El voucher que se quiere eliminar no fue encontrado');
         return true;
