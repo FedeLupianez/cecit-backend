@@ -53,7 +53,7 @@ export class BenefitsService {
             throw new NotFoundException('El tipo de beneficio no existe');
         }
 
-        const new_id = await this.db_service.gen_new_id('Benefits', 'id_benefit');
+        const new_id = await this.db_service.get_new_id('Benefits', 'id_benefit');
         const new_benefit = this.benefitsRepository.create({ id_benefit: new_id, admin: admin, partner: partner, type: type, ...benefit })
 
         if (!new_id) {

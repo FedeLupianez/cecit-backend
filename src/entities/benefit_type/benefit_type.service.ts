@@ -23,7 +23,7 @@ export class BenefitTypeService {
     }
 
     async create(benefit_type: BenefitTypeCreateDTO) {
-        const new_id = await this.db_service.gen_new_id('BenefitType', 'id_type');
+        const new_id = await this.db_service.get_new_id('BenefitType', 'id_type');
         const newBenefitType = new BenefitTypeEntity()
 
         if (!new_id) {

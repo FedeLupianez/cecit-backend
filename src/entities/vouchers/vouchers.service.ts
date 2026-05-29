@@ -77,13 +77,12 @@ export class VouchersService {
         if (!benefit)
             throw new NotFoundException(`Benefit with id ${voucher.id_benefit} not found`);
 
-        if (benefit.coupons >= benefit.max_cupouns) //falta el campo max_coupons en la entidad de beneficios
-            throw new ConflictException(`ya no quedan cupones disponibles para el beneficio`);
+        if (benefit.coupons >= benefit.max_cupouns)
+            throw new ConflictException(`Benefit ${benefit.id_benefit} max cupouns reached`);
 
         const new_voucher = this.vouchersRepository.create(voucher);
 
-        new_voucher.status = VoucherStatus.PENDING;
-        new_voucher.token = await this.db_service.gen_new_id('Vouchers', 'token');
+        new_voucher.token = await this.db_service.get_new_token();
 
         return await this.vouchersRepository.save(new_voucher);
     }
