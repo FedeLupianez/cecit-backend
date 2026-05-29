@@ -3,10 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { BenefitTypeService } from './benefit_type.service';
 import { BenefitTypeController } from './benefit_type.controller';
 import { BenefitTypeEntity } from './benefit_type.entity';
-import { DbModule } from 'src/common/database/db.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([BenefitTypeEntity]), DbModule],
+    imports: [TypeOrmModule.forFeature([BenefitTypeEntity])],
     controllers: [BenefitTypeController],
     providers: [BenefitTypeService],
     exports: [BenefitTypeService]

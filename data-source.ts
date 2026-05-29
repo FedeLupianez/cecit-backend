@@ -3,9 +3,7 @@ import { DataSource, DataSourceOptions } from "typeorm";
 import { config } from 'dotenv';
 import { resolve } from "path";
 
-const envFile = process.env.NODE_ENV === 'development'
-    ? '.env.development'
-    : '.env'
+const envFile = '.env.development'
 
 config({ path: resolve(__dirname, envFile) });
 

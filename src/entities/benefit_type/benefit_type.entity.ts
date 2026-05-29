@@ -1,9 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, PrimaryColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('Benefit_Type')
 export class BenefitTypeEntity {
-    @PrimaryColumn({ type : 'varchar', length : 4})
-    id_type!: string;
+    @PrimaryGeneratedColumn({ name: "id_type", type: "int" })
+    id_type!: number;
 
     @Column({ type: 'varchar', length: 50 })
     name!: string;
