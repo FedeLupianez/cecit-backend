@@ -24,7 +24,7 @@ export class BenefitsEntity {
 
     @ManyToOne(() => CecitAdminsEntity, { nullable: false })
     @JoinColumn({ name: 'id_admin', referencedColumnName: 'id_c_admin' })
-    admin !: CecitAdminsEntity; 
+    admin !: CecitAdminsEntity;
 
     @ManyToOne(() => PartnersEntity, { nullable: false })
     @JoinColumn({ name: 'id_partner', referencedColumnName: 'id_partner' })

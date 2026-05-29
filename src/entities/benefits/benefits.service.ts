@@ -1,7 +1,7 @@
 import { Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { BenefitsDTO, BenefitsCreateDTO, BenefitsDeleteDTO, BenefitsMapper } from './benefits.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { BenefitsEntity, BenefitStatus } from './benefits.entity';
+import { BenefitsEntity } from './benefits.entity';
 import { CecitAdminsEntity } from '../cecit-admins/cecit-admins.entity';
 import { PartnersEntity } from '../partners/partners.entity';
 import { BenefitTypeEntity } from '../benefit_type/benefit_type.entity';
@@ -35,43 +35,31 @@ export class BenefitsService {
     }
 
     async create(benefit: BenefitsCreateDTO) {
+        const admin: CecitAdminsEntity | null = await this.adminRepository.findOneBy({ id_c_admin: benefit.id_admin });
 
-    const admin: CecitAdminsEntity | null = await this.adminRepository.findOneBy({id_c_admin: benefit.id_admin});
+        if (!admin) {
+            throw new NotFoundException('El administrador no existe');
+        }
 
-    if (!admin) {
-        throw new NotFoundException('El administrador no existe');
-    }
+        const partner: PartnersEntity | null = await this.partnerRepository.findOneBy({ id_partner: benefit.id_partner });
 
-    const partner: PartnersEntity | null = await this.partnerRepository.findOneBy({id_partner: benefit.id_partner});
+        if (!partner) {
+            throw new NotFoundException('El socio no existe');
+        }
 
-    if (!partner) {
-        throw new NotFoundException('El socio no existe');
-    }
+        const type: BenefitTypeEntity | null = await this.benefitTypeRepository.findOneBy({ id_type: benefit.id_type });
 
-    const type: BenefitTypeEntity | null =await this.benefitTypeRepository.findOneBy({id_type: benefit.id_type});
+        if (!type) {
+            throw new NotFoundException('El tipo de beneficio no existe');
+        }
 
-    if (!type) {
-        throw new NotFoundException('El tipo de beneficio no existe');
-    }
+        const new_id = await this.db_service.gen_new_id('Benefits', 'id_benefit');
+        const new_benefit = this.benefitsRepository.create({ id_benefit: new_id, admin: admin, partner: partner, type: type, ...benefit })
 
-    const new_id = await this.db_service.gen_new_id('Benefits','id_benefit');
-    const newBenefit = new BenefitsEntity();
-
-    if (!new_id) {
-        throw new InternalServerErrorException('No se pudo generar el beneficio');
-    }
-    newBenefit.id_benefit = new_id
-    newBenefit.admin = admin;
-    newBenefit.partner = partner;
-    newBenefit.type = type;
-    newBenefit.date_entered = benefit.date_entered;
-    newBenefit.start_date = benefit.start_date;
-    newBenefit.end_date = benefit.end_date;
-    newBenefit.image = benefit.image;
-    newBenefit.title = benefit.title;
-    newBenefit.description = benefit.description;
-    newBenefit.coupons = benefit.coupons;
-    return await this.benefitsRepository.save(newBenefit);
+        if (!new_id) {
+            throw new InternalServerErrorException('No se pudo generar el beneficio');
+        }
+        return await this.benefitsRepository.save(new_benefit);
     }
 
     async delete(benefit: BenefitsDeleteDTO): Promise<boolean> {
@@ -81,4 +69,4 @@ export class BenefitsService {
         }
         return true;
     }
-  }
+}
