@@ -15,6 +15,7 @@ export class VouchersService {
     constructor(
         @InjectRepository(VouchersEntity)
         private readonly vouchersRepository: Repository<VouchersEntity>,
+        @InjectRepository(BenefitsEntity)
         private readonly benefitsRepository: Repository<BenefitsEntity>,
         private readonly db_service: DbService
     ) { };

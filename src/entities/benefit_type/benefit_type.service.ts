@@ -1,4 +1,4 @@
-import { Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { BenefitTypeDTO, BenefitTypeMapper, BenefitTypeCreateDTO, BenefitTypeDeleteDTO } from './benefit_type.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BenefitTypeEntity } from './benefit_type.entity';
@@ -10,9 +10,8 @@ import { DbService } from 'src/common/database/db.service';
 export class BenefitTypeService {
     constructor(
         @InjectRepository(BenefitTypeEntity)
-        private readonly benefit_typeRepository : Repository<BenefitTypeEntity>,
-
-        @Inject() private readonly db_service: DbService
+        private readonly benefit_typeRepository: Repository<BenefitTypeEntity>,
+        private readonly db_service: DbService
     ) { };
 
     async get_all(): Promise<BenefitTypeDTO[]> {
@@ -24,12 +23,12 @@ export class BenefitTypeService {
     }
 
     async create(benefit_type: BenefitTypeCreateDTO) {
-        const new_id = await this.db_service.gen_new_id('BenefitType','id_type');
+        const new_id = await this.db_service.gen_new_id('BenefitType', 'id_type');
         const newBenefitType = new BenefitTypeEntity()
 
         if (!new_id) {
             throw new InternalServerErrorException('No se pudo generar el tipo de beneficio');
-    }
+        }
         newBenefitType.id_type = new_id;
         newBenefitType.name = benefit_type.name
         newBenefitType.active = benefit_type.active
