@@ -18,7 +18,7 @@ export class PartnersCategoriesService {
 
     async findAll() {
         return await this.repo.find({
-            relations: ['partners', 'categories'],
+            relations: ['partner', 'category'],
         });
     }
 }

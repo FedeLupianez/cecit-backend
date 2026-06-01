@@ -13,14 +13,6 @@ export class VouchersEntity {
     @PrimaryColumn({ type: 'varchar', length: 6 })
     token !: string;
 
-    @Index()
-    @Column({ type: 'varchar', length: 4 })
-    id_user !: string;
-
-    @Index()
-    @Column({ type: 'varchar', length: 4 })
-    id_benefit !: string;
-
     @ManyToOne(() => UsersEntity, { nullable: false })
     @JoinColumn({ name: 'id_user', referencedColumnName: 'id_user' })
     user !: UsersEntity;
@@ -33,7 +25,7 @@ export class VouchersEntity {
     application_date !: string;
 
     @Column({ default: null, type: 'date' })
-    delibery_date !: string;
+    delivery_date !: string;
 
     @Column({ type: 'enum', enum: VoucherStatus, default: VoucherStatus.PENDING })
     status !: VoucherStatus;

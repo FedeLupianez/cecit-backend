@@ -54,7 +54,7 @@ export class BenefitsService {
         }
 
         const new_id = await this.db_service.get_new_id('Benefits', 'id_benefit');
-        const new_benefit = this.benefitsRepository.create({ id_benefit: new_id, admin: admin, partner: partner, type: type, ...benefit })
+        const new_benefit = this.benefitsRepository.create({ ...benefit, id_benefit: new_id, admin: admin, partner: partner, type: type })
 
         if (!new_id) {
             throw new InternalServerErrorException('No se pudo generar el beneficio');

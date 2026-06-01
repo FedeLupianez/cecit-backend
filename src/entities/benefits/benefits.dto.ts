@@ -13,7 +13,7 @@ export interface BenefitsDTO {
     image: string;
     title: string;
     description: string;
-    id_type: string;
+    id_type: number;
     type: string;
     status: string;
     coupons: number;
@@ -23,7 +23,7 @@ export interface BenefitsDTO {
 export interface BenefitsCreateDTO {
     id_admin: string;
     id_partner: string;
-    id_type: string;
+    id_type: number;
     date_entered: string;
     start_date: string;
     end_date: string;
@@ -31,6 +31,7 @@ export interface BenefitsCreateDTO {
     title: string;
     description: string;
     coupons: number;
+    max_cupouns: number;
 }
 
 export interface BenefitsDeleteDTO {
@@ -41,8 +42,8 @@ export class BenefitsMapper {
     static toDTO(benefit: BenefitsEntity): BenefitsDTO {
         return {
             id_benefit: benefit.id_benefit,
-            id_admin: benefit.id_admin,
-            id_partner: benefit.id_partner,
+            id_admin: benefit.admin.id_c_admin,
+            id_partner: benefit.partner.id_partner,
             admin: benefit.admin.id_c_admin,
             partner: benefit.partner.id_partner,
             date_entered: benefit.date_entered,
@@ -51,8 +52,8 @@ export class BenefitsMapper {
             image: benefit.image,
             title: benefit.title,
             description: benefit.description,
-            id_type: benefit.id_type,
-            type: benefit.type.id_type,
+            id_type: benefit.type.id_type,
+            type: benefit.type.name,
             status: benefit.status,
             coupons: benefit.coupons,
             max_cupouns: benefit.max_cupouns

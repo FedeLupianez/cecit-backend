@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn, Index } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn } from 'typeorm';
 import { CecitAdminsEntity } from '../cecit-admins/cecit-admins.entity';
 import { BenefitTypeEntity } from '../benefit_type/benefit_type.entity';
 import { PartnersEntity } from '../partners/partners.entity';
@@ -16,11 +16,11 @@ export class BenefitsEntity {
 
     @ManyToOne(() => CecitAdminsEntity, { nullable: false })
     @JoinColumn({ name: 'id_admin', referencedColumnName: 'id_c_admin' })
-    id_c_admin !: CecitAdminsEntity;
+    admin !: CecitAdminsEntity;
 
     @ManyToOne(() => PartnersEntity, { nullable: false })
     @JoinColumn({ name: 'id_partner', referencedColumnName: 'id_partner' })
-    id_partner !: PartnersEntity;
+    partner !: PartnersEntity;
 
     @Column({ type: 'date' })
     date_entered !: string;
@@ -45,7 +45,7 @@ export class BenefitsEntity {
 
     @ManyToOne(() => BenefitTypeEntity, { nullable: false })
     @JoinColumn({ name: 'id_type', referencedColumnName: 'id_type' })
-    id_type !: BenefitTypeEntity;
+    type !: BenefitTypeEntity;
 
     @Column({ type: 'int', name: 'max_cupouns' })
     max_cupouns!: number;

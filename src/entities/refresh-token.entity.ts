@@ -1,17 +1,13 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { UsersEntity } from './users/users.entity';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, Index } from 'typeorm';
 
 @Entity('RefreshTokens')
 export class RefreshTokenEntity {
     @PrimaryGeneratedColumn("uuid", { name: "id_token" })
     id_token: string;
 
+    @Index()
     @Column({ type: 'varchar', length: 255 })
     token_hash: string;
-
-    @ManyToOne(() => UsersEntity)
-    @JoinColumn({ name: 'id_user', referencedColumnName: 'id_user' })
-    user_id: string;
 
     @Column({ type: 'datetime' })
     expires_at: Date;
