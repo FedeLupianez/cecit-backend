@@ -9,7 +9,7 @@ export interface VouchersDTO {
     id_user: string;
     id_benefit: string;
     application_date: string;
-    delibery_date: string;
+    delivery_date: string;
     status: VoucherStatus;
 }
 
@@ -28,11 +28,11 @@ export interface VouchersDeleteDTO {
 export class VouchersMapper {
     static toDTO(voucher: VouchersEntity): VouchersDTO {
         return {
-            id_user: voucher.id_user,
-            id_benefit: voucher.id_benefit,
+            id_user: voucher.user.id_user,
+            id_benefit: voucher.benefit.id_benefit,
             token: voucher.token,
             application_date: voucher.application_date,
-            delibery_date: voucher.delibery_date,
+            delivery_date: voucher.delivery_date,
             status: voucher.status
         }
     }

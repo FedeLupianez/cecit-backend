@@ -46,9 +46,9 @@ export class VouchersController {
     @Delete()
     async delete(@Body() voucher: VouchersDeleteDTO){
         const voucher_deleted = await this.voucherService.delete(voucher);
-        if (!voucher_deleted)
-            throw new NotFoundException('Voucher does not exists')
-            return { result: 'error' }
+        if (!voucher_deleted) {
+            throw new NotFoundException('Voucher does not exists');
+        }
         return { result: 'ok' }
     }
 

@@ -6,4 +6,5 @@ export interface jwt_payload {
 
 export interface RefreshTokenDTO {
     refresh_token: string;
+    id_user: string;
 }

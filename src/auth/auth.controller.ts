@@ -42,7 +42,7 @@ export class AuthController {
     async refresh(@Body() body: RefreshTokenDTO, @Req() req, @Res({ passthrough: true }) res) {
         const token = req.cookies['refresh_token_cecit'];
         await this.authService.validateRefreshToken(token);
-        const new_tokens: TokensInterface = await this.authService.refresh(body)
+        const new_tokens: TokensInterface = await this.authService.refresh(body);
         const days: number = 7;
         res.cookie('refresh_token_cecit', new_tokens.refresh_token, {
             httpOnly: true,
