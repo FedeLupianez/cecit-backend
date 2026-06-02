@@ -91,14 +91,14 @@ export class AuthService {
         await this.refreshTokenRepo.update(stored.id_token, { revoked: true });
 
         const payload = {
-            sub: stored.user_id,
-            email: (await this.userService.get_by_user_id(stored.user_id)).email,
+            sub: refreshDto.id_user,
+            email: (await this.userService.get_by_user_id(refreshDto.id_user)).email,
             jti: randomUUID()
         };
 
         return {
             access_token: this.jwtService.sign(payload),
-            refresh_token: await this.generateRefreshToken(stored.user_id),
+            refresh_token: await this.generateRefreshToken(refreshDto.id_user),
         };
     }
 
