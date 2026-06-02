@@ -13,9 +13,15 @@ export class VouchersEntity {
     @PrimaryColumn({ type: 'varchar', length: 6 })
     token !: string;
 
+    @Column({ type: 'varchar', length: 4 })
+    id_user !: string;
+
     @ManyToOne(() => UsersEntity, { nullable: false })
     @JoinColumn({ name: 'id_user', referencedColumnName: 'id_user' })
     user !: UsersEntity;
+
+    @Column({ type: 'varchar', length: 4 })
+    id_benefit !: string;
 
     @ManyToOne(() => BenefitsEntity, { nullable: false })
     @JoinColumn({ name: 'id_benefit', referencedColumnName: 'id_benefit' })
