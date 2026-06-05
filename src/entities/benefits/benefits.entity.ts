@@ -28,7 +28,7 @@ export class BenefitsEntity {
     @JoinColumn({ name: 'id_partner', referencedColumnName: 'id_partner' })
     partner !: PartnersEntity;
 
-    @Column({ type: 'date' })
+    @Column({ type: 'date', default: () => 'CURRENT_DATE' })
     date_entered !: string;
 
     @Column({ type: 'date' })
