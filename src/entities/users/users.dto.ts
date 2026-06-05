@@ -4,6 +4,7 @@
  * podemos controlar qué datos se devuelven y cuáles no
  * */
 
+import { IsEmail, IsNotEmpty, IsString } from "class-validator";
 import { UsersEntity } from "./users.entity";
 
 export interface UsersDTO {
@@ -15,9 +16,15 @@ export interface UsersDTO {
     last_activity: string;
 }
 
-export interface UsersCreateDTO {
+export class UsersCreateDTO {
+    @IsNotEmpty()
     id_user: string;
+
+    @IsEmail()
     email: string;
+
+    @IsNotEmpty()
+    @IsString()
     password: string;
 }
 
@@ -25,8 +32,12 @@ export interface UsersDeleteDTO {
     id_user: string;
 }
 
-export interface UserLoginDTO {
+export class UserLoginDTO {
+    @IsEmail()
     email: string;
+
+    @IsNotEmpty()
+    @IsString()
     password: string;
 }
 
