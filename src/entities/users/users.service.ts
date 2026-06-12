@@ -36,6 +36,8 @@ export class UsersService {
     }
 
     async get_by_email(email: string): Promise<UsersEntity> {
+        if (!email)
+            throw new BadRequestException('Email is not valid');
         const user = await this.userRepository.findOneBy({
             email
         })
@@ -50,7 +52,7 @@ export class UsersService {
         }
         const new_user = await this.userRepository.findOneBy({ id_user: user.id_user });
         if (!new_user) {
-            throw new NotFoundException('El usuario no es socio');
+            throw new NotFoundException('User is not partner');
         }
         if (new_user.email) {
             throw new BadRequestException('The user already exists');
@@ -64,7 +66,7 @@ export class UsersService {
     async delete(user: UsersDeleteDTO): Promise<boolean> {
         const result = await this.userRepository.delete({ id_user: user.id_user })
         if (!result) {
-            throw new NotFoundException('El usuario que se quiere borrar no fué encontrado')
+            throw new NotFoundException('User not exists')
         }
         return true;
     }
