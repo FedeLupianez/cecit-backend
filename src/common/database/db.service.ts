@@ -7,9 +7,14 @@ export class DbService {
     constructor(@InjectDataSource() private datasource: DataSource) { }
 
     async get_new_id(table: string, id_col_name: string): Promise<string> {
-        await this.datasource.query('CALL get_new_id(?, ?, @new_id)', [table, id_col_name]);
-        const result = await this.datasource.query('SELECT @new_id AS id');
-        return result?.[0]?.[0]?.id;
+        const queryRunner = this.datasource.createQueryRunner();
+        try {
+            await queryRunner.query('CALL get_new_id(?, ?, @new_id)', [table, id_col_name]);
+            const result = await queryRunner.query('SELECT @new_id AS id');
+            return result?.[0]?.id;
+        } finally {
+            await queryRunner.release();
+        }
     }
 
     async get_new_token(): Promise<string> {
