@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsString, IsUrl } from "class-validator";
 import { PartnersAdminsCreateDTO } from "../partnersadmins/partnersadmins.dto";
 
 export interface PartnersDTO {
@@ -7,6 +7,23 @@ export interface PartnersDTO {
     logo: string;
     direction: string;
     active: boolean;
+}
+
+export class PartnersUpdateLogoDTO {
+    @IsNotEmpty()
+    id_partner: string;
+    @IsNotEmpty()
+    @IsUrl()
+    new_logo: string;
+}
+
+
+export class PartnersUpdateNameDTO {
+    @IsNotEmpty()
+    id_partner: string;
+    @IsNotEmpty()
+    @IsUrl()
+    new_name: string;
 }
 
 export class PartnersCreateDTO extends PartnersAdminsCreateDTO {

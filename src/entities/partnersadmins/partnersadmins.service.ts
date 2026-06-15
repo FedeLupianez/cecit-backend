@@ -1,4 +1,4 @@
-import { Inject, Injectable, InternalServerErrorException, forwardRef } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PartnersAdminsEntity } from './partnersadmins.entity';
 import { Repository } from 'typeorm';
@@ -26,5 +26,14 @@ export class PartnersAdminsService {
         if (!stored)
             throw new InternalServerErrorException('Error creating new Admin');
         return PartnersAdminsMapper.toDTO(stored);
+    }
+
+    async get_by_id(id_admin: string): Promise<PartnersAdminsDTO> {
+        if (!id_admin)
+            throw new BadRequestException('id admin is required');
+        const admin = await this.adminsRepo.findOneBy({ id_p_admin: id_admin });
+        if (!admin)
+            throw new NotFoundException(`Admin with id ${id_admin} not exists`);
+        return PartnersAdminsMapper.toDTO(admin);
     }
 }

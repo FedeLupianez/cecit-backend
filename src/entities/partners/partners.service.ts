@@ -1,5 +1,5 @@
 import { BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException, forwardRef } from '@nestjs/common';
-import type { PartnersCreateDTO, PartnersDTO } from './partners.dto';
+import type { PartnersCreateDTO, PartnersDTO, PartnersUpdateLogoDTO, PartnersUpdateNameDTO } from './partners.dto';
 import { PartnersEntity } from './partners.entity';
 import { PartnersMapper } from './partners.mapper';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -52,5 +52,24 @@ export class PartnersService {
         if (!stored)
             throw new NotFoundException(`Partner with name ${name} not exists`);
         return PartnersMapper.entityToDto(stored);
+    }
+
+    async update_logo(data: PartnersUpdateLogoDTO): Promise<PartnersDTO> {
+        const partner = await this.partnersRepo.findOneBy({ id_partner: data.id_partner });
+        if (!partner)
+            throw new BadRequestException(`Partner with id ${data.id_partner} not exists`);
+        partner.logo = data.new_logo;
+        this.partnersRepo.save(partner);
+        return PartnersMapper.entityToDto(partner);
+    }
+
+
+    async update_name(data: PartnersUpdateNameDTO): Promise<PartnersDTO> {
+        const partner = await this.partnersRepo.findOneBy({ id_partner: data.id_partner });
+        if (!partner)
+            throw new BadRequestException(`Partner with id ${data.id_partner} not exists`);
+        partner.name = data.new_name.toLowerCase();
+        this.partnersRepo.save(partner);
+        return PartnersMapper.entityToDto(partner);
     }
 }

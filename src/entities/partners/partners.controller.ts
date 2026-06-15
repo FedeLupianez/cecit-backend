@@ -1,6 +1,8 @@
-import { Body, Controller, Delete, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { PartnersService } from './partners.service';
-import type { PartnersCreateDTO } from './partners.dto';
+import type { PartnersCreateDTO, PartnersUpdateLogoDTO, PartnersUpdateNameDTO } from './partners.dto';
+import { AdminGuard } from 'src/auth/admin.guard';
+import { AuthGuard } from '@nestjs/passport';
 
 
 @Controller('partners')
@@ -17,4 +19,18 @@ export class PartnersController {
     async remove(@Param('id') id: string) {
         return this.partnersService.remove(id);
     }
+
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    @Patch('newlogo')
+    async update_logo(@Body() body: PartnersUpdateLogoDTO) {
+        return this.partnersService.update_logo(body);
+    }
+
+
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    @Patch('newname')
+    async update_name(@Body() body: PartnersUpdateNameDTO) {
+        return this.partnersService.update_name(body);
+    }
+
 }
