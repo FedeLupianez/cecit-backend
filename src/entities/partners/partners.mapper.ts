@@ -6,7 +6,7 @@ export class PartnersMapper {
         const entity = new PartnersEntity();
 
         entity.id_partner = dto.id_partner;
-        entity.name = dto.name;
+        entity.name = dto.name.toLowerCase();
         entity.logo = dto.logo;
         entity.direction = dto.direction;
         entity.active = dto.active;

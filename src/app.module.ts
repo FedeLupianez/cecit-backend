@@ -11,7 +11,6 @@ import { PartnersCategoriesModule } from './entities/partners_categories/partner
 import { CategoriesModule } from './entities/categories/categories.module';
 import { CecitAdminsModule } from './entities/cecit-admins/cecit-admins.module';
 import { VouchersModule } from './entities/vouchers/vouchers.module';
-import { PartnersModule } from './entities/partners/partners.module';
 import { PartnersAdminsModule } from './entities/partnersadmins/partnersadmins.module';
 import { PaymentMethodsModule } from './entities/payment-methods/payment-methods.module';
 import { PaymentBenefitModule } from './entities/payment_benefit/payment_benefit.module';
@@ -37,7 +36,6 @@ import { DbModule } from './common/database/db.module';
         BenefitTypeModule,
         CecitAdminsModule,
         VouchersModule,
-        PartnersModule,
         PartnersAdminsModule,
         PartnersCategoriesModule,
         PaymentMethodsModule,
