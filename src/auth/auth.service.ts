@@ -70,7 +70,7 @@ export class AuthService {
         }
         return {
             access_token: this.jwtService.sign(payload),
-            refresh_token: await this.generateRefreshToken(user.id_user),
+            refresh_token: await this.generateRefreshToken(),
         }
     }
 
@@ -80,13 +80,8 @@ export class AuthService {
         const stored = await this.refreshTokenRepo.findOne({
             where: { token_hash: tokenHash, revoked: false }
         });
-
-        if (!stored || stored.expires_at < new Date()) {
-            if (stored) {
-                await this.refreshTokenRepo.update(stored.id_token, { revoked: true });
-            }
-            throw new UnauthorizedException('Invalid or expired refresh token');
-        }
+        if (!stored)
+            throw new UnauthorizedException('Invalid refresh token');
 
         await this.refreshTokenRepo.update(stored.id_token, { revoked: true });
 
@@ -98,7 +93,7 @@ export class AuthService {
 
         return {
             access_token: this.jwtService.sign(payload),
-            refresh_token: await this.generateRefreshToken(refreshDto.id_user),
+            refresh_token: await this.generateRefreshToken(),
         };
     }
 
@@ -107,7 +102,7 @@ export class AuthService {
         await this.refreshTokenRepo.update({ token_hash: tokenHash }, { revoked: true });
     }
 
-    private async generateRefreshToken(userId: string): Promise<string> {
+    private async generateRefreshToken(): Promise<string> {
         const token = randomUUID() + randomUUID();
         const tokenHash = await hash(token);
 
@@ -116,7 +111,6 @@ export class AuthService {
 
         await this.refreshTokenRepo.save({
             token_hash: tokenHash,
-            user_id: userId,
             expires_at: expiresAt,
         });
 

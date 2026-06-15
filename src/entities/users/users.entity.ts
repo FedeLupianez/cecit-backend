@@ -26,10 +26,9 @@ export class UsersEntity {
     @Column({ length: 8, type: 'varchar', name: 'dni' })
     dni: string;
 
-    @Column({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP" })
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     last_activity: string;
 
     @Column({ type: 'boolean', default: true })
     active: boolean;
-
 }

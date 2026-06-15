@@ -6,7 +6,7 @@ import { Controller, Get, Query, Post, Delete, Body, NotFoundException } from "@
 import { VouchersService } from "./vouchers.service";
 import { VoucherStatus } from "./vouchers.entity";
 import { VouchersMapper } from "./vouchers.dto";
-import type { VouchersCreateDTO, VouchersDeleteDTO} from "./vouchers.dto";
+import type { VouchersCreateDTO, VouchersDeleteDTO } from "./vouchers.dto";
 
 @Controller('voucher')
 export class VouchersController {
@@ -44,7 +44,7 @@ export class VouchersController {
     }
 
     @Delete()
-    async delete(@Body() voucher: VouchersDeleteDTO){
+    async delete(@Body() voucher: VouchersDeleteDTO) {
         const voucher_deleted = await this.voucherService.delete(voucher);
         if (!voucher_deleted) {
             throw new NotFoundException('Voucher does not exists');
