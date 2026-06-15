@@ -56,9 +56,9 @@ export class AuthController {
     }
 
     @Post('logout')
-    async logout(@Body() body: RefreshTokenDTO, @Req() req) {
+    async logout(@Req() req) {
         const token = req.cookies['refresh_token_cecit'];
         await this.authService.validateRefreshToken(token);
-        await this.authService.logout(body.refresh_token);
+        await this.authService.logout(token);
     }
 }
