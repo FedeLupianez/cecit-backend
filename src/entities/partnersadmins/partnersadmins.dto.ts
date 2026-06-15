@@ -9,7 +9,8 @@ export interface PartnersAdminsDTO {
 };
 
 export class PartnersAdminsCreateDTO {
-    partner: string;
+    @IsNotEmpty()
+    partner_name: string;
 
     @IsNotEmpty()
     @IsEmail()

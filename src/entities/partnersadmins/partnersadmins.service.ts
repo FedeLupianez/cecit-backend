@@ -5,18 +5,22 @@ import { Repository } from 'typeorm';
 import { type PartnersAdminsDTO, type PartnersAdminsCreateDTO, PartnersAdminsMapper } from './partnersadmins.dto';
 import { PartnersService } from '../partners/partners.service';
 import { hash } from 'argon2';
+import { DbService } from 'src/common/database/db.service';
 
 @Injectable()
 export class PartnersAdminsService {
     constructor(
         @InjectRepository(PartnersAdminsEntity) private readonly adminsRepo: Repository<PartnersAdminsEntity>,
-        @Inject(forwardRef(() => PartnersService)) private readonly partnersService: PartnersService
+        @Inject(forwardRef(() => PartnersService)) private readonly partnersService: PartnersService,
+        private readonly db_service: DbService
     ) { }
 
     async create(admin: PartnersAdminsCreateDTO): Promise<PartnersAdminsDTO> {
-        const partner = await this.partnersService.get_by_name(admin.partner);
+        const partner = await this.partnersService.get_by_name(admin.partner_name);
         const hashed = await hash(admin.password);
+        const new_id = await this.db_service.get_new_id('PartnersAdmins', 'id_p_admin');
         const newAdmin = this.adminsRepo.create({
+            id_p_admin: new_id,
             id_partner: partner.id_partner,
             email: admin.email,
             password: hashed,

@@ -7,9 +7,10 @@ import { PartnersService } from '../partners/partners.service';
 import { PartnersController } from '../partners/partners.controller';
 import { PartnersEntity } from '../partners/partners.entity';
 import { AdminGuard } from 'src/auth/admin.guard';
+import { DbModule } from 'src/common/database/db.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([PartnersAdminsEntity, PartnersEntity])],
+    imports: [TypeOrmModule.forFeature([PartnersAdminsEntity, PartnersEntity]), DbModule],
     controllers: [PartnersAdminsController, PartnersController],
     providers: [PartnersAdminsService, PartnersService, AdminGuard],
     exports: [PartnersService, PartnersAdminsService]

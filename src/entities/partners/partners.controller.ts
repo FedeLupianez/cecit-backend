@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { PartnersService } from './partners.service';
-import type { PartnersCreateDTO, PartnersUpdateLogoDTO, PartnersUpdateNameDTO } from './partners.dto';
+import { PartnersCreateDTO, PartnersUpdateLogoDTO, PartnersUpdateNameDTO } from './partners.dto';
 import { AdminGuard } from 'src/auth/admin.guard';
 import { AuthGuard } from '@nestjs/passport';
 

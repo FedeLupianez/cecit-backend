@@ -22,7 +22,7 @@ export class PartnersAdminsEntity {
     @Column({ type: 'varchar', length: 255, name: 'password' })
     password !: string;
 
-    @Column({ type: 'boolean', name: 'active' })
+    @Column({ type: 'boolean', name: 'active', default: true })
     active: boolean;
 
 }

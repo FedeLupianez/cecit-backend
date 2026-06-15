@@ -5,26 +5,30 @@ import { PartnersMapper } from './partners.mapper';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PartnersAdminsService } from '../partnersadmins/partnersadmins.service';
+import { DbService } from 'src/common/database/db.service';
 
 @Injectable()
 export class PartnersService {
     constructor(
         @InjectRepository(PartnersEntity) private readonly partnersRepo: Repository<PartnersEntity>,
-        @Inject(forwardRef(() => PartnersAdminsService)) private readonly adminsService: PartnersAdminsService
+        @Inject(forwardRef(() => PartnersAdminsService)) private readonly adminsService: PartnersAdminsService,
+        private readonly db_service: DbService
     ) { }
 
     async create(partner: PartnersCreateDTO): Promise<PartnersDTO> {
+        const new_id = await this.db_service.get_new_id('Partners', 'id_partner');
         const newPartner = this.partnersRepo.create({
-            name: partner.name.toLowerCase(),
+            id_partner: new_id,
+            name: partner.partner_name.toLowerCase(),
             direction: partner.direction,
-            logo: partner.direction
+            logo: partner.logo
         })
         const storedPartner = await this.partnersRepo.save(newPartner);
         if (!storedPartner) {
             throw new InternalServerErrorException('Partner was not created');
         }
         const newAdmin = this.adminsService.create({
-            partner: partner.name.toLowerCase(),
+            partner_name: partner.partner_name.toLowerCase(),
             email: partner.email,
             password: partner.password
         });
