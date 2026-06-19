@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CategoriesEntity } from './categories.entity';
-import { CategoriesDTO } from './categories.dto';
+import { CategoriesDTO, CategoriesMapper } from './categories.dto';
 
 
 @Injectable()
@@ -13,12 +13,19 @@ export class CategoriesService {
         private repo: Repository<CategoriesEntity>,
     ) { }
 
-    create(data: CategoriesDTO) {
+    async create(data: CategoriesDTO) {
         const category = this.repo.create(data);
-        return this.repo.save(category);
+        const stored = await this.repo.save(category);
+        if (!stored)
+            throw new InternalServerErrorException('Error creating category');
+        return await this.repo.save(category);
     }
 
-    findAll() {
-        return this.repo.find();
+    async findAll() {
+        const categories = await this.repo.find();
+        if (!categories)
+            throw new NotFoundException('Categories is Empty');
+        const mapped = categories.map((c) => CategoriesMapper.toDTO(c));
+        return mapped;
     }
 }
