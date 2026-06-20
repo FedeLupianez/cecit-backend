@@ -11,12 +11,12 @@ import { BenefitsEntity } from '../benefits/benefits.entity';
 import { PdfService } from 'src/pdf/pdf.service';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([VouchersEntity, BenefitsEntity]),
-    DbModule,
-  ],
-  controllers: [VouchersController],
-  providers: [VouchersService, PdfService],
-  exports: [VouchersService],
+    imports: [
+        TypeOrmModule.forFeature([VouchersEntity, BenefitsEntity]),
+        DbModule,
+    ],
+    controllers: [VouchersController],
+    providers: [VouchersService, PdfService],
+    exports: [VouchersService],
 })
-export class VouchersModule {}
+export class VouchersModule { }
