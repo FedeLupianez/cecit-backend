@@ -125,7 +125,7 @@ export class VouchersService {
         if (!exists)
             throw new BadRequestException('Voucher does not exists');
         const html: string = `
-            <div style='font-size:38px;font-family:monospace;width:100%;text-align:center;align-items:center;justify-content:center;'>
+            <div style='font-size:38px;font-family:'Segoe UI';width:100%;text-align:center;align-items:center;justify-content:center;'>
                 <p>${token}</p>
             </div>
         `;
