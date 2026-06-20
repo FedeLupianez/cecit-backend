@@ -29,13 +29,13 @@ export class BenefitsEntity {
     partner !: PartnersEntity;
 
     @Column({ type: 'date', default: () => 'CURRENT_DATE' })
-    date_entered !: string;
+    date_entered !: Date;
 
     @Column({ type: 'date' })
-    start_date !: string;
+    start_date !: Date;
 
     @Column({ type: 'date' })
-    end_date !: string;
+    end_date !: Date;
 
     @Column({ type: 'varchar', length: 100 })
     image !: string;

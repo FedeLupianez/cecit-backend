@@ -97,7 +97,10 @@ export class VouchersService {
                 `Benefit ${benefit.id_benefit} max cupouns reached`,
             );
 
-        const new_voucher = this.vouchersRepository.create(voucher);
+        const new_voucher = this.vouchersRepository.create({
+            id_benefit: benefit.id_benefit,
+            id_user: voucher.id_user
+        });
 
         new_voucher.token = await this.db_service.get_new_token();
 
