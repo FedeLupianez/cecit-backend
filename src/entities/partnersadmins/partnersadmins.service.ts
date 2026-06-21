@@ -4,7 +4,6 @@ import { PartnersAdminsEntity } from './partnersadmins.entity';
 import { Repository } from 'typeorm';
 import { type PartnersAdminsDTO, type PartnersAdminsCreateDTO, PartnersAdminsMapper } from './partnersadmins.dto';
 import { PartnersService } from '../partners/partners.service';
-import { hash } from 'argon2';
 import { DbService } from 'src/common/database/db.service';
 
 @Injectable()
@@ -17,13 +16,12 @@ export class PartnersAdminsService {
 
     async create(admin: PartnersAdminsCreateDTO): Promise<PartnersAdminsDTO> {
         const partner = await this.partnersService.get_by_name(admin.partner_name);
-        const hashed = await hash(admin.password);
         const new_id = await this.db_service.get_new_id('PartnersAdmins', 'id_p_admin');
         const newAdmin = this.adminsRepo.create({
             id_p_admin: new_id,
             id_partner: partner.id_partner,
             email: admin.email,
-            password: hashed,
+            password: admin.password,
         })
 
         const stored = await this.adminsRepo.save(newAdmin);

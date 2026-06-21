@@ -1,4 +1,5 @@
-import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { hash } from 'argon2';
+import { BeforeInsert, Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity('CecitAdmins')
 export class CecitAdminsEntity {
@@ -14,4 +15,9 @@ export class CecitAdminsEntity {
 
     @Column({ type: 'boolean' })
     active: boolean;
+
+    @BeforeInsert()
+    async hashPasswd() {
+        this.password = await hash(this.password);
+    }
 };

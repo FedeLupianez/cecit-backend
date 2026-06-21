@@ -42,6 +42,7 @@ export class UsersController {
     }
 
     @Get('byemail')
+    @UseGuards(AuthGuard('jwt'))
     async get_by_email(@Body() body: ByEmailDTO): Promise<UsersDTO> {
         const user = await this.userService.get_by_email(body.email);
         return UsersMapper.toDTO(user);
