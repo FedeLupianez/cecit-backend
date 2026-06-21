@@ -42,7 +42,7 @@ export class PartnersService {
             throw new BadRequestException('id is empty');
         const partner = await this.partnersRepo.findOneBy({ id_partner: id });
         if (!partner)
-            throw new NotFoundException(`Partner with id ${id} not found`);
+            throw new NotFoundException('Partner not found');
         const result = await this.partnersRepo.delete(partner);
         if (!result)
             throw new InternalServerErrorException('Error deleting partner');
@@ -63,14 +63,14 @@ export class PartnersService {
             throw new BadRequestException('partner name is empty');
         const stored = await this.partnersRepo.findOneBy({ name: name });
         if (!stored)
-            throw new NotFoundException(`Partner with name ${name} not exists`);
+            throw new NotFoundException('Partner not exists');
         return PartnersMapper.entityToDto(stored);
     }
 
     async update_logo(data: PartnersUpdateLogoDTO): Promise<PartnersDTO> {
         const partner = await this.partnersRepo.findOneBy({ id_partner: data.id_partner });
         if (!partner)
-            throw new BadRequestException(`Partner with id ${data.id_partner} not exists`);
+            throw new BadRequestException('Partner not exists');
         partner.logo = data.new_logo;
         this.partnersRepo.save(partner);
         return PartnersMapper.entityToDto(partner);
@@ -80,7 +80,7 @@ export class PartnersService {
     async update_name(data: PartnersUpdateNameDTO): Promise<PartnersDTO> {
         const partner = await this.partnersRepo.findOneBy({ id_partner: data.id_partner });
         if (!partner)
-            throw new BadRequestException(`Partner with id ${data.id_partner} not exists`);
+            throw new BadRequestException('Partner not exists');
         partner.name = data.new_name.toLowerCase();
         this.partnersRepo.save(partner);
         return PartnersMapper.entityToDto(partner);

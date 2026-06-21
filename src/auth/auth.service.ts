@@ -55,7 +55,15 @@ export class AuthService {
 
     async register(user: UsersCreateDTO): Promise<TokensInterface> {
         const new_user = await this.userService.create(user);
-        return this.login({ email: new_user.email, password: user.password });
+        const payload = {
+            sub: new_user.id_user,
+            email: new_user.email,
+            jti: randomUUID()
+        };
+        return {
+            access_token: this.jwtService.sign(payload),
+            refresh_token: await this.generateRefreshToken(),
+        };
     }
 
     async login(user_login: UserLoginDTO): Promise<TokensInterface> {

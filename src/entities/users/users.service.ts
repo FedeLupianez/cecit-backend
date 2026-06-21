@@ -42,7 +42,7 @@ export class UsersService {
             email
         })
         if (!user)
-            throw new NotFoundException(`User with email ${email} not found`);
+            throw new NotFoundException('User not found');
         return user;
     }
 

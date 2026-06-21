@@ -46,7 +46,7 @@ export class VouchersService {
             id_user,
         });
         if (!vouchers)
-            throw new NotFoundException(`Vouchers for user ${id_user} not found`);
+            throw new NotFoundException('Vouchers not found');
         const vouchers_list = vouchers.map((v) => VouchersMapper.toDTO(v));
         return vouchers_list;
     }
@@ -56,9 +56,7 @@ export class VouchersService {
             id_benefit,
         });
         if (!vouchers)
-            throw new NotFoundException(
-                `Vouchers for benefit ${id_benefit} not found`,
-            );
+            throw new NotFoundException('Vouchers not found');
         const vouchers_list = vouchers.map((v) => VouchersMapper.toDTO(v));
         return vouchers_list;
     }
@@ -68,7 +66,7 @@ export class VouchersService {
             token,
         });
         if (!voucher)
-            throw new NotFoundException(`Voucher with token ${token} not found`);
+            throw new NotFoundException('Voucher not found');
         return VouchersMapper.toDTO(voucher);
     }
 
@@ -77,7 +75,7 @@ export class VouchersService {
             status,
         });
         if (!vouchers)
-            throw new NotFoundException(`Vouchers with status ${status} not found`);
+            throw new NotFoundException('Vouchers not found');
         const vouchers_list = vouchers.map((v) => VouchersMapper.toDTO(v));
         return vouchers_list;
     }
@@ -88,14 +86,10 @@ export class VouchersService {
         });
 
         if (!benefit)
-            throw new NotFoundException(
-                `Benefit with id ${voucher.id_benefit} not found`,
-            );
+            throw new NotFoundException('Benefit not found');
 
         if (benefit.coupons >= benefit.max_coupons)
-            throw new ConflictException(
-                `Benefit ${benefit.id_benefit} max cupouns reached`,
-            );
+            throw new ConflictException('Max coupons reached');
 
         const new_voucher = this.vouchersRepository.create({
             id_benefit: benefit.id_benefit,
