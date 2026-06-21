@@ -92,7 +92,7 @@ export class VouchersService {
                 `Benefit with id ${voucher.id_benefit} not found`,
             );
 
-        if (benefit.coupons >= benefit.max_cupouns)
+        if (benefit.coupons >= benefit.max_coupons)
             throw new ConflictException(
                 `Benefit ${benefit.id_benefit} max cupouns reached`,
             );

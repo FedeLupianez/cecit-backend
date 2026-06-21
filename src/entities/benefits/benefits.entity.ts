@@ -57,7 +57,7 @@ export class BenefitsEntity {
     type !: BenefitTypeEntity;
 
     @Column({ type: 'int', name: 'max_cupouns' })
-    max_cupouns!: number;
+    max_coupons!: number;
 
     @Column({ type: 'int' })
     coupons !: number;
