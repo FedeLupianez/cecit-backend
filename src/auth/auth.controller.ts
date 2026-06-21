@@ -2,6 +2,7 @@ import { Body, Controller, Post, Req, Res } from '@nestjs/common';
 import { AuthService, TokensInterface } from './auth.service';
 import { UserLoginDTO, UsersCreateDTO } from 'src/entities/users/users.dto';
 import type { RefreshTokenDTO } from './auth.dto';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
@@ -24,6 +25,7 @@ export class AuthController {
     }
 
     @Post('login')
+    @Throttle({ default: { limit: 3, ttl: 60000 } })
     async login(@Body() body: UserLoginDTO, @Res({ passthrough: true }) res) {
         const new_tokens: TokensInterface = await this.authService.login(body);
         const days: number = 7;
