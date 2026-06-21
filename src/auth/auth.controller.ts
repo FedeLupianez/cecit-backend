@@ -13,7 +13,7 @@ export class AuthController {
         const days: number = 7;
         res.cookie('refresh_token_cecit', new_tokens.refresh_token, {
             httpOnly: true,
-            secure: false,
+            secure: true,
             sameSite: 'strict',
             maxAge: days * 60 * 60 * 24
         });
@@ -29,7 +29,7 @@ export class AuthController {
         const days: number = 7;
         res.cookie('refresh_token_cecit', new_tokens.refresh_token, {
             httpOnly: true,
-            secure: false,
+            secure: true,
             sameSite: 'strict',
             maxAge: days * 60 * 60 * 24
         });
@@ -46,7 +46,7 @@ export class AuthController {
         const days: number = 7;
         res.cookie('refresh_token_cecit', new_tokens.refresh_token, {
             httpOnly: true,
-            secure: false,
+            secure: true,
             sameSite: 'strict',
             maxAge: days * 60 * 60 * 24
         });

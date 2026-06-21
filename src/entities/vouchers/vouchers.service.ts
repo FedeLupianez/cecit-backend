@@ -17,7 +17,7 @@ import {
 } from './vouchers.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { VouchersEntity, VoucherStatus } from './vouchers.entity';
-import { Repository } from 'typeorm';
+import { LessThan, Repository } from 'typeorm';
 import { BenefitsEntity } from '../benefits/benefits.entity';
 import { DbService } from '../../common/database/db.service';
 import { PdfService } from 'src/pdf/pdf.service';
@@ -88,7 +88,13 @@ export class VouchersService {
         if (!benefit)
             throw new NotFoundException('Benefit not found');
 
-        if (benefit.coupons >= benefit.max_coupons)
+        const result = await this.benefitsRepository.increment(
+            { id_benefit: voucher.id_benefit, coupons: LessThan(benefit.max_coupons) },
+            'coupons',
+            1
+        );
+
+        if (result.affected === 0)
             throw new ConflictException('Max coupons reached');
 
         const new_voucher = this.vouchersRepository.create({
