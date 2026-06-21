@@ -5,24 +5,24 @@ export interface BenefitsDTO {
     id_benefit: string;
     id_admin: string;
     id_partner: string;
-    date_entered: string;
-    start_date: string;
-    end_date: string;
+    date_entered: Date;
+    start_date: Date;
+    end_date: Date;
     image: string;
     title: string;
     description: string;
     id_type: number;
     status: string;
     coupons: number;
-    max_cupouns: number;
+    max_coupons: number;
 }
 
 export interface BenefitsCreateDTO {
     id_admin: string;
     id_partner: string;
     id_type: number;
-    start_date: string;
-    end_date: string;
+    start_date: Date;
+    end_date: Date;
     image: string;
     title: string;
     description: string;
@@ -49,7 +49,7 @@ export class BenefitsMapper {
             id_type: benefit.id_type,
             status: benefit.status,
             coupons: benefit.coupons,
-            max_cupouns: benefit.max_cupouns
+            max_coupons: benefit.max_coupons
         }
     }
 }

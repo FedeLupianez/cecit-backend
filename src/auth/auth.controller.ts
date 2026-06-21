@@ -2,6 +2,7 @@ import { Body, Controller, Post, Req, Res } from '@nestjs/common';
 import { AuthService, TokensInterface } from './auth.service';
 import { UserLoginDTO, UsersCreateDTO } from 'src/entities/users/users.dto';
 import type { RefreshTokenDTO } from './auth.dto';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
@@ -13,7 +14,7 @@ export class AuthController {
         const days: number = 7;
         res.cookie('refresh_token_cecit', new_tokens.refresh_token, {
             httpOnly: true,
-            secure: false,
+            secure: true,
             sameSite: 'strict',
             maxAge: days * 60 * 60 * 24
         });
@@ -24,12 +25,13 @@ export class AuthController {
     }
 
     @Post('login')
+    @Throttle({ default: { limit: 3, ttl: 60000 } })
     async login(@Body() body: UserLoginDTO, @Res({ passthrough: true }) res) {
         const new_tokens: TokensInterface = await this.authService.login(body);
         const days: number = 7;
         res.cookie('refresh_token_cecit', new_tokens.refresh_token, {
             httpOnly: true,
-            secure: false,
+            secure: true,
             sameSite: 'strict',
             maxAge: days * 60 * 60 * 24
         });
@@ -46,7 +48,7 @@ export class AuthController {
         const days: number = 7;
         res.cookie('refresh_token_cecit', new_tokens.refresh_token, {
             httpOnly: true,
-            secure: false,
+            secure: true,
             sameSite: 'strict',
             maxAge: days * 60 * 60 * 24
         });

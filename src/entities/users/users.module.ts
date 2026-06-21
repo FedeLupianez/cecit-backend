@@ -9,12 +9,12 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { UsersEntity } from './users.entity';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import { CecitAdminsModule } from 'src/entities/cecit-admins/cecit-admins.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([UsersEntity])],
+    imports: [TypeOrmModule.forFeature([UsersEntity]), CecitAdminsModule],
     controllers: [UsersController],
     providers: [UsersService],
     exports: [UsersService]
-    // Ejemplo: Si se debe buscar el usuario que generó un beneficio desde la parte de Benefit, se necesita el Service de User.
 })
 export class UsersModule { }

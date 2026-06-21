@@ -9,7 +9,6 @@ import { UsersCreateDTO, UsersDeleteDTO, UsersDTO, UsersMapper } from './users.d
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersEntity } from './users.entity';
 import { Repository } from 'typeorm';
-import { hash } from 'argon2';
 
 @Injectable()
 export class UsersService {
@@ -42,7 +41,7 @@ export class UsersService {
             email
         })
         if (!user)
-            throw new NotFoundException(`User with email ${email} not found`);
+            throw new NotFoundException('User not found');
         return user;
     }
 
@@ -58,7 +57,7 @@ export class UsersService {
             throw new BadRequestException('The user already exists');
         }
         new_user.email = user.email;
-        new_user.password = await hash(user.password);
+        new_user.password = user.password;
         await this.userRepository.save(new_user);
         return new_user;
     }

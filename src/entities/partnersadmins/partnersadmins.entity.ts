@@ -1,6 +1,7 @@
 
+import { hash } from 'argon2';
 import { PartnersEntity } from '../partners/partners.entity';
-import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import { BeforeInsert, Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
 @Entity('PartnersAdmins')
 export class PartnersAdminsEntity {
@@ -25,4 +26,8 @@ export class PartnersAdminsEntity {
     @Column({ type: 'boolean', name: 'active', default: true })
     active: boolean;
 
+    @BeforeInsert()
+    async hashPasswd() {
+        this.password = await hash(this.password);
+    }
 }

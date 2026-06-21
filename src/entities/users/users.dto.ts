@@ -13,7 +13,7 @@ export interface UsersDTO {
     name: string;
     dni: string;
     lastname: string;
-    last_activity: string;
+    last_activity: Date;
 }
 
 export class UsersCreateDTO {
@@ -39,6 +39,12 @@ export class UserLoginDTO {
     @IsNotEmpty()
     @IsString()
     password: string;
+}
+
+export class ByEmailDTO {
+    @IsNotEmpty()
+    @IsEmail()
+    email: string;
 }
 
 export class UsersMapper {

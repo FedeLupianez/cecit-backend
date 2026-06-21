@@ -16,6 +16,8 @@ import { PaymentMethodsModule } from './entities/payment-methods/payment-methods
 import { PaymentBenefitModule } from './entities/payment_benefit/payment_benefit.module';
 import { AuthModule } from './auth/auth.module';
 import { DbModule } from './common/database/db.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
     imports: [
@@ -29,6 +31,10 @@ import { DbModule } from './common/database/db.module';
             database: process.env.DB_NAME,
             autoLoadEntities: true,
             synchronize: false,
+        }),
+        ThrottlerModule.forRoot({
+            throttlers: [{ ttl: 60000, limit: 10 }]
+
         }),
         CategoriesModule,
         UsersModule,
@@ -44,6 +50,8 @@ import { DbModule } from './common/database/db.module';
         DbModule
     ],
     controllers: [AppController],
-    providers: [AppService]
+    providers: [AppService,
+        { provide: APP_GUARD, useClass: ThrottlerGuard }
+    ]
 })
 export class AppModule { }

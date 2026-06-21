@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CecitAdminsEntity } from './cecit-admins.entity';
 import { Repository } from 'typeorm';
@@ -17,6 +17,17 @@ export class CecitAdminsService {
             throw new InternalServerErrorException('Admins is empty');
         const admins_mapped = admins.map((a) => CecitAdminsMapper.toDTO(a));
         return admins_mapped;
+    }
+
+    async get_by_email(email: string): Promise<CecitAdminsEntity> {
+        if (!email)
+            throw new BadRequestException('Email is required');
+        const admin = await this.cecitAdminsRepository.findOneBy({
+            email: email
+        })
+        if (!admin)
+            throw new NotFoundException('Admin not exists');
+        return admin;
     }
 
 }

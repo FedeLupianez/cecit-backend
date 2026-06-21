@@ -1,24 +1,27 @@
-import { Body, Controller, Delete, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, UseGuards } from '@nestjs/common';
 import { BenefitsService } from './benefits.service';
 import { BenefitsMapper, type BenefitsCreateDTO, type BenefitsDeleteDTO } from './benefits.dto';
-import { get } from 'http';
+import { CecitAdminGuard } from 'src/auth/cecitadmin.guard';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('benefits')
 export class BenefitsController {
-    constructor (private readonly benefitsService : BenefitsService) { };
+    constructor(private readonly benefitsService: BenefitsService) { };
     @Get('all')
     get_all() {
         return this.benefitsService.get_all();
     }
-    
+
+    @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
     @Post()
-    async create(@Body() benefit: BenefitsCreateDTO){
+    async create(@Body() benefit: BenefitsCreateDTO) {
         const new_benefit = await this.benefitsService.create(benefit);
         return BenefitsMapper.toDTO(new_benefit)
     }
 
+    @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
     @Delete()
-    async delete(@Body() benefit: BenefitsDeleteDTO){
+    async delete(@Body() benefit: BenefitsDeleteDTO) {
         const result = await this.benefitsService.delete(benefit);
         return result
     }

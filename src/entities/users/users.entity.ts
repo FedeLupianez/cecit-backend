@@ -2,7 +2,8 @@
  * En los archivos .entity.ts se define la
  * estructura de la tabla
  * */
-import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
+import { hash } from 'argon2';
+import { Entity, Column, PrimaryColumn, Index, BeforeInsert } from 'typeorm';
 
 @Entity('Users')
 export class UsersEntity {
@@ -31,4 +32,9 @@ export class UsersEntity {
 
     @Column({ type: 'boolean', default: true })
     active: boolean;
+
+    @BeforeInsert()
+    async hashPasswd() {
+        this.password = await hash(this.password);
+    }
 }

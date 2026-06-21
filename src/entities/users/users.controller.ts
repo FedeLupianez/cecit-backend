@@ -17,11 +17,12 @@
  * y retornamos.
  * */
 
-import { Body, Controller, Delete, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Req, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersMapper } from './users.dto';
-import type { UsersDeleteDTO, UsersDTO } from './users.dto';
+import type { ByEmailDTO, UsersDeleteDTO, UsersDTO } from './users.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { CecitAdminGuard } from 'src/auth/cecitadmin.guard';
 
 @Controller('user')
 export class UsersController {
@@ -34,15 +35,16 @@ export class UsersController {
     }
 
     @Get('all')
-    @UseGuards(AuthGuard('jwt'))
+    @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
     get_all() {
         // Se llama al service para obtener los registrost 
         return this.userService.get_all();
     }
 
     @Get('byemail')
-    async get_by_email(@Query('email') email: string): Promise<UsersDTO> {
-        const user = await this.userService.get_by_email(email);
+    @UseGuards(AuthGuard('jwt'))
+    async get_by_email(@Body() body: ByEmailDTO): Promise<UsersDTO> {
+        const user = await this.userService.get_by_email(body.email);
         return UsersMapper.toDTO(user);
     }
 

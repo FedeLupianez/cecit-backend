@@ -47,7 +47,7 @@ export class AuthService {
             throw new UnauthorizedException('Refresh token revoked');
         }
         const expires_at: Date = new Date(stored.expires_at);
-        if (expires_at.getTime() >= Date.now()) {
+        if (expires_at.getTime() <= Date.now()) {
             throw new UnauthorizedException('Refresh token expired');
         }
         return true;
@@ -55,7 +55,15 @@ export class AuthService {
 
     async register(user: UsersCreateDTO): Promise<TokensInterface> {
         const new_user = await this.userService.create(user);
-        return this.login({ email: new_user.email, password: user.password });
+        const payload = {
+            sub: new_user.id_user,
+            email: new_user.email,
+            jti: randomUUID()
+        };
+        return {
+            access_token: this.jwtService.sign(payload),
+            refresh_token: await this.generateRefreshToken(),
+        };
     }
 
     async login(user_login: UserLoginDTO): Promise<TokensInterface> {
