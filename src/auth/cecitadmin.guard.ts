@@ -9,7 +9,7 @@ export class CecitAdminGuard implements CanActivate {
         const request = context.switchToHttp().getRequest();
         if (!request.user)
             throw new UnauthorizedException('Not authenticated');
-        const user = this.adminsService.get_by_email(request.user.email);
+        const user = await this.adminsService.get_by_email(request.user.email);
         if (!user)
             throw new UnauthorizedException('Admin access required');
         return true;

@@ -47,7 +47,7 @@ export class AuthService {
             throw new UnauthorizedException('Refresh token revoked');
         }
         const expires_at: Date = new Date(stored.expires_at);
-        if (expires_at.getTime() >= Date.now()) {
+        if (expires_at.getTime() <= Date.now()) {
             throw new UnauthorizedException('Refresh token expired');
         }
         return true;
