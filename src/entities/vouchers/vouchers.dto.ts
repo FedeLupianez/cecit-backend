@@ -1,8 +1,8 @@
 /*
-* DTO para voucher, no se incluye el status, ni el token
-*/
+ * DTO para voucher, no se incluye el status, ni el token
+ */
 
-import { VouchersEntity, VoucherStatus } from "./vouchers.entity";
+import { VouchersEntity, VoucherStatus } from './vouchers.entity';
 
 export interface VouchersDTO {
     token: string;
@@ -16,13 +16,15 @@ export interface VouchersDTO {
 export interface VouchersCreateDTO {
     id_user: string;
     id_benefit: string;
-    application_date: string;
-    delibery_date: string;
 }
 
 export interface VouchersDeleteDTO {
     token: string;
     id_user: string;
+}
+
+export interface VoucherFileDTO {
+    token: string;
 }
 
 export class VouchersMapper {
@@ -33,7 +35,7 @@ export class VouchersMapper {
             token: voucher.token,
             application_date: voucher.application_date,
             delivery_date: voucher.delivery_date,
-            status: voucher.status
-        }
+            status: voucher.status,
+        };
     }
 }

@@ -27,7 +27,7 @@ export class UsersEntity {
     dni: string;
 
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-    last_activity: string;
+    last_activity: Date;
 
     @Column({ type: 'boolean', default: true })
     active: boolean;

@@ -1,16 +1,31 @@
 /*
-* Controlador voucher
-*/
+ * Controlador voucher
+ */
 
-import { Controller, Get, Query, Post, Delete, Body, NotFoundException } from "@nestjs/common";
-import { VouchersService } from "./vouchers.service";
-import { VoucherStatus } from "./vouchers.entity";
-import { VouchersMapper } from "./vouchers.dto";
-import type { VouchersCreateDTO, VouchersDeleteDTO } from "./vouchers.dto";
+import {
+    Controller,
+    Get,
+    Query,
+    Post,
+    Delete,
+    Body,
+    NotFoundException,
+    Res,
+    UseGuards,
+} from '@nestjs/common';
+import { VouchersService } from './vouchers.service';
+import { VoucherStatus } from './vouchers.entity';
+import { VouchersMapper } from './vouchers.dto';
+import type {
+    VouchersCreateDTO,
+    VouchersDeleteDTO,
+} from './vouchers.dto';
+
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('voucher')
 export class VouchersController {
-    constructor(private readonly voucherService: VouchersService) { };
+    constructor(private readonly voucherService: VouchersService) { }
 
     @Get('all')
     get_all() {
@@ -49,7 +64,18 @@ export class VouchersController {
         if (!voucher_deleted) {
             throw new NotFoundException('Voucher does not exists');
         }
-        return { result: 'ok' }
+        return { result: 'ok' };
     }
 
+    @Get('file')
+    @UseGuards(AuthGuard('jwt'))
+    async file(@Query('token') token: string, @Res() res) {
+        const file = await this.voucherService.gen_file(token);
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename=cecit_voucher_${token}.pdf`,
+            'Content-Lenght': file.length,
+        });
+        return res.end(file);
+    }
 }

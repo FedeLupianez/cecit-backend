@@ -1,38 +1,43 @@
-import { Entity, Column, ManyToOne, PrimaryColumn, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, PrimaryColumn, JoinColumn, BeforeInsert } from 'typeorm';
 import { UsersEntity } from '../users/users.entity';
 import { BenefitsEntity } from '../benefits/benefits.entity';
 
 export enum VoucherStatus {
     PENDING = 'PENDING',
     DELIVERED = 'DELIVERED',
-    EXPIRED = 'EXPIRED'
+    EXPIRED = 'EXPIRED',
 }
 
 @Entity('Vouchers')
 export class VouchersEntity {
     @PrimaryColumn({ type: 'varchar', length: 6 })
-    token !: string;
+    token!: string;
 
     @Column({ type: 'varchar', length: 4 })
-    id_user !: string;
+    id_user!: string;
 
     @ManyToOne(() => UsersEntity, { nullable: false })
     @JoinColumn({ name: 'id_user', referencedColumnName: 'id_user' })
-    user !: UsersEntity;
+    user!: UsersEntity;
 
     @Column({ type: 'varchar', length: 4 })
-    id_benefit !: string;
+    id_benefit!: string;
 
     @ManyToOne(() => BenefitsEntity, { nullable: false })
     @JoinColumn({ name: 'id_benefit', referencedColumnName: 'id_benefit' })
-    benefit !: BenefitsEntity;
+    benefit!: BenefitsEntity;
 
     @Column({ type: 'date' })
-    application_date !: string;
+    application_date!: Date;
 
     @Column({ default: null, type: 'date' })
-    delivery_date !: string;
+    delivery_date!: Date;
 
     @Column({ type: 'enum', enum: VoucherStatus, default: VoucherStatus.PENDING })
-    status !: VoucherStatus;
+    status!: VoucherStatus;
+
+    @BeforeInsert()
+    setDate() {
+        this.application_date = new Date();
+    }
 }
