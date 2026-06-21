@@ -8,8 +8,8 @@ export interface VouchersDTO {
     token: string;
     id_user: string;
     id_benefit: string;
-    application_date: string;
-    delivery_date: string;
+    application_date: Date;
+    delivery_date: Date;
     status: VoucherStatus;
 }
 
