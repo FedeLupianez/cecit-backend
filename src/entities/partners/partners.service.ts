@@ -49,6 +49,15 @@ export class PartnersService {
         return true;
     }
 
+    async get_by_id(id_partner: string): Promise<PartnersEntity> {
+        if (!id_partner)
+            throw new BadRequestException('id is empty');
+        const partner = await this.partnersRepo.findOneBy({ id_partner: id_partner });
+        if (!partner)
+            throw new NotFoundException('Partner not found');
+        return partner;
+    }
+
     async get_by_name(name: string): Promise<PartnersDTO> {
         if (!name)
             throw new BadRequestException('partner name is empty');
@@ -76,4 +85,5 @@ export class PartnersService {
         this.partnersRepo.save(partner);
         return PartnersMapper.entityToDto(partner);
     }
+
 }
