@@ -64,13 +64,13 @@ export class ConsumerService {
         throw new NotFoundException('User not found');
     }
 
-    async create(userType: ConsumerType, data: UsersCreateDTO | PartnersAdminsCreateDTO | CecitAdminsCreateDTO): Promise<boolean> {
+    async create(userType: ConsumerType, data: UsersCreateDTO | PartnersAdminsCreateDTO | CecitAdminsCreateDTO): Promise<Consumer> {
         if (userType == ConsumerType.USER) {
             const newUser = data as UsersCreateDTO;
             const user = await this.usersService.create(newUser);
             if (!user)
                 throw new InternalServerErrorException('Error creating new User');
-            return true;
+            return UsersMapper.toConsumer(user);
         }
 
         if (userType == ConsumerType.PARTNER_ADMIN) {
@@ -78,7 +78,7 @@ export class ConsumerService {
             const user = await this.partnerAdminsService.create(newUser);
             if (!user)
                 throw new InternalServerErrorException('Error creating new User');
-            return true;
+            return PartnersAdminsMapper.toConsumer(user);
         }
 
         if (userType == ConsumerType.CECIT_ADMIN) {
@@ -86,7 +86,7 @@ export class ConsumerService {
             const user = await this.cecitAdminsService.create(newUser);
             if (!user)
                 throw new InternalServerErrorException('Error creating new User');
-            return true;
+            return CecitAdminsMapper.toConsumer(user);
         }
         throw new BadRequestException('User type not valid');
     }

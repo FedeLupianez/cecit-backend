@@ -7,8 +7,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshTokenEntity } from '../entities/refresh-token.entity';
-import { UsersModule } from 'src/entities/users/users.module';
-import { CecitAdminsModule } from 'src/entities/cecit-admins/cecit-admins.module';
+import { ConsumerModule } from 'src/consumer/consumer.module';
 
 
 @Module({
@@ -17,8 +16,8 @@ import { CecitAdminsModule } from 'src/entities/cecit-admins/cecit-admins.module
         signOptions: { expiresIn: (process.env.JWT_ACCESS_EXPIRATION || '15m') as `${number}${'s' | 'm' | 'h' | 'd'}` }
     }),
         TypeOrmModule.forFeature([RefreshTokenEntity]),
-        UsersModule,
-        CecitAdminsModule],
+        ConsumerModule
+    ],
     controllers: [AuthController],
     providers: [AuthService, JwtStrategy]
 })

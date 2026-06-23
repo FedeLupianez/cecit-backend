@@ -15,7 +15,7 @@ export class PartnersAdminsService {
         private readonly db_service: DbService
     ) { }
 
-    async create(admin: PartnersAdminsCreateDTO): Promise<PartnersAdminsDTO> {
+    async create(admin: PartnersAdminsCreateDTO): Promise<PartnersAdminsEntity> {
         const partner = await this.partnersService.get_by_name(admin.partner_name);
         const new_id = await this.db_service.get_new_id('PartnersAdmins', 'id_p_admin');
         const newAdmin = this.adminsRepo.create({
@@ -28,7 +28,7 @@ export class PartnersAdminsService {
         const stored = await this.adminsRepo.save(newAdmin);
         if (!stored)
             throw new InternalServerErrorException('Error creating new Admin');
-        return PartnersAdminsMapper.toDTO(stored);
+        return stored;
     }
 
     async get_by_id(id_admin: string): Promise<PartnersAdminsEntity> {
