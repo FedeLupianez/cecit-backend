@@ -4,17 +4,25 @@ import { CecitAdminsEntity } from './cecit-admins.entity';
 import { Repository } from 'typeorm';
 import { CecitAdminsCreateDTO, CecitAdminsDTO, CecitAdminsMapper } from './cecit-admins.dto';
 import { isEmail } from 'class-validator';
+import { DbService } from 'src/common/database/db.service';
 
 @Injectable()
 export class CecitAdminsService {
     constructor(
         @InjectRepository(CecitAdminsEntity)
-        private readonly cecitAdminsRepository: Repository<CecitAdminsEntity>
+        private readonly cecitAdminsRepository: Repository<CecitAdminsEntity>,
+        private readonly dbService: DbService
     ) { };
 
     async create(admin: CecitAdminsCreateDTO): Promise<CecitAdminsEntity> {
-        const newAdmin = await this.cecitAdminsRepository.save(admin);
-        if (!newAdmin)
+        const newId = await this.dbService.get_new_id('CecitAdmins', 'id_c_admin');
+        const newAdmin = this.cecitAdminsRepository.create({
+            id_c_admin: newId,
+            email: admin.email,
+            password: admin.password
+        });
+        const stored = await this.cecitAdminsRepository.save(newAdmin);
+        if (!stored)
             throw new InternalServerErrorException('Error creating cecit admin');
         return newAdmin;
     }

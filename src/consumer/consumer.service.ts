@@ -9,9 +9,9 @@ import { UsersCreateDTO, UsersMapper } from 'src/entities/users/users.dto';
 import { DbService } from 'src/common/database/db.service';
 
 export enum ConsumerType {
-    USER,
-    PARTNER_ADMIN,
-    CECIT_ADMIN
+    USER = 'USER',
+    PARTNER_ADMIN = 'PARTER_ADMIN',
+    CECIT_ADMIN = 'CECIT_ADMIN'
 }
 
 @Injectable()
