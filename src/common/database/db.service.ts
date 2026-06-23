@@ -39,8 +39,8 @@ export class DbService {
                 u.name,
                 u.lastname,
                 u.dni
-            FROM UsersNasked u
-            WHERE u.email = $1
+            FROM Users u
+            WHERE u.email = ?
 
             UNION ALL
 
@@ -50,9 +50,9 @@ export class DbService {
                 pa.password,
                 NULL AS name,
                 NULL AS lastname,
-                NULL AS dni,
+                NULL AS dni
             FROM PartnersAdmins pa
-            WHERE pa.email = $1
+            WHERE pa.email = ?
 
             UNION ALL
 
@@ -62,11 +62,11 @@ export class DbService {
                 ca.password,
                 NULL AS name,
                 NULL AS lastname,
-                NULL AS dni,
+                NULL AS dni
             FROM CecitAdmins ca
-            WHERE ca.email = $1
-        `, [email]);
-        if (result.lenght === 0)
+            WHERE ca.email = ?
+        `, [email, email, email]);
+        if (result.length === 0)
             throw new NotFoundException('User not found');
         return result[0];
     }
@@ -82,8 +82,8 @@ export class DbService {
                 u.name,
                 u.lastname,
                 u.dni
-            FROM UsersNasked u
-            WHERE u.id_user = $1
+            FROM Users u
+            WHERE u.id_user = ?
 
             UNION ALL
 
@@ -93,9 +93,9 @@ export class DbService {
                 pa.password,
                 NULL AS name,
                 NULL AS lastname,
-                NULL AS dni,
+                NULL AS dni
             FROM PartnersAdmins pa
-            WHERE pa.id_p_admin = $1
+            WHERE pa.id_p_admin = ?
 
             UNION ALL
 
@@ -105,11 +105,11 @@ export class DbService {
                 ca.password,
                 NULL AS name,
                 NULL AS lastname,
-                NULL AS dni,
+                NULL AS dni
             FROM CecitAdmins ca
-            WHERE ca.id_c_admin = $1
-        `, [id]);
-        if (result.lenght === 0)
+            WHERE ca.id_c_admin = ?
+        `, [id, id, id]);
+        if (result.length === 0)
             throw new NotFoundException('User not found');
         return result[0];
     }
