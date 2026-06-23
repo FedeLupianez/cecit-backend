@@ -10,7 +10,7 @@ import { DbService } from 'src/common/database/db.service';
 
 export enum ConsumerType {
     USER = 'USER',
-    PARTNER_ADMIN = 'PARTER_ADMIN',
+    PARTNER_ADMIN = 'PARTNER_ADMIN',
     CECIT_ADMIN = 'CECIT_ADMIN'
 }
 

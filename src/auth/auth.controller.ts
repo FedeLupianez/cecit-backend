@@ -1,7 +1,8 @@
 import { Body, Controller, Post, Req, Res } from '@nestjs/common';
-import { AuthService, TokensInterface } from './auth.service';
-import { UserLoginDTO } from 'src/entities/users/users.dto';
-import type { RefreshTokenDTO, RegisterDTO } from './auth.dto';
+import { AuthService } from './auth.service';
+import { TokensInterface } from './auth.dto';
+import { UserLoginDTO, UsersCreateDTO } from 'src/entities/users/users.dto';
+import type { RefreshTokenDTO } from './auth.dto';
 import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
@@ -9,7 +10,7 @@ export class AuthController {
     constructor(private readonly authService: AuthService) { }
 
     @Post('register')
-    async register(@Body() body: RegisterDTO, @Res({ passthrough: true }) res) {
+    async register(@Body() body: UsersCreateDTO, @Res({ passthrough: true }) res) {
         const new_tokens: TokensInterface = await this.authService.register(body);
         const days: number = 7;
         res.cookie('refresh_token_cecit', new_tokens.refresh_token, {

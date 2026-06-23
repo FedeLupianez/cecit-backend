@@ -8,6 +8,7 @@ import { JwtStrategy } from './jwt.strategy';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshTokenEntity } from '../entities/refresh-token.entity';
 import { ConsumerModule } from 'src/consumer/consumer.module';
+import { UsersModule } from 'src/entities/users/users.module';
 
 
 @Module({
@@ -16,7 +17,8 @@ import { ConsumerModule } from 'src/consumer/consumer.module';
         signOptions: { expiresIn: (process.env.JWT_ACCESS_EXPIRATION || '15m') as `${number}${'s' | 'm' | 'h' | 'd'}` }
     }),
         TypeOrmModule.forFeature([RefreshTokenEntity]),
-        ConsumerModule
+        ConsumerModule,
+        UsersModule
     ],
     controllers: [AuthController],
     providers: [AuthService, JwtStrategy]

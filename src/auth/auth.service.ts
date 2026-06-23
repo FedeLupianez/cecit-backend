@@ -1,19 +1,17 @@
 import { randomUUID } from 'node:crypto';
 import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { UserLoginDTO } from 'src/entities/users/users.dto';
+import { UserLoginDTO, UsersCreateDTO } from 'src/entities/users/users.dto';
 import { hash, verify } from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RefreshTokenEntity } from '../entities/refresh-token.entity';
 import { Repository } from 'typeorm';
-import { RegisterDTO, type RefreshTokenDTO } from './auth.dto';
+import { type RefreshTokenDTO } from './auth.dto';
 import { ConsumerService } from 'src/consumer/consumer.service';
 import type { Consumer } from 'src/consumer/consumer.dto';
+import { UsersService } from 'src/entities/users/users.service';
+import { TokensInterface } from './auth.dto';
 
-export interface TokensInterface {
-    access_token: string;
-    refresh_token: string;
-}
 
 @Injectable()
 export class AuthService {
@@ -22,6 +20,7 @@ export class AuthService {
         private readonly jwtService: JwtService,
         @InjectRepository(RefreshTokenEntity)
         private readonly refreshTokenRepo: Repository<RefreshTokenEntity>,
+        private readonly usersService: UsersService
     ) { }
 
     async validateUser(email: string, passwd: string): Promise<Consumer> {
@@ -58,10 +57,10 @@ export class AuthService {
         return true;
     }
 
-    async register(user: RegisterDTO): Promise<TokensInterface> {
-        const new_user = await this.consumerService.create(user.user_type, user.data);
+    async register(user: UsersCreateDTO): Promise<TokensInterface> {
+        const new_user = await this.usersService.create(user);
         const payload = {
-            sub: new_user.id_consumer,
+            sub: new_user.id_user,
             email: new_user.email,
             jti: randomUUID()
         };
