@@ -2,7 +2,8 @@ import { BadRequestException, Injectable, InternalServerErrorException, NotFound
 import { InjectRepository } from '@nestjs/typeorm';
 import { CecitAdminsEntity } from './cecit-admins.entity';
 import { Repository } from 'typeorm';
-import { CecitAdminsDTO, CecitAdminsMapper } from './cecit-admins.dto';
+import { CecitAdminsCreateDTO, CecitAdminsDTO, CecitAdminsMapper } from './cecit-admins.dto';
+import { isEmail } from 'class-validator';
 
 @Injectable()
 export class CecitAdminsService {
@@ -10,6 +11,13 @@ export class CecitAdminsService {
         @InjectRepository(CecitAdminsEntity)
         private readonly cecitAdminsRepository: Repository<CecitAdminsEntity>
     ) { };
+
+    async create(admin: CecitAdminsCreateDTO): Promise<CecitAdminsEntity> {
+        const newAdmin = await this.cecitAdminsRepository.save(admin);
+        if (!newAdmin)
+            throw new InternalServerErrorException('Error creating cecit admin');
+        return newAdmin;
+    }
 
     async get_all(): Promise<CecitAdminsDTO[]> {
         const admins = await this.cecitAdminsRepository.find();
@@ -20,7 +28,7 @@ export class CecitAdminsService {
     }
 
     async get_by_email(email: string): Promise<CecitAdminsEntity> {
-        if (!email)
+        if (!email || !isEmail(email))
             throw new BadRequestException('Email is required');
         const admin = await this.cecitAdminsRepository.findOneBy({
             email: email
@@ -30,4 +38,12 @@ export class CecitAdminsService {
         return admin;
     }
 
+    async get_by_id(id_admin: string) {
+        if (!id_admin)
+            throw new BadRequestException('Id is required');
+        const admin = await this.cecitAdminsRepository.findOneBy({ id_c_admin: id_admin });
+        if (!admin)
+            throw new NotFoundException('Admin not found');
+        return admin;
+    }
 }

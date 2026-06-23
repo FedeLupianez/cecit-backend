@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { RefreshTokenEntity } from '../entities/refresh-token.entity';
 import { Repository } from 'typeorm';
 import { type RefreshTokenDTO } from './auth.dto';
+import { ConsumerService } from 'src/consumer/consumer.service';
 
 export interface TokensInterface {
     access_token: string;
@@ -19,6 +20,7 @@ export interface TokensInterface {
 export class AuthService {
     constructor(
         private readonly userService: UsersService,
+        private readonly consumerService: ConsumerService,
         private readonly jwtService: JwtService,
         @InjectRepository(RefreshTokenEntity)
         private readonly refreshTokenRepo: Repository<RefreshTokenEntity>,

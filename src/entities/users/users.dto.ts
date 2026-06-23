@@ -6,6 +6,7 @@
 
 import { IsEmail, IsNotEmpty, IsString } from "class-validator";
 import { UsersEntity } from "./users.entity";
+import { Consumer } from "src/consumer/consumer.dto";
 
 export interface UsersDTO {
     id_user: string;
@@ -47,6 +48,7 @@ export class ByEmailDTO {
     email: string;
 }
 
+
 export class UsersMapper {
     static toDTO(user: UsersEntity): UsersDTO {
         return {
@@ -56,6 +58,17 @@ export class UsersMapper {
             name: user.name,
             lastname: user.lastname,
             last_activity: user.last_activity
+        }
+    }
+
+    static toConsumer(user: UsersEntity): Consumer {
+        return {
+            id_consumer: user.id_user,
+            email: user.email,
+            dni: user.dni,
+            name: user.name,
+            lastname: user.lastname,
+            password: user.password
         }
     }
 }
