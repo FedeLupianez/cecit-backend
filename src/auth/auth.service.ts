@@ -1,16 +1,14 @@
 import { randomUUID } from 'node:crypto';
 import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { UserLoginDTO, UsersCreateDTO } from 'src/entities/users/users.dto';
+import { UserLoginDTO } from 'src/entities/users/users.dto';
 import { hash, verify } from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RefreshTokenEntity } from '../entities/refresh-token.entity';
 import { Repository } from 'typeorm';
 import { RegisterDTO, type RefreshTokenDTO } from './auth.dto';
-import { ConsumerService, ConsumerType } from 'src/consumer/consumer.service';
+import { ConsumerService } from 'src/consumer/consumer.service';
 import type { Consumer } from 'src/consumer/consumer.dto';
-import { PartnersAdminsCreateDTO } from 'src/entities/partnersadmins/partnersadmins.dto';
-import { CecitAdminsCreateDTO } from 'src/entities/cecit-admins/cecit-admins.dto';
 
 export interface TokensInterface {
     access_token: string;
@@ -27,10 +25,7 @@ export class AuthService {
     ) { }
 
     async validateUser(email: string, passwd: string): Promise<Consumer> {
-        const user = await this.consumerService.get_by_email({ email: email });
-
-        if (!user)
-            throw new BadRequestException('User not found');
+        const user = await this.consumerService.get_consumer({ email: email })
 
         const passwordValid = await verify(user.password, passwd);
 
@@ -97,7 +92,7 @@ export class AuthService {
 
         const payload = {
             sub: refreshDto.id_user,
-            email: (await this.consumerService.get_consumer({ id_consumer: refreshDto.id_user })).email,
+            email: (await this.consumerService.get_consumer({ email: refreshDto.id_user })).email,
             jti: randomUUID()
         };
 

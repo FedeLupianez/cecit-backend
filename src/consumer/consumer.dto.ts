@@ -1,3 +1,4 @@
+import { IsEmail, IsString } from "class-validator";
 
 export interface Consumer {
     id_consumer: string;
@@ -9,7 +10,9 @@ export interface Consumer {
     lastname?: string;
 }
 
-export interface ConsumerGet {
+export class ConsumerGet {
+    @IsString()
     id_consumer?: string;
+    @IsEmail()
     email?: string;
 }

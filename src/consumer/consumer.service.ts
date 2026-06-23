@@ -6,6 +6,7 @@ import type { Consumer, ConsumerGet } from './consumer.dto';
 import { CecitAdminsCreateDTO, CecitAdminsMapper } from 'src/entities/cecit-admins/cecit-admins.dto';
 import { PartnersAdminsCreateDTO, PartnersAdminsMapper } from 'src/entities/partnersadmins/partnersadmins.dto';
 import { UsersCreateDTO, UsersMapper } from 'src/entities/users/users.dto';
+import { DbService } from 'src/common/database/db.service';
 
 export enum ConsumerType {
     USER,
@@ -18,49 +19,17 @@ export class ConsumerService {
     constructor(
         private readonly cecitAdminsService: CecitAdminsService,
         private readonly partnerAdminsService: PartnersAdminsService,
-        private readonly usersService: UsersService
+        private readonly usersService: UsersService,
+        private readonly dbService: DbService
     ) { }
 
     async get_consumer(consumer: ConsumerGet): Promise<Consumer> {
-        if (!consumer.id_consumer)
-            throw new BadRequestException('Id is required');
-
-        try {
-            const cecitadmin = await this.cecitAdminsService.get_by_id(consumer.id_consumer);
-            return CecitAdminsMapper.toConsumer(cecitadmin);
-        } catch { }
-
-        try {
-            const partnerAdmin = await this.partnerAdminsService.get_by_id(consumer.id_consumer);
-            return PartnersAdminsMapper.toConsumer(partnerAdmin);
-        } catch { }
-
-        try {
-            const user = await this.usersService.get_by_user_id(consumer.id_consumer);
-            return UsersMapper.toConsumer(user);
-        } catch { }
-
-        throw new NotFoundException('User not found');
-    }
-
-    async get_by_email(consumer: ConsumerGet): Promise<Consumer> {
-        if (!consumer.email)
-            throw new BadRequestException('Email is required');
-        try {
-            const cecitAdmin = await this.cecitAdminsService.get_by_email(consumer.email);
-            return CecitAdminsMapper.toConsumer(cecitAdmin);
-        } catch { }
-
-        try {
-            const partnerAdmin = await this.partnerAdminsService.get_by_email(consumer.email);
-            return PartnersAdminsMapper.toConsumer(partnerAdmin);
-        } catch { }
-
-        try {
-            const user = await this.usersService.get_by_email(consumer.email);
-            return UsersMapper.toConsumer(user);
-        } catch { }
-
+        if (!consumer.id_consumer && !consumer.email)
+            throw new BadRequestException('Data is empty');
+        if (!consumer.id_consumer && consumer.email)
+            return this.dbService.get_user_email(consumer.email);
+        if (!consumer.email && consumer.id_consumer)
+            return this.dbService.get_user_id(consumer.id_consumer);
         throw new NotFoundException('User not found');
     }
 
