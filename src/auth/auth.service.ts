@@ -1,34 +1,30 @@
 import { randomUUID } from 'node:crypto';
 import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { UsersService } from 'src/entities/users/users.service';
 import { UserLoginDTO, UsersCreateDTO } from 'src/entities/users/users.dto';
 import { hash, verify } from 'argon2';
-import { type UsersEntity } from 'src/entities/users/users.entity';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RefreshTokenEntity } from '../entities/refresh-token.entity';
 import { Repository } from 'typeorm';
 import { type RefreshTokenDTO } from './auth.dto';
+import { ConsumerService } from 'src/consumer/consumer.service';
+import type { Consumer } from 'src/consumer/consumer.dto';
+import { UsersService } from 'src/entities/users/users.service';
+import { TokensInterface } from './auth.dto';
 
-export interface TokensInterface {
-    access_token: string;
-    refresh_token: string;
-}
 
 @Injectable()
 export class AuthService {
     constructor(
-        private readonly userService: UsersService,
+        private readonly consumerService: ConsumerService,
         private readonly jwtService: JwtService,
         @InjectRepository(RefreshTokenEntity)
         private readonly refreshTokenRepo: Repository<RefreshTokenEntity>,
+        private readonly usersService: UsersService
     ) { }
 
-    async validateUser(email: string, passwd: string): Promise<UsersEntity> {
-        const user = await this.userService.get_by_email(email);
-
-        if (!user)
-            throw new BadRequestException('User not found');
+    async validateUser(email: string, passwd: string): Promise<Consumer> {
+        const user = await this.consumerService.get_consumer({ email: email })
 
         const passwordValid = await verify(user.password, passwd);
 
@@ -37,16 +33,24 @@ export class AuthService {
         return user;
     }
 
-    async validateRefreshToken(token: string): Promise<boolean> {
-        const hashed = await hash(token);
-        const stored = await this.refreshTokenRepo.findOneBy({ token_hash: hashed });
-        if (!stored) {
-            throw new NotFoundException('Refresh token not found');
+    private async getRefreshToken(tokenHashed: string): Promise<RefreshTokenEntity> {
+        if (!tokenHashed)
+            throw new BadRequestException('Token is empty');
+        const storedTokens = await this.refreshTokenRepo.find();
+        for (const stored of storedTokens) {
+            const match = await verify(stored.token_hash, tokenHashed);
+            if (match)
+                return stored;
         }
-        if (stored.revoked) {
+        throw new NotFoundException('Token not found');
+    }
+
+    async validateRefreshToken(token: string): Promise<boolean> {
+        const storedToken = await this.getRefreshToken(token);
+        if (storedToken.revoked) {
             throw new UnauthorizedException('Refresh token revoked');
         }
-        const expires_at: Date = new Date(stored.expires_at);
+        const expires_at: Date = new Date(storedToken.expires_at);
         if (expires_at.getTime() <= Date.now()) {
             throw new UnauthorizedException('Refresh token expired');
         }
@@ -54,7 +58,7 @@ export class AuthService {
     }
 
     async register(user: UsersCreateDTO): Promise<TokensInterface> {
-        const new_user = await this.userService.create(user);
+        const new_user = await this.usersService.create(user);
         const payload = {
             sub: new_user.id_user,
             email: new_user.email,
@@ -72,7 +76,7 @@ export class AuthService {
             throw new UnauthorizedException('Invalid Credentials');
 
         const payload = {
-            sub: user.id_user,
+            sub: user.id_consumer,
             email: user.email,
             jti: randomUUID()
         }
@@ -83,19 +87,11 @@ export class AuthService {
     }
 
     async refresh(refreshDto: RefreshTokenDTO): Promise<TokensInterface> {
-        const tokenHash = await hash(refreshDto.refresh_token);
-
-        const stored = await this.refreshTokenRepo.findOne({
-            where: { token_hash: tokenHash, revoked: false }
-        });
-        if (!stored)
-            throw new UnauthorizedException('Invalid refresh token');
-
-        await this.refreshTokenRepo.update(stored.id_token, { revoked: true });
-
+        const storedToken = await this.getRefreshToken(refreshDto.refresh_token);
+        await this.refreshTokenRepo.update(storedToken.id_token, { revoked: true });
         const payload = {
             sub: refreshDto.id_user,
-            email: (await this.userService.get_by_user_id(refreshDto.id_user)).email,
+            email: (await this.consumerService.get_consumer({ email: refreshDto.id_user })).email,
             jti: randomUUID()
         };
 

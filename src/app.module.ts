@@ -18,6 +18,9 @@ import { AuthModule } from './auth/auth.module';
 import { DbModule } from './common/database/db.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { ConsumerService } from './consumer/consumer.service';
+import { ConsumerModule } from './consumer/consumer.module';
+import { PartnersModule } from './entities/partners/partners.module';
 
 @Module({
     imports: [
@@ -47,11 +50,14 @@ import { APP_GUARD } from '@nestjs/core';
         PaymentMethodsModule,
         PaymentBenefitModule,
         AuthModule,
-        DbModule
+        DbModule,
+        ConsumerModule,
+        PartnersModule
     ],
     controllers: [AppController],
     providers: [AppService,
-        { provide: APP_GUARD, useClass: ThrottlerGuard }
+        { provide: APP_GUARD, useClass: ThrottlerGuard },
+        ConsumerService
     ]
 })
 export class AppModule { }

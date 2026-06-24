@@ -9,6 +9,7 @@ import { UsersCreateDTO, UsersDeleteDTO, UsersDTO, UsersMapper } from './users.d
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersEntity } from './users.entity';
 import { Repository } from 'typeorm';
+import { isEmail } from 'class-validator';
 
 @Injectable()
 export class UsersService {
@@ -17,12 +18,12 @@ export class UsersService {
         private readonly userRepository: Repository<UsersEntity>,
     ) { };
 
-    async get_by_user_id(partner_id: string): Promise<UsersDTO> {
+    async get_by_user_id(partner_id: string): Promise<UsersEntity> {
         const user = await this.userRepository.findOneBy({ id_user: partner_id })
         if (!user) {
             throw new NotFoundException(`User does not exists`);
         }
-        return UsersMapper.toDTO(user);
+        return user;
     }
 
     async get_all(): Promise<UsersDTO[]> {
@@ -35,7 +36,7 @@ export class UsersService {
     }
 
     async get_by_email(email: string): Promise<UsersEntity> {
-        if (!email)
+        if (!email || !isEmail(email))
             throw new BadRequestException('Email is not valid');
         const user = await this.userRepository.findOneBy({
             email
@@ -45,7 +46,7 @@ export class UsersService {
         return user;
     }
 
-    async create(user: UsersCreateDTO) {
+    async create(user: UsersCreateDTO): Promise<UsersEntity> {
         if (!user.email || !user.password || !user.id_user) {
             throw new BadRequestException('Data incomplete');
         }

@@ -21,6 +21,8 @@ export class PartnersAdminsCreateDTO {
     password: string;
 }
 
+import { Consumer } from "src/consumer/consumer.dto";
+
 export class PartnersAdminsMapper {
     static toDTO(admin: PartnersAdminsEntity): PartnersAdminsDTO {
         return {
@@ -28,6 +30,15 @@ export class PartnersAdminsMapper {
             id_partner: admin.id_partner,
             email: admin.email,
             active: admin.active
+        }
+    }
+
+    static toConsumer(admin: PartnersAdminsEntity): Consumer {
+        return {
+            id_consumer: admin.id_p_admin,
+            email: admin.email,
+            id_partner: admin.id_partner,
+            password: admin.password
         }
     }
 }

@@ -8,3 +8,8 @@ export interface RefreshTokenDTO {
     refresh_token: string;
     id_user: string;
 }
+
+export interface TokensInterface {
+    access_token: string;
+    refresh_token: string;
+}

@@ -1,5 +1,6 @@
 import { Body, Controller, Post, Req, Res } from '@nestjs/common';
-import { AuthService, TokensInterface } from './auth.service';
+import { AuthService } from './auth.service';
+import { TokensInterface } from './auth.dto';
 import { UserLoginDTO, UsersCreateDTO } from 'src/entities/users/users.dto';
 import type { RefreshTokenDTO } from './auth.dto';
 import { Throttle } from '@nestjs/throttler';
@@ -18,7 +19,6 @@ export class AuthController {
             sameSite: 'strict',
             maxAge: days * 60 * 60 * 24
         });
-
         return {
             access_token: new_tokens.access_token
         }
