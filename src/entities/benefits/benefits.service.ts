@@ -1,5 +1,5 @@
-import { Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { BenefitsDTO, BenefitsCreateDTO, BenefitsDeleteDTO, BenefitsMapper } from './benefits.dto';
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BenefitsDTO, BenefitsCreateDTO, BenefitsDeleteDTO, BenefitsMapper, type BenefitsReturn } from './benefits.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BenefitsEntity } from './benefits.entity';
 import { CecitAdminsEntity } from '../cecit-admins/cecit-admins.entity';
@@ -26,12 +26,28 @@ export class BenefitsService {
         @Inject() private readonly db_service: DbService
     ) { };
 
-    async get_all(): Promise<BenefitsDTO[]> {
+    async get_all(): Promise<BenefitsReturn[]> {
         const benefits = await this.benefitsRepository.find();
         if (!benefits)
             throw new InternalServerErrorException('There is no benefits yet');
-        let benefits_list = benefits.map((u) => BenefitsMapper.toDTO(u));
-        return benefits_list;
+        const benefitsMapped = await Promise.all(benefits.map(async (b) => {
+            const benefitType = await this.benefitTypeRepository.findOneBy({ id_type: b.id_type });
+            if (!benefitType)
+                throw new InternalServerErrorException('Category not found');
+            return {
+                id_admin: b.id_admin,
+                id_partner: b.id_partner,
+                type: benefitType.name,
+                start_date: b.start_date,
+                end_date: b.end_date,
+                image: b.image,
+                title: b.title,
+                description: b.description,
+                coupons: b.coupons,
+                max_coupons: b.max_coupons
+            }
+        }))
+        return benefitsMapped;
     }
 
     async create(benefit: BenefitsCreateDTO) {

@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { BenefitTypeDTO, BenefitTypeMapper, BenefitTypeCreateDTO, BenefitTypeDeleteDTO } from './benefit_type.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BenefitTypeEntity } from './benefit_type.entity';
@@ -31,5 +31,14 @@ export class BenefitTypeService {
             throw new NotFoundException('El tipo de beneficio que se quiere borrar no fué encontrado')
         }
         return true;
+    }
+
+    async get_by_id(id_type: number): Promise<BenefitTypeEntity> {
+        if (!id_type)
+            throw new BadRequestException('Id is required');
+        const type = await this.benefit_typeRepository.findOneBy({ id_type: id_type });
+        if (!type)
+            throw new NotFoundException('BenefitType not found');
+        return type;
     }
 }

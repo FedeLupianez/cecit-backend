@@ -27,11 +27,24 @@ export interface BenefitsCreateDTO {
     title: string;
     description: string;
     coupons: number;
-    max_cupouns: number;
+    max_coupons: number;
 }
 
 export interface BenefitsDeleteDTO {
     id_benefit: string;
+}
+
+export interface BenefitsReturn {
+    id_admin: string;
+    id_partner: string;
+    type: string;
+    start_date: Date;
+    end_date: Date;
+    image: string;
+    title: string;
+    description: string;
+    coupons: number;
+    max_coupons: number;
 }
 
 export class BenefitsMapper {
