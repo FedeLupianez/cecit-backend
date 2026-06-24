@@ -20,6 +20,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { ConsumerService } from './consumer/consumer.service';
 import { ConsumerModule } from './consumer/consumer.module';
+import { PartnersModule } from './entities/partners/partners.module';
 
 @Module({
     imports: [
@@ -50,7 +51,8 @@ import { ConsumerModule } from './consumer/consumer.module';
         PaymentBenefitModule,
         AuthModule,
         DbModule,
-        ConsumerModule
+        ConsumerModule,
+        PartnersModule
     ],
     controllers: [AppController],
     providers: [AppService,

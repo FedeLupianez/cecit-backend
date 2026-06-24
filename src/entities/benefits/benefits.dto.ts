@@ -38,6 +38,7 @@ export interface BenefitsReturn {
     id_admin: string;
     id_partner: string;
     type: string;
+    categories: string[];
     start_date: Date;
     end_date: Date;
     image: string;

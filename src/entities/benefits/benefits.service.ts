@@ -7,6 +7,10 @@ import { PartnersEntity } from '../partners/partners.entity';
 import { BenefitTypeEntity } from '../benefit_type/benefit_type.entity';
 import { Repository } from 'typeorm';
 import { DbService } from 'src/common/database/db.service';
+import { CategoriesService } from '../categories/categories.service';
+import { PartnersService } from '../partners/partners.service';
+import { PartnersCategoriesEntity } from '../partners_categories/partners_categories.entity';
+import { PartnersCategoriesReturn } from '../partners_categories/partners_categories.dto';
 
 @Injectable()
 export class BenefitsService {
@@ -17,21 +21,47 @@ export class BenefitsService {
         @InjectRepository(CecitAdminsEntity)
         private readonly adminRepository: Repository<CecitAdminsEntity>,
 
-        @InjectRepository(PartnersEntity)
-        private readonly partnerRepository: Repository<PartnersEntity>,
+        private readonly partnersService: PartnersService,
 
         @InjectRepository(BenefitTypeEntity)
         private readonly benefitTypeRepository: Repository<BenefitTypeEntity>,
 
+        @InjectRepository(PartnersCategoriesEntity)
+        private readonly partnersCategoriesRepo: Repository<PartnersCategoriesEntity>,
+
         @Inject() private readonly db_service: DbService
     ) { };
+
+    async get_categories(id_partner: string): Promise<PartnersCategoriesReturn | null> {
+        if (!id_partner)
+            throw new BadRequestException('ID partner is required');
+        const partner = await this.partnersService.get_by_id(id_partner);
+        if (!partner)
+            throw new NotFoundException('Partner not found');
+        const categories = await this.partnersCategoriesRepo.find({
+            where: { id_partner: id_partner },
+            relations: ['category']
+        });
+        if (!categories || categories.length === 0)
+            return null;
+
+        const categoryNames: string[] = categories.map(pc => pc.category.name);
+
+        return {
+            id_partner: id_partner,
+            partner: partner.name,
+            id_categories: categories.map(pc => pc.id_category.toString()),
+            categories: categoryNames,
+        };
+    }
 
     async get_all(): Promise<BenefitsReturn[]> {
         const benefits = await this.benefitsRepository.find();
         if (!benefits)
             throw new InternalServerErrorException('There is no benefits yet');
-        const benefitsMapped = await Promise.all(benefits.map(async (b) => {
+        const benefitsMapped: BenefitsReturn[] = await Promise.all(benefits.map(async (b): Promise<BenefitsReturn> => {
             const benefitType = await this.benefitTypeRepository.findOneBy({ id_type: b.id_type });
+            const categories = await this.get_categories(b.id_partner);
             if (!benefitType)
                 throw new InternalServerErrorException('Category not found');
             return {
@@ -44,7 +74,8 @@ export class BenefitsService {
                 title: b.title,
                 description: b.description,
                 coupons: b.coupons,
-                max_coupons: b.max_coupons
+                max_coupons: b.max_coupons,
+                categories: categories?.categories || []
             }
         }))
         return benefitsMapped;
@@ -57,7 +88,7 @@ export class BenefitsService {
             throw new NotFoundException('El administrador no existe');
         }
 
-        const partner: PartnersEntity | null = await this.partnerRepository.findOneBy({ id_partner: benefit.id_partner });
+        const partner: PartnersEntity | null = await this.partnersService.get_by_id(benefit.id_partner);
 
         if (!partner) {
             throw new NotFoundException('El socio no existe');
