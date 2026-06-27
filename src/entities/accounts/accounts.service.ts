@@ -13,6 +13,7 @@ export class AccountsService {
 
     async create(account: AccountCreateDTO): Promise<AccountsEntity> {
         const newAccount = this.accountsRepo.create({
+            id_user: account.id_user,
             email: account.email,
             password: account.password,
             role: account.role
@@ -45,5 +46,11 @@ export class AccountsService {
         if (!account)
             throw new NotFoundException('Account not found')
         return account;
+    }
+
+    async has_account(email: string): Promise<boolean> {
+        if (!email || !isEmail(email))
+            throw new BadRequestException('Email invalid');
+        return await this.accountsRepo.exists({ where: { email: email } });
     }
 }
