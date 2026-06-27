@@ -1,30 +1,30 @@
 import { randomUUID } from 'node:crypto';
 import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { UserLoginDTO, UsersCreateDTO } from 'src/entities/users/users.dto';
 import { hash, verify } from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RefreshTokenEntity } from '../entities/refresh-token.entity';
 import { Repository } from 'typeorm';
 import { type RefreshTokenDTO } from './auth.dto';
-import { ConsumerService } from 'src/consumer/consumer.service';
-import type { Consumer } from 'src/consumer/consumer.dto';
-import { UsersService } from 'src/entities/users/users.service';
 import { TokensInterface } from './auth.dto';
+import { AccountsService } from 'src/entities/accounts/accounts.service';
+import { AccountsEntity } from 'src/entities/accounts/accounts.entity';
+import { AccountCreateDTO, LoginDTO } from 'src/entities/accounts/accounts.dto';
+import { UsersService } from 'src/entities/users/users.service';
 
 
 @Injectable()
 export class AuthService {
     constructor(
-        private readonly consumerService: ConsumerService,
         private readonly jwtService: JwtService,
         @InjectRepository(RefreshTokenEntity)
         private readonly refreshTokenRepo: Repository<RefreshTokenEntity>,
-        private readonly usersService: UsersService
+        private readonly accountService: AccountsService,
+        private readonly userService: UsersService
     ) { }
 
-    async validateUser(email: string, passwd: string): Promise<Consumer> {
-        const user = await this.consumerService.get_consumer({ email: email })
+    async validateUser(email: string, passwd: string): Promise<AccountsEntity> {
+        const user = await this.accountService.get_by_email(email);
 
         const passwordValid = await verify(user.password, passwd);
 
@@ -57,8 +57,11 @@ export class AuthService {
         return true;
     }
 
-    async register(user: UsersCreateDTO): Promise<TokensInterface> {
-        const new_user = await this.usersService.create(user);
+    async register(account: AccountCreateDTO): Promise<TokensInterface> {
+        const partner = this.userService.get_by_user_id(account.id_user);
+        if (!partner)
+            throw new NotFoundException('User is not cecit partner');
+        const new_user = await this.accountService.create(account);
         const payload = {
             sub: new_user.id_user,
             email: new_user.email,
@@ -70,13 +73,13 @@ export class AuthService {
         };
     }
 
-    async login(user_login: UserLoginDTO): Promise<TokensInterface> {
+    async login(user_login: LoginDTO): Promise<TokensInterface> {
         const user = await this.validateUser(user_login.email, user_login.password);
         if (!user)
             throw new UnauthorizedException('Invalid Credentials');
 
         const payload = {
-            sub: user.id_consumer,
+            sub: user.id_user,
             email: user.email,
             jti: randomUUID()
         }
@@ -91,7 +94,7 @@ export class AuthService {
         await this.refreshTokenRepo.update(storedToken.id_token, { revoked: true });
         const payload = {
             sub: refreshDto.id_user,
-            email: (await this.consumerService.get_consumer({ email: refreshDto.id_user })).email,
+            email: (await this.accountService.get_by_id(refreshDto.id_user)).email,
             jti: randomUUID()
         };
 

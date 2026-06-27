@@ -2,10 +2,9 @@ import { BadRequestException, Inject, Injectable, InternalServerErrorException, 
 import { InjectRepository } from '@nestjs/typeorm';
 import { PartnersAdminsEntity } from './partnersadmins.entity';
 import { Repository } from 'typeorm';
-import { type PartnersAdminsDTO, type PartnersAdminsCreateDTO, PartnersAdminsMapper } from './partnersadmins.dto';
+import { type PartnersAdminsCreateDTO } from './partnersadmins.dto';
 import { PartnersService } from '../partners/partners.service';
 import { DbService } from 'src/common/database/db.service';
-import { isEmail } from 'class-validator';
 
 @Injectable()
 export class PartnersAdminsService {
@@ -17,12 +16,10 @@ export class PartnersAdminsService {
 
     async create(admin: PartnersAdminsCreateDTO): Promise<PartnersAdminsEntity> {
         const partner = await this.partnersService.get_by_name(admin.partner_name);
-        const new_id = await this.db_service.get_new_id('PartnersAdmins', 'id_p_admin');
+        const new_id = await this.db_service.get_new_id('PartnersAdmins', 'id_user');
         const newAdmin = this.adminsRepo.create({
-            id_p_admin: new_id,
+            id_user: new_id,
             id_partner: partner.id_partner,
-            email: admin.email,
-            password: admin.password,
         })
 
         const stored = await this.adminsRepo.save(newAdmin);
@@ -34,18 +31,7 @@ export class PartnersAdminsService {
     async get_by_id(id_admin: string): Promise<PartnersAdminsEntity> {
         if (!id_admin)
             throw new BadRequestException('id admin is required');
-        const admin = await this.adminsRepo.findOneBy({ id_p_admin: id_admin });
-        if (!admin)
-            throw new NotFoundException('Admin does not exists');
-        return admin;
-    }
-
-    async get_by_email(email: string): Promise<PartnersAdminsEntity> {
-        if (!email || !isEmail(email))
-            throw new BadRequestException('Email is required');
-        const admin = await this.adminsRepo.findOneBy({
-            email: email
-        })
+        const admin = await this.adminsRepo.findOneBy({ id_user: id_admin });
         if (!admin)
             throw new NotFoundException('Admin does not exists');
         return admin;

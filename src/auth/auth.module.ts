@@ -7,7 +7,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshTokenEntity } from '../entities/refresh-token.entity';
-import { ConsumerModule } from 'src/consumer/consumer.module';
+import { AccountsModule } from 'src/entities/accounts/accounts.module';
 import { UsersModule } from 'src/entities/users/users.module';
 
 
@@ -17,7 +17,7 @@ import { UsersModule } from 'src/entities/users/users.module';
         signOptions: { expiresIn: (process.env.JWT_ACCESS_EXPIRATION || '15m') as `${number}${'s' | 'm' | 'h' | 'd'}` }
     }),
         TypeOrmModule.forFeature([RefreshTokenEntity]),
-        ConsumerModule,
+        AccountsModule,
         UsersModule
     ],
     controllers: [AuthController],

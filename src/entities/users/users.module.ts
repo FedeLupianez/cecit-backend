@@ -9,10 +9,10 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { UsersEntity } from './users.entity';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
-import { CecitAdminsModule } from 'src/entities/cecit-admins/cecit-admins.module';
+import { AccountsModule } from '../accounts/accounts.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([UsersEntity]), CecitAdminsModule],
+    imports: [TypeOrmModule.forFeature([UsersEntity]), AccountsModule],
     controllers: [UsersController],
     providers: [UsersService],
     exports: [UsersService]

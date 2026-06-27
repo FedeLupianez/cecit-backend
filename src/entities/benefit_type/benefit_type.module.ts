@@ -3,10 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { BenefitTypeService } from './benefit_type.service';
 import { BenefitTypeController } from './benefit_type.controller';
 import { BenefitTypeEntity } from './benefit_type.entity';
-import { CecitAdminsModule } from 'src/entities/cecit-admins/cecit-admins.module';
+import { AccountsModule } from '../accounts/accounts.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([BenefitTypeEntity]), CecitAdminsModule],
+    imports: [TypeOrmModule.forFeature([BenefitTypeEntity]), AccountsModule],
     controllers: [BenefitTypeController],
     providers: [BenefitTypeService],
     exports: [BenefitTypeService]
