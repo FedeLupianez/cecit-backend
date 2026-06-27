@@ -4,12 +4,11 @@
  * que se ajusten a estos.
  * */
 
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { UsersCreateDTO, UsersDeleteDTO, UsersDTO, UsersMapper } from './users.dto';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { UsersDeleteDTO, UsersDTO, UsersMapper } from './users.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersEntity } from './users.entity';
 import { Repository } from 'typeorm';
-import { isEmail } from 'class-validator';
 
 @Injectable()
 export class UsersService {
@@ -35,33 +34,6 @@ export class UsersService {
         return users_list;
     }
 
-    async get_by_email(email: string): Promise<UsersEntity> {
-        if (!email || !isEmail(email))
-            throw new BadRequestException('Email is not valid');
-        const user = await this.userRepository.findOneBy({
-            email
-        })
-        if (!user)
-            throw new NotFoundException('User not found');
-        return user;
-    }
-
-    async create(user: UsersCreateDTO): Promise<UsersEntity> {
-        if (!user.email || !user.password || !user.id_user) {
-            throw new BadRequestException('Data incomplete');
-        }
-        const new_user = await this.userRepository.findOneBy({ id_user: user.id_user });
-        if (!new_user) {
-            throw new NotFoundException('User is not partner');
-        }
-        if (new_user.email) {
-            throw new BadRequestException('The user already exists');
-        }
-        new_user.email = user.email;
-        new_user.password = user.password;
-        await this.userRepository.save(new_user);
-        return new_user;
-    }
 
     async delete(user: UsersDeleteDTO): Promise<boolean> {
         const result = await this.userRepository.delete({ id_user: user.id_user })

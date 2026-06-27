@@ -1,30 +1,30 @@
 import { randomUUID } from 'node:crypto';
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { UserLoginDTO, UsersCreateDTO } from 'src/entities/users/users.dto';
-import { hash, verify } from 'argon2';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { verify } from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RefreshTokenEntity } from '../entities/refresh-token.entity';
 import { Repository } from 'typeorm';
-import { type RefreshTokenDTO } from './auth.dto';
-import { ConsumerService } from 'src/consumer/consumer.service';
-import type { Consumer } from 'src/consumer/consumer.dto';
-import { UsersService } from 'src/entities/users/users.service';
+import { jwt_payload, RefreshTokenSaveDTO } from './auth.dto';
 import { TokensInterface } from './auth.dto';
+import { AccountsService } from 'src/entities/accounts/accounts.service';
+import { AccountsEntity } from 'src/entities/accounts/accounts.entity';
+import { AccountCreateDTO, LoginDTO } from 'src/entities/accounts/accounts.dto';
+import { UsersService } from 'src/entities/users/users.service';
 
 
 @Injectable()
 export class AuthService {
     constructor(
-        private readonly consumerService: ConsumerService,
         private readonly jwtService: JwtService,
         @InjectRepository(RefreshTokenEntity)
         private readonly refreshTokenRepo: Repository<RefreshTokenEntity>,
-        private readonly usersService: UsersService
+        private readonly accountService: AccountsService,
+        private readonly userService: UsersService
     ) { }
 
-    async validateUser(email: string, passwd: string): Promise<Consumer> {
-        const user = await this.consumerService.get_consumer({ email: email })
+    async validateUser(email: string, passwd: string): Promise<AccountsEntity> {
+        const user = await this.accountService.get_by_email(email);
 
         const passwordValid = await verify(user.password, passwd);
 
@@ -57,8 +57,15 @@ export class AuthService {
         return true;
     }
 
-    async register(user: UsersCreateDTO): Promise<TokensInterface> {
-        const new_user = await this.usersService.create(user);
+    async register(account: AccountCreateDTO): Promise<TokensInterface> {
+        const partner = this.userService.get_by_user_id(account.id_user);
+        if (!partner)
+            throw new NotFoundException('User is not cecit partner');
+        if (await this.accountService.has_account(account.email))
+            throw new BadRequestException('User alredy has an account');
+        const new_user = await this.accountService.create(account);
+        const new_token = this.generateRefreshToken();
+        await this.saveRefreshToken({ token: new_token, email: new_user.email });
         const payload = {
             sub: new_user.id_user,
             email: new_user.email,
@@ -66,58 +73,70 @@ export class AuthService {
         };
         return {
             access_token: this.jwtService.sign(payload),
-            refresh_token: await this.generateRefreshToken(),
+            refresh_token: new_token,
         };
     }
 
-    async login(user_login: UserLoginDTO): Promise<TokensInterface> {
+    async login(user_login: LoginDTO): Promise<TokensInterface> {
         const user = await this.validateUser(user_login.email, user_login.password);
         if (!user)
             throw new UnauthorizedException('Invalid Credentials');
-
+        const new_token = this.generateRefreshToken();
+        await this.saveRefreshToken({ token: new_token, email: user.email });
         const payload = {
-            sub: user.id_consumer,
+            sub: user.id_user,
             email: user.email,
             jti: randomUUID()
         }
         return {
             access_token: this.jwtService.sign(payload),
-            refresh_token: await this.generateRefreshToken(),
+            refresh_token: new_token,
         }
     }
 
-    async refresh(refreshDto: RefreshTokenDTO): Promise<TokensInterface> {
-        const storedToken = await this.getRefreshToken(refreshDto.refresh_token);
-        await this.refreshTokenRepo.update(storedToken.id_token, { revoked: true });
+    async refresh(token: string): Promise<TokensInterface> {
+        const actual_token = await this.getRefreshToken(token);
+        if (!actual_token)
+            throw new NotFoundException('Refresh token does not exists');
+        await this.logout(token);
+        const new_token = this.generateRefreshToken();
+        await this.saveRefreshToken({ token: new_token, email: actual_token.email });
+        const account = await this.accountService.get_by_email(actual_token.email);
+
         const payload = {
-            sub: refreshDto.id_user,
-            email: (await this.consumerService.get_consumer({ email: refreshDto.id_user })).email,
+            sub: account.id_user,
+            email: actual_token.email,
             jti: randomUUID()
         };
 
         return {
             access_token: this.jwtService.sign(payload),
-            refresh_token: await this.generateRefreshToken(),
+            refresh_token: new_token
         };
     }
 
     async logout(refreshToken: string): Promise<void> {
-        const tokenHash = await hash(refreshToken);
-        await this.refreshTokenRepo.update({ token_hash: tokenHash }, { revoked: true });
+        const token = await this.getRefreshToken(refreshToken);
+        await this.refreshTokenRepo.update({ id_token: token.id_token }, { revoked: true });
     }
 
-    private async generateRefreshToken(): Promise<string> {
-        const token = randomUUID() + randomUUID();
-        const tokenHash = await hash(token);
+    private generateRefreshToken(): string {
+        return randomUUID() + randomUUID();
+    }
 
-        const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 7);
-
-        await this.refreshTokenRepo.save({
-            token_hash: tokenHash,
-            expires_at: expiresAt,
+    async saveRefreshToken(token: RefreshTokenSaveDTO): Promise<RefreshTokenEntity> {
+        const new_register = this.refreshTokenRepo.create({
+            email: token.email,
+            token_hash: token.token
         });
+        const stored = await this.refreshTokenRepo.save(new_register);
+        if (!stored)
+            throw new InternalServerErrorException('Error saving token');
+        return stored;
+    }
 
-        return token;
+    getEmail(token: string) {
+        const payload: jwt_payload = this.jwtService.verify(token);
+        return payload.email;
     }
 }

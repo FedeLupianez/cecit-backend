@@ -1,3 +1,5 @@
+import { IsEmail, IsNotEmpty } from "class-validator";
+
 export interface jwt_payload {
     sub: string;
     email: string;
@@ -12,4 +14,12 @@ export interface RefreshTokenDTO {
 export interface TokensInterface {
     access_token: string;
     refresh_token: string;
+}
+
+export class RefreshTokenSaveDTO {
+    @IsEmail()
+    @IsNotEmpty()
+    email: string;
+    @IsNotEmpty()
+    token: string;
 }

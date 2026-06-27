@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { PartnersService } from './partners.service';
+import { PartnersAdminsService } from '../partnersadmins/partnersadmins.service';
 import { PartnersCreateDTO, PartnersUpdateLogoDTO, PartnersUpdateNameDTO } from './partners.dto';
 import { AdminGuard } from 'src/auth/admin.guard';
 import { AuthGuard } from '@nestjs/passport';
@@ -8,11 +9,20 @@ import { AuthGuard } from '@nestjs/passport';
 @Controller('partners')
 export class PartnersController {
 
-    constructor(private readonly partnersService: PartnersService) { }
+    constructor(
+        private readonly partnersService: PartnersService,
+        private readonly adminsService: PartnersAdminsService
+    ) { }
 
     @Post()
     async create(@Body() dto: PartnersCreateDTO) {
-        return this.partnersService.create(dto);
+        const partner = await this.partnersService.create(dto);
+        await this.adminsService.create({
+            partner_name: dto.partner_name.toLowerCase(),
+            email: dto.email,
+            password: dto.password
+        });
+        return partner;
     }
 
     @Delete(':id')

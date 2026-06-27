@@ -1,16 +1,16 @@
 import { BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { BenefitsDTO, BenefitsCreateDTO, BenefitsDeleteDTO, BenefitsMapper, type BenefitsReturn } from './benefits.dto';
+import { BenefitsCreateDTO, BenefitsDeleteDTO, type BenefitsReturn } from './benefits.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BenefitsEntity } from './benefits.entity';
-import { CecitAdminsEntity } from '../cecit-admins/cecit-admins.entity';
 import { PartnersEntity } from '../partners/partners.entity';
 import { BenefitTypeEntity } from '../benefit_type/benefit_type.entity';
 import { Repository } from 'typeorm';
 import { DbService } from 'src/common/database/db.service';
-import { CategoriesService } from '../categories/categories.service';
 import { PartnersService } from '../partners/partners.service';
 import { PartnersCategoriesEntity } from '../partners_categories/partners_categories.entity';
 import { PartnersCategoriesReturn } from '../partners_categories/partners_categories.dto';
+import { AccountsService } from '../accounts/accounts.service';
+import { AccountsEntity } from '../accounts/accounts.entity';
 
 @Injectable()
 export class BenefitsService {
@@ -18,8 +18,7 @@ export class BenefitsService {
         @InjectRepository(BenefitsEntity)
         private readonly benefitsRepository: Repository<BenefitsEntity>,
 
-        @InjectRepository(CecitAdminsEntity)
-        private readonly adminRepository: Repository<CecitAdminsEntity>,
+        private readonly accountService: AccountsService,
 
         private readonly partnersService: PartnersService,
 
@@ -82,8 +81,7 @@ export class BenefitsService {
     }
 
     async create(benefit: BenefitsCreateDTO) {
-        const admin: CecitAdminsEntity | null = await this.adminRepository.findOneBy({ id_c_admin: benefit.id_admin });
-
+        const admin: AccountsEntity | null = await this.accountService.get_by_id(benefit.id_admin);
         if (!admin) {
             throw new NotFoundException('El administrador no existe');
         }

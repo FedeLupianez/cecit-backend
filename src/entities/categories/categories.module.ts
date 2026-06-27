@@ -3,10 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CategoriesEntity } from './categories.entity';
 import { CategoriesService } from './categories.service';
 import { CategoriesController } from './categories.controller';
-import { CecitAdminsModule } from 'src/entities/cecit-admins/cecit-admins.module';
+import { AccountsModule } from '../accounts/accounts.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([CategoriesEntity]), CecitAdminsModule],
+    imports: [TypeOrmModule.forFeature([CategoriesEntity]), AccountsModule],
     controllers: [CategoriesController],
     providers: [CategoriesService],
 })

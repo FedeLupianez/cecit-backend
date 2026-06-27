@@ -9,7 +9,6 @@ import { BenefitsModule } from './entities/benefits/benefits.module';
 import { BenefitTypeModule } from './entities/benefit_type/benefit_type.module';
 import { PartnersCategoriesModule } from './entities/partners_categories/partners_categories.module';
 import { CategoriesModule } from './entities/categories/categories.module';
-import { CecitAdminsModule } from './entities/cecit-admins/cecit-admins.module';
 import { VouchersModule } from './entities/vouchers/vouchers.module';
 import { PartnersAdminsModule } from './entities/partnersadmins/partnersadmins.module';
 import { PaymentMethodsModule } from './entities/payment-methods/payment-methods.module';
@@ -18,9 +17,8 @@ import { AuthModule } from './auth/auth.module';
 import { DbModule } from './common/database/db.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { ConsumerService } from './consumer/consumer.service';
-import { ConsumerModule } from './consumer/consumer.module';
 import { PartnersModule } from './entities/partners/partners.module';
+import { AccountsModule } from './entities/accounts/accounts.module';
 
 @Module({
     imports: [
@@ -43,7 +41,6 @@ import { PartnersModule } from './entities/partners/partners.module';
         UsersModule,
         BenefitsModule,
         BenefitTypeModule,
-        CecitAdminsModule,
         VouchersModule,
         PartnersAdminsModule,
         PartnersCategoriesModule,
@@ -51,13 +48,12 @@ import { PartnersModule } from './entities/partners/partners.module';
         PaymentBenefitModule,
         AuthModule,
         DbModule,
-        ConsumerModule,
-        PartnersModule
+        PartnersModule,
+        AccountsModule
     ],
     controllers: [AppController],
     providers: [AppService,
         { provide: APP_GUARD, useClass: ThrottlerGuard },
-        ConsumerService
     ]
 })
 export class AppModule { }
