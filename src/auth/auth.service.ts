@@ -1,11 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { hash, verify } from 'argon2';
+import { verify } from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RefreshTokenEntity } from '../entities/refresh-token.entity';
 import { Repository } from 'typeorm';
-import { jwt_payload, RefreshTokenSaveDTO, type RefreshTokenDTO } from './auth.dto';
+import { jwt_payload, RefreshTokenSaveDTO } from './auth.dto';
 import { TokensInterface } from './auth.dto';
 import { AccountsService } from 'src/entities/accounts/accounts.service';
 import { AccountsEntity } from 'src/entities/accounts/accounts.entity';
@@ -94,16 +94,17 @@ export class AuthService {
         }
     }
 
-    async refresh(refreshDto: RefreshTokenDTO): Promise<TokensInterface> {
-        const actual_token = await this.getRefreshToken(refreshDto.refresh_token);
+    async refresh(token: string): Promise<TokensInterface> {
+        const actual_token = await this.getRefreshToken(token);
         if (!actual_token)
             throw new NotFoundException('Refresh token does not exists');
-        await this.logout(refreshDto.refresh_token);
+        await this.logout(token);
         const new_token = this.generateRefreshToken();
         await this.saveRefreshToken({ token: new_token, email: actual_token.email });
+        const account = await this.accountService.get_by_email(actual_token.email);
 
         const payload = {
-            sub: refreshDto.id_user,
+            sub: account.id_user,
             email: actual_token.email,
             jti: randomUUID()
         };
