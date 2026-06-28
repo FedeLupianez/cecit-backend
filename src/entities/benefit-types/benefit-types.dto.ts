@@ -1,4 +1,4 @@
-import { BenefitTypeEntity } from "./benefit_type.entity";
+import { BenefitTypeEntity } from "./benefit-types.entity";
 
 export interface BenefitTypeDTO {
     id_type: number;
@@ -15,10 +15,10 @@ export interface BenefitTypeDeleteDTO {
 }
 
 export class BenefitTypeMapper {
-    static toDTO(benefit_type: BenefitTypeEntity): BenefitTypeDTO {
+    static toDTO(benefitType: BenefitTypeEntity): BenefitTypeDTO {
         return {
-            id_type: benefit_type.id_type,
-            name: benefit_type.name,
+            id_type: benefitType.id_type,
+            name: benefitType.name,
         }
     }
 }

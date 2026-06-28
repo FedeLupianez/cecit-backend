@@ -31,16 +31,16 @@ export class PartnersController {
     }
 
     @UseGuards(AuthGuard('jwt'), AdminGuard)
-    @Patch('newlogo')
-    async update_logo(@Body() body: PartnersUpdateLogoDTO) {
-        return this.partnersService.update_logo(body);
+    @Patch('logo')
+    async updateLogo(@Body() body: PartnersUpdateLogoDTO) {
+        return this.partnersService.updateLogo(body);
     }
 
 
     @UseGuards(AuthGuard('jwt'), AdminGuard)
-    @Patch('newname')
-    async update_name(@Body() body: PartnersUpdateNameDTO) {
-        return this.partnersService.update_name(body);
+    @Patch('name')
+    async updateName(@Body() body: PartnersUpdateNameDTO) {
+        return this.partnersService.updateName(body);
     }
 
 }

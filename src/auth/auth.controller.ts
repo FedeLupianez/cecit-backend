@@ -10,32 +10,32 @@ export class AuthController {
 
     @Post('register')
     async register(@Body() body: AccountCreateDTO, @Res({ passthrough: true }) res) {
-        const new_tokens: TokensInterface = await this.authService.register(body);
+        const newTokens: TokensInterface = await this.authService.register(body);
         const days: number = 7;
-        res.cookie('refresh_token_cecit', new_tokens.refresh_token, {
+        res.cookie('refresh_token_cecit', newTokens.refresh_token, {
             httpOnly: true,
             secure: true,
             sameSite: 'strict',
             maxAge: days * 60 * 60 * 24
         });
         return {
-            access_token: new_tokens.access_token
+            access_token: newTokens.access_token
         }
     }
 
     @Post('login')
     @Throttle({ default: { limit: 3, ttl: 60000 } })
     async login(@Body() body: LoginDTO, @Res({ passthrough: true }) res) {
-        const new_tokens: TokensInterface = await this.authService.login(body);
+        const newTokens: TokensInterface = await this.authService.login(body);
         const days: number = 7;
-        res.cookie('refresh_token_cecit', new_tokens.refresh_token, {
+        res.cookie('refresh_token_cecit', newTokens.refresh_token, {
             httpOnly: true,
             secure: true,
             sameSite: 'strict',
             maxAge: days * 60 * 60 * 24
         });
         return {
-            access_token: new_tokens.access_token
+            access_token: newTokens.access_token
         }
     }
 
@@ -43,16 +43,16 @@ export class AuthController {
     async refresh(@Req() req, @Res({ passthrough: true }) res) {
         const token = req.cookies['refresh_token_cecit'];
         await this.authService.validateRefreshToken(token);
-        const new_tokens: TokensInterface = await this.authService.refresh(token);
+        const newTokens: TokensInterface = await this.authService.refresh(token);
         const days: number = 7;
-        res.cookie('refresh_token_cecit', new_tokens.refresh_token, {
+        res.cookie('refresh_token_cecit', newTokens.refresh_token, {
             httpOnly: true,
             secure: true,
             sameSite: 'strict',
             maxAge: days * 60 * 60 * 24
         });
         return {
-            access_token: new_tokens.access_token
+            access_token: newTokens.access_token
         }
     }
 

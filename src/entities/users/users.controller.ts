@@ -23,7 +23,7 @@ import type { UsersDeleteDTO } from './users.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { CecitAdminGuard } from 'src/auth/cecitadmin.guard';
 
-@Controller('user')
+@Controller('users')
 export class UsersController {
     constructor(private readonly userService: UsersService) { };
 

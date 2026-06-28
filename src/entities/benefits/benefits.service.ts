@@ -3,7 +3,7 @@ import { BenefitsCreateDTO, BenefitsDeleteDTO, type BenefitsReturn } from './ben
 import { InjectRepository } from '@nestjs/typeorm';
 import { BenefitsEntity } from './benefits.entity';
 import { PartnersEntity } from '../partners/partners.entity';
-import { BenefitTypeEntity } from '../benefit_type/benefit_type.entity';
+import { BenefitTypeEntity } from '../benefit-types/benefit-types.entity';
 import { Repository } from 'typeorm';
 import { DbService } from 'src/common/database/db.service';
 import { PartnersService } from '../partners/partners.service';
@@ -28,7 +28,7 @@ export class BenefitsService {
         @InjectRepository(PartnersCategoriesEntity)
         private readonly partnersCategoriesRepo: Repository<PartnersCategoriesEntity>,
 
-        @Inject() private readonly db_service: DbService
+        @Inject() private readonly dbService: DbService
     ) { };
 
     async get_categories(id_partner: string): Promise<PartnersCategoriesReturn | null> {
@@ -98,13 +98,13 @@ export class BenefitsService {
             throw new NotFoundException('El tipo de beneficio no existe');
         }
 
-        const new_id = await this.db_service.get_new_id('Benefits', 'id_benefit');
-        const new_benefit = this.benefitsRepository.create({ ...benefit, id_benefit: new_id, admin: admin, partner: partner, type: type })
+        const newId = await this.dbService.getNewId('Benefits', 'id_benefit');
+        const newBenefit = this.benefitsRepository.create({ ...benefit, id_benefit: newId, admin: admin, partner: partner, type: type })
 
-        if (!new_id) {
+        if (!newId) {
             throw new InternalServerErrorException('No se pudo generar el beneficio');
         }
-        return await this.benefitsRepository.save(new_benefit);
+        return await this.benefitsRepository.save(newBenefit);
     }
 
     async delete(benefit: BenefitsDeleteDTO): Promise<boolean> {

@@ -29,7 +29,7 @@ export class VouchersService {
         private readonly vouchersRepository: Repository<VouchersEntity>,
         @InjectRepository(BenefitsEntity)
         private readonly benefitsRepository: Repository<BenefitsEntity>,
-        private readonly db_service: DbService,
+        private readonly dbService: DbService,
         private readonly pdfService: PdfService,
     ) { }
 
@@ -37,8 +37,8 @@ export class VouchersService {
         const vouchers = await this.vouchersRepository.find();
         if (!vouchers) throw new InternalServerErrorException('Vouchers is empty');
 
-        const vouchers_list = vouchers.map((v) => VouchersMapper.toDTO(v));
-        return vouchers_list;
+        const vouchersList = vouchers.map((v) => VouchersMapper.toDTO(v));
+        return vouchersList;
     }
 
     async get_by_user(id_user: string): Promise<VouchersDTO[]> {
@@ -47,8 +47,8 @@ export class VouchersService {
         });
         if (!vouchers)
             throw new NotFoundException('Vouchers not found');
-        const vouchers_list = vouchers.map((v) => VouchersMapper.toDTO(v));
-        return vouchers_list;
+        const vouchersList = vouchers.map((v) => VouchersMapper.toDTO(v));
+        return vouchersList;
     }
 
     async get_by_benefit(id_benefit: string): Promise<VouchersDTO[]> {
@@ -57,8 +57,8 @@ export class VouchersService {
         });
         if (!vouchers)
             throw new NotFoundException('Vouchers not found');
-        const vouchers_list = vouchers.map((v) => VouchersMapper.toDTO(v));
-        return vouchers_list;
+        const vouchersList = vouchers.map((v) => VouchersMapper.toDTO(v));
+        return vouchersList;
     }
 
     async get_by_token(token: string): Promise<VouchersDTO> {
@@ -76,8 +76,8 @@ export class VouchersService {
         });
         if (!vouchers)
             throw new NotFoundException('Vouchers not found');
-        const vouchers_list = vouchers.map((v) => VouchersMapper.toDTO(v));
-        return vouchers_list;
+        const vouchersList = vouchers.map((v) => VouchersMapper.toDTO(v));
+        return vouchersList;
     }
 
     async create(voucher: VouchersCreateDTO) {
@@ -97,14 +97,14 @@ export class VouchersService {
         if (result.affected === 0)
             throw new ConflictException('Max coupons reached');
 
-        const new_voucher = this.vouchersRepository.create({
+        const newVoucher = this.vouchersRepository.create({
             id_benefit: benefit.id_benefit,
             id_user: voucher.id_user
         });
 
-        new_voucher.token = await this.db_service.get_new_token();
+        newVoucher.token = await this.dbService.getNewToken();
 
-        return await this.vouchersRepository.save(new_voucher);
+        return await this.vouchersRepository.save(newVoucher);
     }
 
     async delete(voucher: VouchersDeleteDTO): Promise<boolean> {

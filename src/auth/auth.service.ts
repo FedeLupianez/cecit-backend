@@ -63,26 +63,26 @@ export class AuthService {
             throw new NotFoundException('User is not cecit partner');
         if (await this.accountService.has_account(account.email))
             throw new BadRequestException('User alredy has an account');
-        const new_user = await this.accountService.create(account);
-        const new_token = this.generateRefreshToken();
-        await this.saveRefreshToken({ token: new_token, email: new_user.email });
+        const newUser = await this.accountService.create(account);
+        const newToken = this.generateRefreshToken();
+        await this.saveRefreshToken({ token: newToken, email: newUser.email });
         const payload = {
-            sub: new_user.id_user,
-            email: new_user.email,
+            sub: newUser.id_user,
+            email: newUser.email,
             jti: randomUUID()
         };
         return {
             access_token: this.jwtService.sign(payload),
-            refresh_token: new_token,
+            refresh_token: newToken,
         };
     }
 
-    async login(user_login: LoginDTO): Promise<TokensInterface> {
-        const user = await this.validateUser(user_login.email, user_login.password);
+    async login(userLogin: LoginDTO): Promise<TokensInterface> {
+        const user = await this.validateUser(userLogin.email, userLogin.password);
         if (!user)
             throw new UnauthorizedException('Invalid Credentials');
-        const new_token = this.generateRefreshToken();
-        await this.saveRefreshToken({ token: new_token, email: user.email });
+        const newToken = this.generateRefreshToken();
+        await this.saveRefreshToken({ token: newToken, email: user.email });
         const payload = {
             sub: user.id_user,
             email: user.email,
@@ -90,28 +90,28 @@ export class AuthService {
         }
         return {
             access_token: this.jwtService.sign(payload),
-            refresh_token: new_token,
+            refresh_token: newToken,
         }
     }
 
     async refresh(token: string): Promise<TokensInterface> {
-        const actual_token = await this.getRefreshToken(token);
-        if (!actual_token)
+        const actualToken = await this.getRefreshToken(token);
+        if (!actualToken)
             throw new NotFoundException('Refresh token does not exists');
         await this.logout(token);
-        const new_token = this.generateRefreshToken();
-        await this.saveRefreshToken({ token: new_token, email: actual_token.email });
-        const account = await this.accountService.get_by_email(actual_token.email);
+        const newToken = this.generateRefreshToken();
+        await this.saveRefreshToken({ token: newToken, email: actualToken.email });
+        const account = await this.accountService.get_by_email(actualToken.email);
 
         const payload = {
             sub: account.id_user,
-            email: actual_token.email,
+            email: actualToken.email,
             jti: randomUUID()
         };
 
         return {
             access_token: this.jwtService.sign(payload),
-            refresh_token: new_token
+            refresh_token: newToken
         };
     }
 
@@ -125,11 +125,11 @@ export class AuthService {
     }
 
     async saveRefreshToken(token: RefreshTokenSaveDTO): Promise<RefreshTokenEntity> {
-        const new_register = this.refreshTokenRepo.create({
+        const newRegister = this.refreshTokenRepo.create({
             email: token.email,
             token_hash: token.token
         });
-        const stored = await this.refreshTokenRepo.save(new_register);
+        const stored = await this.refreshTokenRepo.save(newRegister);
         if (!stored)
             throw new InternalServerErrorException('Error saving token');
         return stored;

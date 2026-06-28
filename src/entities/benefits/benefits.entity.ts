@@ -1,5 +1,5 @@
 import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn } from 'typeorm';
-import { BenefitTypeEntity } from '../benefit_type/benefit_type.entity';
+import { BenefitTypeEntity } from '../benefit-types/benefit-types.entity';
 import { PartnersEntity } from '../partners/partners.entity';
 import { AccountsEntity } from '../accounts/accounts.entity';
 

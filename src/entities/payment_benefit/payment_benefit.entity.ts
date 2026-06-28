@@ -2,8 +2,8 @@ import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 import { BenefitsEntity } from '../benefits/benefits.entity';
 import { PaymentMethodsEntity } from '../payment-methods/payment-methods.entity';
 
-@Entity('Payment_Benefit')
-export class Payment_BenefitEntity {
+@Entity('PaymentMethods_Benefits')
+export class PaymentBenefitEntity {
 
     @PrimaryColumn({ type: 'int' })
     id_payment_method: number;

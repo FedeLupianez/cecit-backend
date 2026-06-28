@@ -10,13 +10,13 @@ import { DbService } from 'src/common/database/db.service';
 export class PartnersService {
     constructor(
         @InjectRepository(PartnersEntity) private readonly partnersRepo: Repository<PartnersEntity>,
-        private readonly db_service: DbService
+        private readonly dbService: DbService
     ) { }
 
     async create(partner: PartnersCreateDTO): Promise<PartnersEntity> {
-        const new_id = await this.db_service.get_new_id('Partners', 'id_partner');
+        const newId = await this.dbService.getNewId('Partners', 'id_partner');
         const newPartner = this.partnersRepo.create({
-            id_partner: new_id,
+            id_partner: newId,
             name: partner.partner_name.toLowerCase(),
             direction: partner.direction,
             logo: partner.logo
@@ -58,7 +58,7 @@ export class PartnersService {
         return PartnersMapper.entityToDto(stored);
     }
 
-    async update_logo(data: PartnersUpdateLogoDTO): Promise<PartnersDTO> {
+    async updateLogo(data: PartnersUpdateLogoDTO): Promise<PartnersDTO> {
         const partner = await this.partnersRepo.findOneBy({ id_partner: data.id_partner });
         if (!partner)
             throw new BadRequestException('Partner not exists');
@@ -68,7 +68,7 @@ export class PartnersService {
     }
 
 
-    async update_name(data: PartnersUpdateNameDTO): Promise<PartnersDTO> {
+    async updateName(data: PartnersUpdateNameDTO): Promise<PartnersDTO> {
         const partner = await this.partnersRepo.findOneBy({ id_partner: data.id_partner });
         if (!partner)
             throw new BadRequestException('Partner not exists');

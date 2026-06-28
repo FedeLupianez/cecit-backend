@@ -6,7 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { UsersModule } from './entities/users/users.module';
 import { BenefitsModule } from './entities/benefits/benefits.module';
-import { BenefitTypeModule } from './entities/benefit_type/benefit_type.module';
+import { BenefitTypeModule } from './entities/benefit-types/benefit-types.module';
 import { PartnersCategoriesModule } from './entities/partners_categories/partners_categories.module';
 import { CategoriesModule } from './entities/categories/categories.module';
 import { VouchersModule } from './entities/vouchers/vouchers.module';

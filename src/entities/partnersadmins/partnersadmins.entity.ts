@@ -3,7 +3,7 @@ import { AccountsEntity } from '../accounts/accounts.entity';
 import { PartnersEntity } from '../partners/partners.entity';
 import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
-@Entity('PartnersAdmins')
+@Entity('Partners_Admins')
 export class PartnersAdminsEntity {
     @PrimaryColumn({ type: 'varchar', length: 4, name: 'id_user' })
     id_user: string;

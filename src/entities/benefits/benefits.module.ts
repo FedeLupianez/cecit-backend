@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { BenefitTypeEntity } from '../benefit_type/benefit_type.entity';
+import { BenefitTypeEntity } from '../benefit-types/benefit-types.entity'
 import { BenefitsEntity } from './benefits.entity';
 import { BenefitsService } from './benefits.service';
 import { BenefitsController } from './benefits.controller';

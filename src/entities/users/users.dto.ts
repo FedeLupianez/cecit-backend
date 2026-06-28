@@ -11,7 +11,7 @@ export interface UsersDTO {
     id_user: string;
     name: string;
     dni: string;
-    lastname: string;
+    last_name: string;
 }
 
 export class UsersCreateDTO {
@@ -37,7 +37,7 @@ export class UsersMapper {
             id_user: user.id_user,
             dni: user.dni,
             name: user.name,
-            lastname: user.lastname,
+            last_name: user.lastname,
         }
     }
 }

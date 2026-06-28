@@ -23,7 +23,7 @@ import type {
 
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('voucher')
+@Controller('vouchers')
 export class VouchersController {
     constructor(private readonly voucherService: VouchersService) { }
 
@@ -54,14 +54,14 @@ export class VouchersController {
 
     @Post()
     async create(@Body() voucher: VouchersCreateDTO) {
-        const new_voucher = await this.voucherService.create(voucher);
-        return VouchersMapper.toDTO(new_voucher);
+        const newVoucher = await this.voucherService.create(voucher);
+        return VouchersMapper.toDTO(newVoucher);
     }
 
     @Delete()
     async delete(@Body() voucher: VouchersDeleteDTO) {
-        const voucher_deleted = await this.voucherService.delete(voucher);
-        if (!voucher_deleted) {
+        const voucherDeleted = await this.voucherService.delete(voucher);
+        if (!voucherDeleted) {
             throw new NotFoundException('Voucher does not exists');
         }
         return { result: 'ok' };

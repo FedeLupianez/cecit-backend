@@ -15,8 +15,8 @@ export class BenefitsController {
     @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
     @Post()
     async create(@Body() benefit: BenefitsCreateDTO) {
-        const new_benefit = await this.benefitsService.create(benefit);
-        return BenefitsMapper.toDTO(new_benefit)
+        const newBenefit = await this.benefitsService.create(benefit);
+        return BenefitsMapper.toDTO(newBenefit)
     }
 
     @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
