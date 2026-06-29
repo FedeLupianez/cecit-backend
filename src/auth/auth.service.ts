@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { verify } from 'argon2';
 import { JwtService } from '@nestjs/jwt';
@@ -33,24 +33,26 @@ export class AuthService {
         return user;
     }
 
+    private hashToken(token: string): string {
+        if (!token)
+            return ""
+        return createHash('sha256').update(token).digest('hex');
+    }
+
     private async getRefreshToken(tokenHashed: string): Promise<RefreshTokenEntity> {
         if (!tokenHashed)
             throw new BadRequestException('Token is empty');
-        const storedTokens = await this.refreshTokenRepo.find();
-        for (const stored of storedTokens) {
-            const match = await verify(stored.token_hash, tokenHashed);
-            if (match && !stored.revoked)
-                return stored;
-        }
-        throw new NotFoundException('Token not found');
+        const storedToken = await this.refreshTokenRepo.findOneBy({ token_hash: tokenHashed });
+        if (!storedToken)
+            throw new NotFoundException('Token not found');
+        return storedToken;
     }
 
-    async validateRefreshToken(token: string): Promise<boolean> {
-        const storedToken = await this.getRefreshToken(token);
-        if (storedToken.revoked) {
+    async validateRefreshToken(token: RefreshTokenEntity): Promise<boolean> {
+        if (token.revoked) {
             throw new UnauthorizedException('Refresh token revoked');
         }
-        const expires_at: Date = new Date(storedToken.expires_at);
+        const expires_at: Date = new Date(token.expires_at);
         if (expires_at.getTime() <= Date.now()) {
             throw new UnauthorizedException('Refresh token expired');
         }
@@ -95,13 +97,18 @@ export class AuthService {
     }
 
     async refresh(token: string): Promise<TokensInterface> {
-        const actualToken = await this.getRefreshToken(token);
+        const actualToken = await this.getRefreshToken(this.hashToken(token));
         if (!actualToken) {
             throw new NotFoundException('Refresh token does not exists');
         }
-        await this.logout(token);
+        if (!(await this.validateRefreshToken(actualToken))) {
+            await this.refreshTokenRepo.delete({ id_token: actualToken.id_token });
+            throw new UnauthorizedException('Invalid token');
+        }
+
         const newToken = this.generateRefreshToken();
-        await this.saveRefreshToken({ token: newToken, email: actualToken.email });
+        actualToken.change_token(newToken);
+        await this.refreshTokenRepo.save(actualToken);
         const account = await this.accountService.get_by_email(actualToken.email);
 
         const payload = {

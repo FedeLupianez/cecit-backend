@@ -30,8 +30,8 @@ export interface VoucherFileDTO {
 export class VouchersMapper {
     static toDTO(voucher: VouchersEntity): VouchersDTO {
         return {
-            id_user: voucher.user.id_user,
-            id_benefit: voucher.benefit.id_benefit,
+            id_user: voucher.id_user,
+            id_benefit: voucher.id_benefit,
             token: voucher.token,
             application_date: voucher.application_date,
             delivery_date: voucher.delivery_date,
