@@ -30,8 +30,8 @@ export class AuthController {
         const days: number = 7;
         res.cookie('refresh_token_cecit', newTokens.refresh_token, {
             httpOnly: true,
-            secure: true,
-            sameSite: 'strict',
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
             maxAge: days * 60 * 60 * 24
         });
         return {
@@ -42,13 +42,12 @@ export class AuthController {
     @Post('refresh')
     async refresh(@Req() req, @Res({ passthrough: true }) res) {
         const token = req.cookies['refresh_token_cecit'];
-        await this.authService.validateRefreshToken(token);
         const newTokens: TokensInterface = await this.authService.refresh(token);
         const days: number = 7;
         res.cookie('refresh_token_cecit', newTokens.refresh_token, {
             httpOnly: true,
-            secure: true,
-            sameSite: 'strict',
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
             maxAge: days * 60 * 60 * 24
         });
         return {

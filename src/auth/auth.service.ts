@@ -39,7 +39,7 @@ export class AuthService {
         const storedTokens = await this.refreshTokenRepo.find();
         for (const stored of storedTokens) {
             const match = await verify(stored.token_hash, tokenHashed);
-            if (match)
+            if (match && !stored.revoked)
                 return stored;
         }
         throw new NotFoundException('Token not found');
@@ -96,8 +96,9 @@ export class AuthService {
 
     async refresh(token: string): Promise<TokensInterface> {
         const actualToken = await this.getRefreshToken(token);
-        if (!actualToken)
+        if (!actualToken) {
             throw new NotFoundException('Refresh token does not exists');
+        }
         await this.logout(token);
         const newToken = this.generateRefreshToken();
         await this.saveRefreshToken({ token: newToken, email: actualToken.email });
@@ -117,7 +118,7 @@ export class AuthService {
 
     async logout(refreshToken: string): Promise<void> {
         const token = await this.getRefreshToken(refreshToken);
-        await this.refreshTokenRepo.update({ id_token: token.id_token }, { revoked: true });
+        await this.refreshTokenRepo.delete({ id_token: token.id_token });
     }
 
     private generateRefreshToken(): string {

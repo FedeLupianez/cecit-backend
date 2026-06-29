@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn, BeforeInsert } from 'typeorm';
 import { BenefitTypeEntity } from '../benefit-types/benefit-types.entity';
 import { PartnersEntity } from '../partners/partners.entity';
 import { AccountsEntity } from '../accounts/accounts.entity';
@@ -62,5 +62,10 @@ export class BenefitsEntity {
     @Column({ type: 'int' })
     coupons !: number;
 
+    @BeforeInsert()
+    checkImage() {
+        if (!this.image)
+            this.image = `https://placehold.co/600x400?text=${this.title}`
+    }
 }
 

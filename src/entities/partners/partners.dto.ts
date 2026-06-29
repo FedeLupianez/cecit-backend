@@ -7,6 +7,10 @@ export interface PartnersDTO {
     direction: string;
     active: boolean;
 }
+export interface PartnerLogo {
+    name: string;
+    logo: string;
+}
 
 export class PartnersUpdateLogoDTO {
     @IsNotEmpty()

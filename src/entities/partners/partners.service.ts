@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import type { PartnersCreateDTO, PartnersDTO, PartnersUpdateLogoDTO, PartnersUpdateNameDTO } from './partners.dto';
+import type { PartnerLogo, PartnersCreateDTO, PartnersDTO, PartnersUpdateLogoDTO, PartnersUpdateNameDTO } from './partners.dto';
 import { PartnersEntity } from './partners.entity';
 import { PartnersMapper } from './partners.mapper';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,6 +12,20 @@ export class PartnersService {
         @InjectRepository(PartnersEntity) private readonly partnersRepo: Repository<PartnersEntity>,
         private readonly dbService: DbService
     ) { }
+
+    async get_all(): Promise<PartnerLogo[]> {
+        const partners = await this.partnersRepo.find(
+            {
+                select: {
+                    name: true,
+                    logo: true,
+                },
+            }
+        );
+        if (!partners)
+            throw new NotFoundException('Partners are empty');
+        return partners;
+    }
 
     async create(partner: PartnersCreateDTO): Promise<PartnersEntity> {
         const newId = await this.dbService.getNewId('Partners', 'id_partner');

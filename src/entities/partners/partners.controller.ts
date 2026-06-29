@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { PartnersService } from './partners.service';
 import { PartnersAdminsService } from '../partnersadmins/partnersadmins.service';
 import { PartnersCreateDTO, PartnersUpdateLogoDTO, PartnersUpdateNameDTO } from './partners.dto';
@@ -13,6 +13,11 @@ export class PartnersController {
         private readonly partnersService: PartnersService,
         private readonly adminsService: PartnersAdminsService
     ) { }
+
+    @Get("all")
+    async get_all() {
+        return await this.partnersService.get_all();
+    }
 
     @Post()
     async create(@Body() dto: PartnersCreateDTO) {
