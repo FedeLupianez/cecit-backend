@@ -1,12 +1,21 @@
-import { Body, Controller, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { TokensInterface } from './auth.dto';
 import { Throttle } from '@nestjs/throttler';
 import { AccountCreateDTO, LoginDTO } from 'src/entities/accounts/accounts.dto';
+import { AuthGuard } from '@nestjs/passport';
+
+const secure_cookies = (process.env.NODE_ENV === 'production');
 
 @Controller('auth')
 export class AuthController {
     constructor(private readonly authService: AuthService) { }
+
+    @Get('profile')
+    @UseGuards(AuthGuard('jwt'))
+    profile(@Req() request) {
+        return request.user;
+    }
 
     @Post('register')
     async register(@Body() body: AccountCreateDTO, @Res({ passthrough: true }) res) {
@@ -14,7 +23,7 @@ export class AuthController {
         const days: number = 7;
         res.cookie('refresh_token_cecit', newTokens.refresh_token, {
             httpOnly: true,
-            secure: true,
+            secure: secure_cookies,
             sameSite: 'strict',
             maxAge: days * 60 * 60 * 24
         });
@@ -30,7 +39,7 @@ export class AuthController {
         const days: number = 7;
         res.cookie('refresh_token_cecit', newTokens.refresh_token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: secure_cookies,
             sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
             maxAge: days * 60 * 60 * 24
         });
@@ -46,7 +55,7 @@ export class AuthController {
         const days: number = 7;
         res.cookie('refresh_token_cecit', newTokens.refresh_token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: secure_cookies,
             sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
             maxAge: days * 60 * 60 * 24
         });

@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Global, forwardRef, Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 
@@ -9,19 +9,24 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshTokenEntity } from '../entities/refresh-token.entity';
 import { AccountsModule } from 'src/entities/accounts/accounts.module';
 import { UsersModule } from 'src/entities/users/users.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
-
+@Global()
 @Module({
-    imports: [PassportModule.register({ defaultStrategy: 'jwt' }), JwtModule.register({
-        secret: process.env.JWT_SECRET || 'secret',
-        signOptions: { expiresIn: (process.env.JWT_ACCESS_EXPIRATION || '15m') as `${number}${'s' | 'm' | 'h' | 'd'}` }
+    imports: [PassportModule.register({ defaultStrategy: 'jwt' }), JwtModule.registerAsync({
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => ({
+            secret: configService.get<string>('JWT_SECRET') || 'secret',
+            signOptions: { expiresIn: (configService.get<string>('JWT_ACCESS_EXPIRATION') || '15m') as `${number}${'s' | 'm' | 'h' | 'd'}` }
+        })
     }),
     TypeOrmModule.forFeature([RefreshTokenEntity]),
         AccountsModule,
-        forwardRef(() => UsersModule)
+    forwardRef(() => UsersModule)
     ],
     controllers: [AuthController],
     providers: [AuthService, JwtStrategy],
-    exports: [PassportModule]
+    exports: [PassportModule, JwtStrategy]
 })
 export class AuthModule { }

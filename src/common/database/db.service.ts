@@ -19,8 +19,8 @@ export class DbService {
     }
 
     async getNewToken(): Promise<string> {
-        const result = await this.datasource.query('SELECT get_new_token()');
-        const newToken: string = result?.[0]?.get_new_token;
+        const result = await this.datasource.query('SELECT get_new_token() AS token');
+        const newToken: string = result?.[0]?.token;
         if (!newToken) {
             throw new InternalServerErrorException('Can not generate new voucher token');
         }

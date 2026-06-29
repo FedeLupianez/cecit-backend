@@ -64,6 +64,7 @@ export class BenefitsService {
             if (!benefitType)
                 throw new InternalServerErrorException('Category not found');
             return {
+                id_benefit: b.id_benefit,
                 id_admin: b.id_admin,
                 id_partner: b.id_partner,
                 type: benefitType.name,

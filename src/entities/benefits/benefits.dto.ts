@@ -35,6 +35,7 @@ export interface BenefitsDeleteDTO {
 }
 
 export interface BenefitsReturn {
+    id_benefit: string;
     id_admin: string;
     id_partner: string;
     type: string;

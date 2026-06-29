@@ -52,8 +52,9 @@ export class VouchersController {
         return this.voucherService.get_by_status(status);
     }
 
-    @Post()
+    @Post('create')
     async create(@Body() voucher: VouchersCreateDTO) {
+        console.log(voucher);
         const newVoucher = await this.voucherService.create(voucher);
         return VouchersMapper.toDTO(newVoucher);
     }

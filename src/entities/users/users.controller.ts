@@ -27,11 +27,6 @@ import { CecitAdminGuard } from 'src/auth/cecitadmin.guard';
 export class UsersController {
     constructor(private readonly userService: UsersService) { };
 
-    @Get('profile')
-    @UseGuards(AuthGuard('jwt'))
-    profile(@Req() request) {
-        return request.user;
-    }
 
     @Get('all')
     @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
