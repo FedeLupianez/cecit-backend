@@ -25,6 +25,7 @@ export class AuthController {
             httpOnly: true,
             secure: secure_cookies,
             sameSite: 'strict',
+            path: '/',
             maxAge: days * 60 * 60 * 24
         });
         return {
@@ -41,6 +42,7 @@ export class AuthController {
             httpOnly: true,
             secure: secure_cookies,
             sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+            path: '/',
             maxAge: days * 60 * 60 * 24
         });
         return {
@@ -57,6 +59,7 @@ export class AuthController {
             httpOnly: true,
             secure: secure_cookies,
             sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+            path: '/',
             maxAge: days * 60 * 60 * 24
         });
         return {

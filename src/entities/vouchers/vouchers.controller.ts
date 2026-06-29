@@ -52,6 +52,7 @@ export class VouchersController {
         return this.voucherService.get_by_status(status);
     }
 
+    @UseGuards(AuthGuard('jwt'))
     @Post('create')
     async create(@Body() voucher: VouchersCreateDTO) {
         console.log(voucher);
