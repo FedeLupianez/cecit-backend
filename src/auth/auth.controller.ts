@@ -24,9 +24,9 @@ export class AuthController {
         res.cookie('refresh_token_cecit', newTokens.refresh_token, {
             httpOnly: true,
             secure: secure_cookies,
-            sameSite: 'strict',
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
             path: '/',
-            maxAge: days * 60 * 60 * 24
+            maxAge: days * 24 * 60 * 60 * 10000
         });
         return {
             access_token: newTokens.access_token
@@ -43,7 +43,7 @@ export class AuthController {
             secure: secure_cookies,
             sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
             path: '/',
-            maxAge: days * 60 * 60 * 24
+            maxAge: days * 24 * 60 * 60 * 10000
         });
         return {
             access_token: newTokens.access_token
@@ -60,7 +60,7 @@ export class AuthController {
             secure: secure_cookies,
             sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
             path: '/',
-            maxAge: days * 60 * 60 * 24
+            maxAge: days * 24 * 60 * 60 * 10000
         });
         return {
             access_token: newTokens.access_token
