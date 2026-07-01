@@ -11,6 +11,7 @@ import { PartnersCategoriesEntity } from '../partners_categories/partners_catego
 import { PartnersCategoriesReturn } from '../partners_categories/partners_categories.dto';
 import { AccountsService } from '../accounts/accounts.service';
 import { AccountsEntity } from '../accounts/accounts.entity';
+import { PaymentBenefitEntity } from '../payment_benefit/payment_benefit.entity';
 
 @Injectable()
 export class BenefitsService {
@@ -27,6 +28,9 @@ export class BenefitsService {
 
         @InjectRepository(PartnersCategoriesEntity)
         private readonly partnersCategoriesRepo: Repository<PartnersCategoriesEntity>,
+
+        @InjectRepository(PaymentBenefitEntity)
+        private readonly paymentBenefitRepo: Repository<PaymentBenefitEntity>,
 
         @Inject() private readonly dbService: DbService
     ) { };
@@ -55,19 +59,26 @@ export class BenefitsService {
     }
 
     async get_all(): Promise<BenefitsReturn[]> {
-        const benefits = await this.benefitsRepository.find();
+        const benefits = await this.benefitsRepository.find({ relations: ['partner', 'type'] });
         if (!benefits)
             throw new InternalServerErrorException('There is no benefits yet');
         const benefitsMapped: BenefitsReturn[] = await Promise.all(benefits.map(async (b): Promise<BenefitsReturn> => {
-            const benefitType = await this.benefitTypeRepository.findOneBy({ id_type: b.id_type });
             const categories = await this.get_categories(b.id_partner);
-            if (!benefitType)
-                throw new InternalServerErrorException('Category not found');
+            const paymentMethods: PaymentBenefitEntity[] = await this.paymentBenefitRepo.find({
+                relations: ['payment_method'],
+                where: {
+                    id_benefit: b.id_benefit
+                }
+            });
+            const paymentMethodsNames: string[] = paymentMethods.map((p) => p.payment_method.name);
             return {
+                direction: b.partner.direction,
                 id_benefit: b.id_benefit,
                 id_admin: b.id_admin,
                 id_partner: b.id_partner,
-                type: benefitType.name,
+                partner: b.partner.name,
+                payment_methods: paymentMethodsNames,
+                type: b.type.name,
                 start_date: b.start_date,
                 end_date: b.end_date,
                 image: b.image,
@@ -75,7 +86,7 @@ export class BenefitsService {
                 description: b.description,
                 coupons: b.coupons,
                 max_coupons: b.max_coupons,
-                categories: categories?.categories || []
+                categories: categories?.categories || [],
             }
         }))
         return benefitsMapped;
