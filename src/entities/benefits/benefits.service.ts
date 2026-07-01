@@ -59,11 +59,11 @@ export class BenefitsService {
     }
 
     async get_all(): Promise<BenefitsReturn[]> {
-        const benefits = await this.benefitsRepository.find({ relations: ['partner', 'type'] });
+        const benefits: BenefitsEntity[] = await this.benefitsRepository.find({ relations: ['partner', 'partner.categories', 'partner.categories.category', 'type'] });
         if (!benefits)
             throw new InternalServerErrorException('There is no benefits yet');
         const benefitsMapped: BenefitsReturn[] = await Promise.all(benefits.map(async (b): Promise<BenefitsReturn> => {
-            const categories = await this.get_categories(b.id_partner);
+            const categories = b.partner.categories.map((c) => c.category.name);
             const paymentMethods: PaymentBenefitEntity[] = await this.paymentBenefitRepo.find({
                 relations: ['payment_method'],
                 where: {
@@ -86,7 +86,8 @@ export class BenefitsService {
                 description: b.description,
                 coupons: b.coupons,
                 max_coupons: b.max_coupons,
-                categories: categories?.categories || [],
+                logo: b.partner.logo,
+                categories: categories || [],
             }
         }))
         return benefitsMapped;
