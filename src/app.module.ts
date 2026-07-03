@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Global } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
@@ -19,19 +19,30 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { PartnersModule } from './entities/partners/partners.module';
 import { AccountsModule } from './entities/accounts/accounts.module';
+import { SshTunnelModule } from './ssh/ssh-tunnel.module';
+import { SshTunnelService } from './ssh/ssh-tunnel.service';
 
+@Global()
 @Module({
     imports: [
         ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env.development' }),
-        TypeOrmModule.forRoot({
-            type: 'mariadb',
-            host: process.env.DB_HOST,
-            port: Number(process.env.DB_PORT) || 3307,
-            username: process.env.DB_USER,
-            password: process.env.DB_PASSWORD,
-            database: process.env.DB_NAME,
-            autoLoadEntities: true,
-            synchronize: false,
+        SshTunnelModule,
+        TypeOrmModule.forRootAsync({
+            imports: [SshTunnelModule],
+            inject: [SshTunnelService],
+            useFactory: async (ssh: SshTunnelService) => {
+                await ssh.createTunnel();
+                return {
+                    type: 'mariadb',
+                    host: process.env.DB_HOST,
+                    port: Number(process.env.DB_PORT) || 3307,
+                    username: process.env.DB_USER,
+                    password: process.env.DB_PASSWORD,
+                    database: process.env.DB_NAME,
+                    autoLoadEntities: true,
+                    synchronize: false,
+                }
+            }
         }),
         ThrottlerModule.forRoot({
             throttlers: [{ ttl: 60000, limit: 10 }]
@@ -49,11 +60,11 @@ import { AccountsModule } from './entities/accounts/accounts.module';
         AuthModule,
         DbModule,
         PartnersModule,
-        AccountsModule
+        AccountsModule,
     ],
     controllers: [AppController],
     providers: [AppService,
-        { provide: APP_GUARD, useClass: ThrottlerGuard },
+        { provide: APP_GUARD, useClass: ThrottlerGuard }
     ]
 })
 export class AppModule { }
