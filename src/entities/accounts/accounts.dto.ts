@@ -14,8 +14,6 @@ export class AccountCreateDTO {
     email: string;
     @IsNotEmpty()
     password: string;
-    @IsNotEmpty()
-    role: AccountRole;
 }
 
 export class LoginDTO {
