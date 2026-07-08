@@ -3,6 +3,7 @@ import { IsEmail, IsNotEmpty } from "class-validator";
 export interface jwt_payload {
     sub: string;
     email: string;
+    role: string;
     jti?: string;
 }
 

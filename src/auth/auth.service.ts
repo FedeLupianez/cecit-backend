@@ -111,9 +111,10 @@ export class AuthService {
         await this.refreshTokenRepo.save(actualToken);
         const account = await this.accountService.get_by_email(actualToken.email);
 
-        const payload = {
+        const payload: jwt_payload = {
             sub: account.id_user,
             email: actualToken.email,
+            role: account.role,
             jti: randomUUID()
         };
 
