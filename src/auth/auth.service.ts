@@ -5,7 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RefreshTokenEntity } from '../entities/refresh-token.entity';
 import { Repository } from 'typeorm';
-import { jwt_payload, RefreshTokenSaveDTO } from './auth.dto';
+import { type jwt_payload, RefreshTokenSaveDTO } from './auth.dto';
 import { TokensInterface } from './auth.dto';
 import { AccountsService } from 'src/entities/accounts/accounts.service';
 import { AccountsEntity } from 'src/entities/accounts/accounts.entity';

@@ -21,8 +21,6 @@ import { PartnersModule } from './entities/partners/partners.module';
 import { AccountsModule } from './entities/accounts/accounts.module';
 import { SshTunnelModule } from './ssh/ssh-tunnel.module';
 import { SshTunnelService } from './ssh/ssh-tunnel.service';
-import { ScheduleModule } from '@nestjs/schedule';
-import { TasksModule } from './tasks/tasks.module';
 
 @Global()
 @Module({
@@ -50,7 +48,6 @@ import { TasksModule } from './tasks/tasks.module';
             throttlers: [{ ttl: 60000, limit: 10 }]
 
         }),
-        ScheduleModule.forRoot(),
         CategoriesModule,
         UsersModule,
         BenefitsModule,
@@ -64,11 +61,10 @@ import { TasksModule } from './tasks/tasks.module';
         DbModule,
         PartnersModule,
         AccountsModule,
-        TasksModule,
     ],
     controllers: [AppController],
     providers: [AppService,
-        { provide: APP_GUARD, useClass: ThrottlerGuard },
+        { provide: APP_GUARD, useClass: ThrottlerGuard }
     ]
 })
 export class AppModule { }
