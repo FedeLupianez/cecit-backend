@@ -12,6 +12,11 @@ export class BenefitsController {
         return this.benefitsService.get_all();
     }
 
+    @Get('popular')
+    get_popular() {
+    return this.benefitsService.get_popular();
+    }  
+
     @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
     @Post()
     async create(@Body() benefit: BenefitsCreateDTO) {
