@@ -7,6 +7,7 @@ import {
     ConflictException,
     Injectable,
     InternalServerErrorException,
+    Logger,
     NotFoundException,
 } from '@nestjs/common';
 import {
@@ -24,6 +25,7 @@ import { PdfService } from 'src/pdf/pdf.service';
 
 @Injectable()
 export class VouchersService {
+    private readonly logger = new Logger(VouchersService.name);
     constructor(
         @InjectRepository(VouchersEntity)
         private readonly vouchersRepository: Repository<VouchersEntity>,
@@ -81,6 +83,7 @@ export class VouchersService {
     }
 
     async create(voucher: VouchersCreateDTO) {
+        this.logger.log(`Creating voucher for benefit ${voucher.id_benefit}`);
         const benefit = await this.benefitsRepository.findOneBy({
             id_benefit: voucher.id_benefit,
         });
@@ -119,6 +122,7 @@ export class VouchersService {
     }
 
     async gen_file(token: string) {
+        this.logger.debug(`Generating PDF for voucher: ${token}`);
         if (!token) throw new BadRequestException('Token does not exists');
         const exists = await this.vouchersRepository.exists({
             where: {

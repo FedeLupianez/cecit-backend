@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { verify } from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -15,6 +15,7 @@ import { UsersService } from 'src/entities/users/users.service';
 
 @Injectable()
 export class AuthService {
+    private readonly logger = new Logger(AuthService.name);
     constructor(
         private readonly jwtService: JwtService,
         @InjectRepository(RefreshTokenEntity)
@@ -24,6 +25,7 @@ export class AuthService {
     ) { }
 
     async validateUser(email: string, passwd: string): Promise<AccountsEntity> {
+        this.logger.debug(`Validating user: ${email}`);
         const user = await this.accountService.get_by_email(email);
 
         const passwordValid = await verify(user.password, passwd);
@@ -40,11 +42,15 @@ export class AuthService {
     }
 
     private async getRefreshToken(tokenHashed: string): Promise<RefreshTokenEntity> {
-        if (!tokenHashed)
+        if (!tokenHashed) {
+            this.logger.debug('Token empty');
             throw new BadRequestException('Token is empty');
+        }
         const storedToken = await this.refreshTokenRepo.findOneBy({ token_hash: tokenHashed });
-        if (!storedToken)
+        if (!storedToken) {
+            this.logger.debug(`Token ${tokenHashed} does not exists`);
             throw new NotFoundException('Token not found');
+        }
         return storedToken;
     }
 
@@ -60,6 +66,7 @@ export class AuthService {
     }
 
     async register(account: AccountCreateDTO): Promise<TokensInterface> {
+        this.logger.log(`Registering new account: ${account.email}`);
         const partner = this.userService.get_by_user_id(account.id_user);
         if (!partner)
             throw new NotFoundException('User is not cecit partner');
@@ -80,6 +87,7 @@ export class AuthService {
     }
 
     async login(userLogin: LoginDTO): Promise<TokensInterface> {
+        this.logger.log(`Login attempt: ${userLogin.email}`);
         const user = await this.validateUser(userLogin.email, userLogin.password);
         if (!user)
             throw new UnauthorizedException('Invalid Credentials');
@@ -97,17 +105,17 @@ export class AuthService {
     }
 
     async refresh(token: string): Promise<TokensInterface> {
+        this.logger.debug(`Refreshing token ${token}`);
         const actualToken = await this.getRefreshToken(this.hashToken(token));
-        if (!actualToken) {
-            throw new NotFoundException('Refresh token does not exists');
-        }
+
         if (!(await this.validateRefreshToken(actualToken))) {
             await this.refreshTokenRepo.delete({ id_token: actualToken.id_token });
+            this.logger.debug('Invalid Refresh Token')
             throw new UnauthorizedException('Invalid token');
         }
 
         const newToken = this.generateRefreshToken();
-        actualToken.change_token(newToken);
+        await actualToken.change_token(newToken);
         await this.refreshTokenRepo.save(actualToken);
         const account = await this.accountService.get_by_email(actualToken.email);
 
@@ -118,6 +126,7 @@ export class AuthService {
             jti: randomUUID()
         };
 
+        this.logger.log(`Refresh token ${payload.jti} generated to ${actualToken.email}`)
         return {
             access_token: this.jwtService.sign(payload),
             refresh_token: newToken
@@ -125,7 +134,8 @@ export class AuthService {
     }
 
     async logout(refreshToken: string): Promise<void> {
-        const token = await this.getRefreshToken(refreshToken);
+        this.logger.log('Logging out user');
+        const token = await this.getRefreshToken(this.hashToken(refreshToken));
         await this.refreshTokenRepo.delete({ id_token: token.id_token });
     }
 

@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { BenefitsCreateDTO, BenefitsDeleteDTO, type BenefitsReturn } from './benefits.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BenefitsEntity } from './benefits.entity';
@@ -15,6 +15,7 @@ import { PaymentBenefitEntity } from '../payment_benefit/payment_benefit.entity'
 
 @Injectable()
 export class BenefitsService {
+    private readonly logger = new Logger(BenefitsService.name);
     constructor(
         @InjectRepository(BenefitsEntity)
         private readonly benefitsRepository: Repository<BenefitsEntity>,
@@ -94,6 +95,7 @@ export class BenefitsService {
     }
 
     async create(benefit: BenefitsCreateDTO) {
+        this.logger.log(`Creating benefit: ${benefit.title}`);
         const admin: AccountsEntity | null = await this.accountService.get_by_id(benefit.id_admin);
         if (!admin) {
             throw new NotFoundException('El administrador no existe');

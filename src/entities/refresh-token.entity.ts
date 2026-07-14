@@ -1,6 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn, BeforeInsert } from 'typeorm';
 import { AccountsEntity } from './accounts/accounts.entity';
-import { hash } from 'argon2';
 import { createHash } from 'node:crypto';
 
 @Entity('RefreshTokens')
@@ -34,7 +33,7 @@ export class RefreshTokenEntity {
     }
 
     @BeforeInsert()
-    async hashToken() {
+    hashToken() {
         this.token_hash = createHash('sha256').update(this.token_hash).digest('hex');
     }
 
