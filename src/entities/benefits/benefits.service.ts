@@ -129,4 +129,60 @@ export class BenefitsService {
         }
         return true;
     }
+
+    async get_popular(): Promise<BenefitsReturn[]> {
+
+        const benefits: BenefitsEntity[] = await this.benefitsRepository.find({
+            relations: [
+                'partner',
+                'partner.categories',
+                'partner.categories.category',
+                'type'
+            ],
+            order: {
+                coupons: 'DESC'
+            },
+            take: 20
+        });
+
+        if (!benefits)
+            throw new InternalServerErrorException('There is no benefits yet');
+
+        const benefitsMapped: BenefitsReturn[] = await Promise.all(
+            benefits.map(async (b): Promise<BenefitsReturn> => {
+
+                const categories = b.partner.categories.map((c) => c.category.name);
+
+                const paymentMethods: PaymentBenefitEntity[] =
+                    await this.paymentBenefitRepo.find({
+                        relations: ['payment_method'],
+                        where: {
+                            id_benefit: b.id_benefit
+                        }
+                    });
+
+                const paymentMethodsNames: string[] =
+                    paymentMethods.map((p) => p.payment_method.name);
+
+                return {
+                    direction: b.partner.direction,
+                    id_benefit: b.id_benefit,
+                    id_admin: b.id_admin,
+                    id_partner: b.id_partner,
+                    partner: b.partner.name,
+                    payment_methods: paymentMethodsNames,
+                    type: b.type.name,
+                    start_date: b.start_date,
+                    end_date: b.end_date,
+                    image: b.image,
+                    title: b.title,
+                    description: b.description,
+                    coupons: b.coupons,
+                    max_coupons: b.max_coupons,
+                    logo: b.partner.logo,
+                    categories: categories || []
+                };
+            }));
+        return benefitsMapped;
+    }
 }
