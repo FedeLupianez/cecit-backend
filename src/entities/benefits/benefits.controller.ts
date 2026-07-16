@@ -14,8 +14,8 @@ export class BenefitsController {
 
     @Get('popular')
     get_popular() {
-    return this.benefitsService.get_popular();
-    }  
+        return this.benefitsService.get_popular();
+    }
 
     @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
     @Post()

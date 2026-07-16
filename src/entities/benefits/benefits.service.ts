@@ -127,7 +127,7 @@ export class BenefitsService {
         }
         return true;
     }
-    
+
     async get_popular(): Promise<BenefitsReturn[]> {
 
         const benefits: BenefitsEntity[] = await this.benefitsRepository.find({
@@ -181,6 +181,6 @@ export class BenefitsService {
                     categories: categories || []
                 };
             }));
-            return benefitsMapped;
-        }
+        return benefitsMapped;
+    }
 }
