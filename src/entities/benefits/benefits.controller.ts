@@ -8,13 +8,13 @@ import { AuthGuard } from '@nestjs/passport';
 export class BenefitsController {
     constructor(private readonly benefitsService: BenefitsService) { };
     @Get('all')
-    get_all() {
-        return this.benefitsService.get_all();
+    async get_all() {
+        return await this.benefitsService.get_all();
     }
 
     @Get('popular')
-    get_popular() {
-        return this.benefitsService.get_popular();
+    async get_popular() {
+        return await this.benefitsService.get_popular();
     }
 
     @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
