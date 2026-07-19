@@ -12,7 +12,7 @@ export class UsersEntity {
     @Column({ length: 50, type: 'varchar', name: 'name' })
     name: string;
 
-    @Column({ length: 50, type: 'varchar', name: 'last_name' })
+    @Column({ length: 50, type: 'varchar', name: 'lastname' })
     lastname: string;
 
     @Index()
