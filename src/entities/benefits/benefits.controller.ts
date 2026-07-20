@@ -17,6 +17,11 @@ export class BenefitsController {
         return await this.benefitsService.get_popular();
     }
 
+    @Get('news')
+    async get_news() {
+        return await this.benefitsService.get_news();
+    }
+
     @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
     @Post()
     async create(@Body() benefit: BenefitsCreateDTO) {
