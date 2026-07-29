@@ -35,12 +35,12 @@ flowchart TD
     B -->|No| C[404 NOT FOUND]
     B -->|Sí| D[¿Ya existe cuenta con ese email?]
     D -->|Sí| E[400 BAD REQUEST]
-    D -->|No| F[Crear AccountsEntity<br/>con role = USER por defecto]
+    D -->|No| F["Crear AccountsEntity<br/>con role = USER por defecto"]
     F --> G[Generar refresh token]
-    G --> H[Guardar refresh token en DB<br/>(hash SHA-256)]
+    G --> H["Guardar refresh token en DB<br/>(hash SHA-256)"]
     H --> I[Firmar access_token JWT]
     I --> J[Setear refresh_token en cookie httpOnly]
-    J --> K[200 OK<br/>{ access_token }]
+    J --> K["200 OK<br/>{ access_token }"]
 ```
 
 ### Lógica de negocio
@@ -102,7 +102,7 @@ flowchart TD
     F --> G[Guardar refresh token en DB]
     G --> H[Firmar access_token JWT]
     H --> I[Setear refresh_token en cookie httpOnly]
-    I --> J[200 OK<br/>{ access_token }]
+    I --> J["200 OK<br/>{ access_token }"]
 ```
 
 ### Lógica de negocio
@@ -149,11 +149,11 @@ flowchart TD
     F -->|No| H{¿Token expirado?}
     H -->|Sí| I[401 UNAUTHORIZED]
     H -->|No| J[Generar nuevo refresh token]
-    J --> K[Actualizar token en DB<br/>cambio de token + renovar fecha]
+    J --> K["Actualizar token en DB<br/>cambio de token + renovar fecha"]
     K --> L[Obtener cuenta por email]
-    L --> M[Firmar nuevo access_token JWT<br/>con sub, email, role y jti]
+    L --> M["Firmar nuevo access_token JWT<br/>con sub, email, role y jti"]
     M --> N[Setear nueva cookie httpOnly]
-    N --> O[200 OK<br/>{ access_token }]
+    N --> O["200 OK<br/>{ access_token }"]
 ```
 
 ### Lógica de negocio
