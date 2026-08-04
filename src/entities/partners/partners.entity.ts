@@ -1,5 +1,6 @@
 
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { UsersEntity } from '../users/users.entity';
 
 @Entity('Partners')
 export class PartnersEntity {
@@ -17,4 +18,12 @@ export class PartnersEntity {
 
     @Column({ type: 'boolean', name: 'active', default: true })
     active: boolean;
+
+
+    @Column({ type: 'varchar', length: 4 })
+    id_owner!: string;
+
+    @ManyToOne(() => UsersEntity, { nullable: false })
+    @JoinColumn({ name: 'id_owner', referencedColumnName: 'id_user' })
+    owner!: UsersEntity;
 }

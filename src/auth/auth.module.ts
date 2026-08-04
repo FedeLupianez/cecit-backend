@@ -1,7 +1,6 @@
 import { Global, forwardRef, Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
@@ -10,6 +9,8 @@ import { RefreshTokenEntity } from '../entities/refresh-token.entity';
 import { AccountsModule } from 'src/entities/accounts/accounts.module';
 import { UsersModule } from 'src/entities/users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { PartnersEntity } from 'src/entities/partners/partners.entity';
+import { PartnersAdminsEntity } from 'src/entities/partnersadmins/partnersadmins.entity';
 
 @Global()
 @Module({
@@ -21,7 +22,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
             signOptions: { expiresIn: (configService.get<string>('JWT_ACCESS_EXPIRATION') || '15m') as `${number}${'s' | 'm' | 'h' | 'd'}` }
         })
     }),
-    TypeOrmModule.forFeature([RefreshTokenEntity]),
+    TypeOrmModule.forFeature([RefreshTokenEntity,]),
         AccountsModule,
     forwardRef(() => UsersModule)
     ],

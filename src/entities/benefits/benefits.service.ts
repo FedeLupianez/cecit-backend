@@ -1,7 +1,7 @@
 import { BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { BenefitsCreateDTO, BenefitsDeleteDTO, type BenefitsReturn } from './benefits.dto';
+import { BenefitsMapper, BenefitsDTO, BenefitsCreateDTO, BenefitsDeleteDTO, type BenefitsReturn } from './benefits.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { BenefitsEntity } from './benefits.entity';
+import { BenefitsEntity, BenefitStatus } from './benefits.entity';
 import { PartnersEntity } from '../partners/partners.entity';
 import { BenefitTypeEntity } from '../benefit-types/benefit-types.entity';
 import { Repository } from 'typeorm';
@@ -11,6 +11,7 @@ import { PartnersCategoriesEntity } from '../partners_categories/partners_catego
 import { PartnersCategoriesReturn } from '../partners_categories/partners_categories.dto';
 import { AccountsService } from '../accounts/accounts.service';
 import { AccountsEntity } from '../accounts/accounts.entity';
+import { LessThanOrEqual, MoreThanOrEqual } from 'typeorm'; 
 
 @Injectable()
 export class BenefitsService {
@@ -115,4 +116,21 @@ export class BenefitsService {
         }
         return true;
     }
+
+    async get_carousel(): Promise<BenefitsDTO[]> {
+    const today = new Date();
+
+    const benefits = await this.benefitsRepository.find({
+        where: {
+            status: BenefitStatus.ACTIVE,
+            start_date: LessThanOrEqual(today),
+            end_date: MoreThanOrEqual(today),
+        },
+        order: {
+            date_entered: 'DESC',
+        },
+    });
+
+    return benefits.map((benefit) => BenefitsMapper.toDTO(benefit));
+}
 }
