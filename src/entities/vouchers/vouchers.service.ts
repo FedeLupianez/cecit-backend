@@ -18,8 +18,8 @@ import {
 } from './vouchers.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { VouchersEntity, VoucherStatus } from './vouchers.entity';
-import { LessThan, Repository } from 'typeorm';
-import { BenefitsEntity } from '../benefits/benefits.entity';
+import { Repository } from 'typeorm';
+import { BenefitsService } from '../benefits/benefits.service';
 import { DbService } from '../../common/database/db.service';
 import { PdfService } from 'src/pdf/pdf.service';
 
@@ -29,8 +29,7 @@ export class VouchersService {
     constructor(
         @InjectRepository(VouchersEntity)
         private readonly vouchersRepository: Repository<VouchersEntity>,
-        @InjectRepository(BenefitsEntity)
-        private readonly benefitsRepository: Repository<BenefitsEntity>,
+        private readonly benefitsService: BenefitsService,
         private readonly dbService: DbService,
         private readonly pdfService: PdfService,
     ) { }
@@ -84,20 +83,14 @@ export class VouchersService {
 
     async create(voucher: VouchersCreateDTO) {
         this.logger.log(`Creating voucher for benefit ${voucher.id_benefit}`);
-        const benefit = await this.benefitsRepository.findOneBy({
-            id_benefit: voucher.id_benefit,
-        });
+        const benefit = await this.benefitsService.findOne(voucher.id_benefit);
 
         if (!benefit)
             throw new NotFoundException('Benefit not found');
 
-        const result = await this.benefitsRepository.increment(
-            { id_benefit: voucher.id_benefit, coupons: LessThan(benefit.max_coupons) },
-            'coupons',
-            1
-        );
+        const incremented = await this.benefitsService.incrementCoupons(voucher.id_benefit, benefit.max_coupons);
 
-        if (result.affected === 0)
+        if (!incremented)
             throw new ConflictException('Max coupons reached');
 
         const newVoucher = this.vouchersRepository.create({

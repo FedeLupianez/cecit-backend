@@ -11,26 +11,21 @@ import { AccountsService } from 'src/entities/accounts/accounts.service';
 import { AccountsEntity } from 'src/entities/accounts/accounts.entity';
 import { AccountCreateDTO, AccountRole, LoginDTO } from 'src/entities/accounts/accounts.dto';
 import { UsersService } from 'src/entities/users/users.service';
-import { PartnersEntity } from 'src/entities/partners/partners.entity';
 import { PartnersService } from 'src/entities/partners/partners.service';
-import { PartnersAdminsEntity } from 'src/entities/partnersadmins/partnersadmins.entity';
-
+import { PartnersAdminsService } from 'src/entities/partnersadmins/partnersadmins.service';
 
 
 @Injectable()
 export class AuthService {
     private readonly logger = new Logger(AuthService.name);
     constructor(
-        private readonly PartnersService: PartnersService,
+        private readonly partnersService: PartnersService,
         private readonly jwtService: JwtService,
         @InjectRepository(RefreshTokenEntity)
         private readonly refreshTokenRepo: Repository<RefreshTokenEntity>,
         private readonly accountService: AccountsService,
         private readonly userService: UsersService,
-        @InjectRepository(PartnersEntity)
-        private readonly partnersRepository: Repository<PartnersEntity>,
-        @InjectRepository(PartnersAdminsEntity)
-        private readonly partnersAdminsRepository: Repository<PartnersAdminsEntity>,
+        private readonly partnersAdminsService: PartnersAdminsService,
     ) { }
 
     async validateUser(email: string, passwd: string): Promise<AccountsEntity> {
@@ -81,17 +76,14 @@ export class AuthService {
         if (await this.accountService.has_account(account.email))
             throw new BadRequestException('User alredy has an account');
 
-        const ownedPartner = await this.PartnersService.getByOwnerId(account.id_user);
+        const ownedPartner = await this.partnersService.getByOwnerId(account.id_user);
         const newUser = await this.accountService.create(account);
 
         if (ownedPartner)
             newUser.role = AccountRole.PARTNER_ADMIN;
 
         if (ownedPartner) {
-            const partnerAdmin = new PartnersAdminsEntity();
-            partnerAdmin.id_user = newUser.id_user;
-            partnerAdmin.id_partner = ownedPartner.id_partner;
-            await this.partnersAdminsRepository.save(partnerAdmin);
+            await this.partnersAdminsService.createByOwner(newUser.id_user, ownedPartner.id_partner);
         }
         const newToken = this.generateRefreshToken();
         await this.saveRefreshToken({ token: newToken, email: newUser.email });

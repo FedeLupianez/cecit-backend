@@ -4,11 +4,11 @@ import { CategoriesEntity } from './categories.entity';
 import { CategoriesService } from './categories.service';
 import { CategoriesController } from './categories.controller';
 import { AccountsModule } from '../accounts/accounts.module';
-import { PassportModule } from '@nestjs/passport';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([CategoriesEntity]), AccountsModule, PassportModule],
+    imports: [TypeOrmModule.forFeature([CategoriesEntity]), AccountsModule],
     controllers: [CategoriesController],
     providers: [CategoriesService],
+    exports: [CategoriesService],
 })
 export class CategoriesModule { }

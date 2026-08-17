@@ -28,6 +28,16 @@ export class PartnersAdminsService {
         return stored;
     }
 
+    async createByOwner(id_user: string, id_partner: string): Promise<PartnersAdminsEntity> {
+        if (!id_user || !id_partner)
+            throw new BadRequestException('id_user and id_partner are required');
+        const newAdmin = this.adminsRepo.create({ id_user, id_partner });
+        const stored = await this.adminsRepo.save(newAdmin);
+        if (!stored)
+            throw new InternalServerErrorException('Error creating admin by owner');
+        return stored;
+    }
+
     async get_by_id(id_admin: string): Promise<PartnersAdminsEntity> {
         if (!id_admin)
             throw new BadRequestException('id admin is required');

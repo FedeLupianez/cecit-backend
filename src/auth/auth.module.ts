@@ -9,9 +9,9 @@ import { RefreshTokenEntity } from '../entities/refresh-token.entity';
 import { AccountsModule } from 'src/entities/accounts/accounts.module';
 import { UsersModule } from 'src/entities/users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { PartnersEntity } from 'src/entities/partners/partners.entity';
-import { PartnersAdminsEntity } from 'src/entities/partnersadmins/partnersadmins.entity';
 import { PartnersModule } from 'src/entities/partners/partners.module';
+import { PartnersAdminsModule } from 'src/entities/partnersadmins/partnersadmins.module';
+import { CecitAdminGuard } from './cecitadmin.guard';
 
 @Global()
 @Module({
@@ -23,13 +23,14 @@ import { PartnersModule } from 'src/entities/partners/partners.module';
             signOptions: { expiresIn: (configService.get<string>('JWT_ACCESS_EXPIRATION') || '15m') as `${number}${'s' | 'm' | 'h' | 'd'}` }
         })
     }),
-    TypeOrmModule.forFeature([RefreshTokenEntity, PartnersEntity, PartnersAdminsEntity]),
+    TypeOrmModule.forFeature([RefreshTokenEntity]),
         AccountsModule,
     forwardRef(() => UsersModule),
-    forwardRef(() => PartnersModule)
+    forwardRef(() => PartnersModule),
+    PartnersAdminsModule,
     ],
     controllers: [AuthController],
-    providers: [AuthService, JwtStrategy],
-    exports: [PassportModule, JwtStrategy]
+    providers: [AuthService, JwtStrategy, CecitAdminGuard],
+    exports: [PassportModule, JwtStrategy, CecitAdminGuard]
 })
 export class AuthModule { }

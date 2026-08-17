@@ -21,4 +21,11 @@ export class PartnersCategoriesService {
             relations: ['partner', 'category'],
         });
     }
+
+    async findByPartner(id_partner: string): Promise<PartnersCategoriesEntity[]> {
+        return await this.repo.find({
+            where: { id_partner },
+            relations: ['category'],
+        });
+    }
 }

@@ -1,6 +1,6 @@
 
 import { BenefitsMapper, BenefitsDTO, BenefitsCreateDTO, BenefitsDeleteDTO, type BenefitsReturn } from './benefits.dto';
-import { BadRequestException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { BenefitsEntity, BenefitStatus } from './benefits.entity';
@@ -9,13 +9,15 @@ import { BenefitTypeEntity } from '../benefit-types/benefit-types.entity';
 import { Repository } from 'typeorm';
 import { DbService } from 'src/common/database/db.service';
 import { PartnersService } from '../partners/partners.service';
-import { PartnersCategoriesEntity } from '../partners_categories/partners_categories.entity';
 import { PartnersCategoriesReturn } from '../partners_categories/partners_categories.dto';
 import { AccountsService } from '../accounts/accounts.service';
 import { AccountsEntity } from '../accounts/accounts.entity';
 
-import { LessThanOrEqual, MoreThanOrEqual } from 'typeorm'; 
+import { LessThan, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 import { PaymentBenefitEntity } from '../payment_benefit/payment_benefit.entity';
+import { BenefitTypeService } from '../benefit-types/benefit-types.service';
+import { PartnersCategoriesService } from '../partners_categories/partners_categories.service';
+import { PaymentBenefitService } from '../payment_benefit/payment_benefit.service';
 
 @Injectable()
 export class BenefitsService {
@@ -25,19 +27,11 @@ export class BenefitsService {
         private readonly benefitsRepository: Repository<BenefitsEntity>,
 
         private readonly accountService: AccountsService,
-
         private readonly partnersService: PartnersService,
-
-        @InjectRepository(BenefitTypeEntity)
-        private readonly benefitTypeRepository: Repository<BenefitTypeEntity>,
-
-        @InjectRepository(PartnersCategoriesEntity)
-        private readonly partnersCategoriesRepo: Repository<PartnersCategoriesEntity>,
-
-        @InjectRepository(PaymentBenefitEntity)
-        private readonly paymentBenefitRepo: Repository<PaymentBenefitEntity>,
-
-        @Inject() private readonly dbService: DbService
+        private readonly benefitTypeService: BenefitTypeService,
+        private readonly partnersCategoriesService: PartnersCategoriesService,
+        private readonly paymentBenefitService: PaymentBenefitService,
+        private readonly dbService: DbService,
     ) { };
 
     async get_categories(id_partner: string): Promise<PartnersCategoriesReturn | null> {
@@ -46,10 +40,7 @@ export class BenefitsService {
         const partner = await this.partnersService.get_by_id(id_partner);
         if (!partner)
             throw new NotFoundException('Partner not found');
-        const categories = await this.partnersCategoriesRepo.find({
-            where: { id_partner: id_partner },
-            relations: ['category']
-        });
+        const categories = await this.partnersCategoriesService.findByPartner(id_partner);
         if (!categories || categories.length === 0)
             return null;
 
@@ -77,7 +68,7 @@ export class BenefitsService {
             throw new NotFoundException('El socio no existe');
         }
 
-        const type: BenefitTypeEntity | null = await this.benefitTypeRepository.findOneBy({ id_type: benefit.id_type });
+        const type: BenefitTypeEntity | null = await this.benefitTypeService.get_by_id(benefit.id_type);
 
         if (!type) {
             throw new NotFoundException('El tipo de beneficio no existe');
@@ -100,6 +91,19 @@ export class BenefitsService {
         return true;
     }
 
+    async findOne(id_benefit: string): Promise<BenefitsEntity | null> {
+        return await this.benefitsRepository.findOneBy({ id_benefit });
+    }
+
+    async incrementCoupons(id_benefit: string, maxCoupons: number): Promise<boolean> {
+        const result = await this.benefitsRepository.increment(
+            { id_benefit, coupons: LessThan(maxCoupons) },
+            'coupons',
+            1
+        );
+        return (result.affected ?? 0) > 0;
+    }
+
     async get_carousel(): Promise<BenefitsDTO[]> {
       const today = new Date();
 
@@ -119,12 +123,7 @@ export class BenefitsService {
     private async mapBenefits(benefits: BenefitsEntity[]): Promise<BenefitsReturn[]> {
         const benefitsMapped: BenefitsReturn[] = await Promise.all(benefits.map(async (b): Promise<BenefitsReturn> => {
             const categories = b.partner.categories.map((c) => c.category.name);
-            const paymentMethods: PaymentBenefitEntity[] = await this.paymentBenefitRepo.find({
-                relations: ['payment_method'],
-                where: {
-                    id_benefit: b.id_benefit
-                }
-            });
+            const paymentMethods: PaymentBenefitEntity[] = await this.paymentBenefitService.findByBenefit(b.id_benefit);
             const paymentMethodsNames: string[] = paymentMethods.map((p) => p.payment_method.name);
             return {
                 direction: b.partner.direction,
