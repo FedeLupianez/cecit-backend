@@ -1,4 +1,3 @@
-
 import { AccountsEntity } from '../accounts/accounts.entity';
 import { PartnersEntity } from '../partners/partners.entity';
 import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';

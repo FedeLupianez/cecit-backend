@@ -15,22 +15,27 @@ import { CecitAdminGuard } from './cecitadmin.guard';
 
 @Global()
 @Module({
-    imports: [PassportModule.register({ defaultStrategy: 'jwt' }), JwtModule.registerAsync({
-        imports: [ConfigModule],
-        inject: [ConfigService],
-        useFactory: (configService: ConfigService) => ({
-            secret: configService.get<string>('JWT_SECRET') || 'secret',
-            signOptions: { expiresIn: (configService.get<string>('JWT_ACCESS_EXPIRATION') || '15m') as `${number}${'s' | 'm' | 'h' | 'd'}` }
-        })
+  imports: [
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET') || 'secret',
+        signOptions: {
+          expiresIn: (configService.get<string>('JWT_ACCESS_EXPIRATION') ||
+            '15m') as `${number}${'s' | 'm' | 'h' | 'd'}`,
+        },
+      }),
     }),
     TypeOrmModule.forFeature([RefreshTokenEntity]),
-        AccountsModule,
+    AccountsModule,
     forwardRef(() => UsersModule),
     forwardRef(() => PartnersModule),
     PartnersAdminsModule,
-    ],
-    controllers: [AuthController],
-    providers: [AuthService, JwtStrategy, CecitAdminGuard],
-    exports: [PassportModule, JwtStrategy, CecitAdminGuard]
+  ],
+  controllers: [AuthController],
+  providers: [AuthService, JwtStrategy, CecitAdminGuard],
+  exports: [PassportModule, JwtStrategy, CecitAdminGuard],
 })
-export class AuthModule { }
+export class AuthModule {}

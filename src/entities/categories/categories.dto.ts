@@ -1,4 +1,4 @@
-import { CategoriesEntity } from "./categories.entity";
+import { CategoriesEntity } from './categories.entity';
 
 export class CategoriesDTO {
     name: string;
@@ -11,7 +11,7 @@ export class CategoriesMapper {
         return {
             name: category.name,
             icon_url: category.icon_url,
-            active: category.active
-        }
+            active: category.active,
+        };
     }
 }

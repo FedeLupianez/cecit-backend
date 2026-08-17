@@ -1,4 +1,11 @@
-import { BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException, forwardRef } from '@nestjs/common';
+import {
+    BadRequestException,
+    Inject,
+    Injectable,
+    InternalServerErrorException,
+    NotFoundException,
+    forwardRef,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PartnersAdminsEntity } from './partnersadmins.entity';
 import { Repository } from 'typeorm';
@@ -9,9 +16,11 @@ import { DbService } from 'src/common/database/db.service';
 @Injectable()
 export class PartnersAdminsService {
     constructor(
-        @InjectRepository(PartnersAdminsEntity) private readonly adminsRepo: Repository<PartnersAdminsEntity>,
-        @Inject(forwardRef(() => PartnersService)) private readonly partnersService: PartnersService,
-        private readonly dbService: DbService
+        @InjectRepository(PartnersAdminsEntity)
+        private readonly adminsRepo: Repository<PartnersAdminsEntity>,
+        @Inject(forwardRef(() => PartnersService))
+        private readonly partnersService: PartnersService,
+        private readonly dbService: DbService,
     ) { }
 
     async create(admin: PartnersAdminsCreateDTO): Promise<PartnersAdminsEntity> {
@@ -20,7 +29,7 @@ export class PartnersAdminsService {
         const newAdmin = this.adminsRepo.create({
             id_user: newId,
             id_partner: partner.id_partner,
-        })
+        });
 
         const stored = await this.adminsRepo.save(newAdmin);
         if (!stored)
@@ -28,7 +37,10 @@ export class PartnersAdminsService {
         return stored;
     }
 
-    async createByOwner(id_user: string, id_partner: string): Promise<PartnersAdminsEntity> {
+    async createByOwner(
+        id_user: string,
+        id_partner: string,
+    ): Promise<PartnersAdminsEntity> {
         if (!id_user || !id_partner)
             throw new BadRequestException('id_user and id_partner are required');
         const newAdmin = this.adminsRepo.create({ id_user, id_partner });
@@ -39,11 +51,12 @@ export class PartnersAdminsService {
     }
 
     async get_by_id(id_admin: string): Promise<PartnersAdminsEntity> {
-        if (!id_admin)
-            throw new BadRequestException('id admin is required');
-        const admin = await this.adminsRepo.findOneBy({ id_user: id_admin });
-        if (!admin)
-            throw new NotFoundException('Admin does not exists');
+        if (!id_admin) throw new BadRequestException('id admin is required');
+        const admin = await this.adminsRepo.findOne({
+            where: { id_user: id_admin },
+            relations: ['partner', 'account'],
+        });
+        if (!admin) throw new NotFoundException('Admin does not exists');
         return admin;
     }
 }

@@ -1,10 +1,10 @@
-import { IsEmail, IsNotEmpty } from "class-validator";
+import { IsEmail, IsNotEmpty } from 'class-validator';
 
 export enum AccountRole {
     USER = 'USER',
     CECIT_ADMIN = 'CECIT_ADMIN',
     PARTNER_ADMIN = 'PARTNER_ADMIN'
-};
+}
 
 export class AccountCreateDTO {
     @IsNotEmpty()
@@ -14,6 +14,7 @@ export class AccountCreateDTO {
     email: string;
     @IsNotEmpty()
     password: string;
+    role: AccountRole;
 }
 
 export class LoginDTO {

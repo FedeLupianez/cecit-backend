@@ -6,14 +6,11 @@ import { AdminGuard } from 'src/auth/admin.guard';
 
 @Controller('partners-admins')
 export class PartnersAdminsController {
-    constructor(
-        private readonly adminsService: PartnersAdminsService
-    ) { }
+    constructor(private readonly adminsService: PartnersAdminsService) { }
 
     @UseGuards(AuthGuard('jwt'), AdminGuard)
     @Post('create')
     async create(@Body() body: PartnersAdminsCreateDTO) {
         return await this.adminsService.create(body);
     }
-
 }

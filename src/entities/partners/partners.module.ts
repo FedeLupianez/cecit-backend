@@ -8,9 +8,14 @@ import { DbModule } from '../../common/database/db.module';
 import { AccountsModule } from '../accounts/accounts.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([PartnersEntity]), forwardRef(() => PartnersAdminsModule), DbModule, AccountsModule],
+    imports: [
+        TypeOrmModule.forFeature([PartnersEntity]),
+        forwardRef(() => PartnersAdminsModule),
+        DbModule,
+        AccountsModule,
+    ],
     providers: [PartnersService],
     controllers: [PartnersController],
-    exports: [PartnersService]
+    exports: [PartnersService],
 })
 export class PartnersModule { }

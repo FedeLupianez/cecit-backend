@@ -2,7 +2,7 @@ import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('BenefitTypes')
 export class BenefitTypeEntity {
-    @PrimaryGeneratedColumn({ name: "id_type", type: "int" })
+    @PrimaryGeneratedColumn({ name: 'id_type', type: 'int' })
     id_type!: number;
 
     @Column({ type: 'varchar', length: 50 })
@@ -10,5 +10,4 @@ export class BenefitTypeEntity {
 
     @Column({ type: 'boolean', default: true })
     active!: boolean;
-
 }

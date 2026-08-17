@@ -1,10 +1,10 @@
-import { IsEmail, IsNotEmpty, IsString } from "class-validator";
-import { PartnersAdminsEntity } from "./partnersadmins.entity";
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { PartnersAdminsEntity } from './partnersadmins.entity';
 
 export interface PartnersAdminsDTO {
     id_admin: string;
     id_partner: string;
-};
+}
 
 export class PartnersAdminsCreateDTO {
     @IsNotEmpty()
@@ -19,12 +19,11 @@ export class PartnersAdminsCreateDTO {
     password: string;
 }
 
-
 export class PartnersAdminsMapper {
     static toDTO(admin: PartnersAdminsEntity): PartnersAdminsDTO {
         return {
             id_admin: admin.id_user,
             id_partner: admin.id_partner,
-        }
+        };
     }
 }

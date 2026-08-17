@@ -17,10 +17,7 @@ import {
 import { VouchersService } from './vouchers.service';
 import { VoucherStatus } from './vouchers.entity';
 import { VouchersMapper } from './vouchers.dto';
-import type {
-    VouchersCreateDTO,
-    VouchersDeleteDTO,
-} from './vouchers.dto';
+import type { VouchersCreateDTO, VouchersDeleteDTO } from './vouchers.dto';
 
 import { AuthGuard } from '@nestjs/passport';
 
@@ -57,7 +54,9 @@ export class VouchersController {
     @UseGuards(AuthGuard('jwt'))
     @Post('create')
     async create(@Body() voucher: VouchersCreateDTO) {
-        this.logger.log(`Creating voucher for user ${voucher.id_user}, benefit ${voucher.id_benefit}`);
+        this.logger.log(
+            `Creating voucher for user ${voucher.id_user}, benefit ${voucher.id_benefit}`,
+        );
         const newVoucher = await this.voucherService.create(voucher);
         return VouchersMapper.toDTO(newVoucher);
     }

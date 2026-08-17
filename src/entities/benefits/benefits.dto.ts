@@ -1,5 +1,4 @@
-import { BenefitsEntity } from "./benefits.entity";
-
+import { BenefitsEntity } from './benefits.entity';
 
 export interface BenefitsDTO {
     id_benefit: string;
@@ -68,7 +67,7 @@ export class BenefitsMapper {
             id_type: benefit.id_type,
             status: benefit.status,
             coupons: benefit.coupons,
-            max_coupons: benefit.max_coupons
-        }
+            max_coupons: benefit.max_coupons,
+        };
     }
 }

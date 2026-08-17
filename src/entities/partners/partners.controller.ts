@@ -1,20 +1,31 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    Patch,
+    Post,
+    UseGuards,
+} from '@nestjs/common';
 import { PartnersService } from './partners.service';
 import { PartnersAdminsService } from '../partnersadmins/partnersadmins.service';
-import { PartnersCreateDTO, PartnersUpdateLogoDTO, PartnersUpdateNameDTO } from './partners.dto';
+import {
+    PartnersCreateDTO,
+    PartnersUpdateLogoDTO,
+    PartnersUpdateNameDTO,
+} from './partners.dto';
 import { AdminGuard } from 'src/auth/admin.guard';
 import { AuthGuard } from '@nestjs/passport';
 
-
 @Controller('partners')
 export class PartnersController {
-
     constructor(
         private readonly partnersService: PartnersService,
-        private readonly adminsService: PartnersAdminsService
+        private readonly adminsService: PartnersAdminsService,
     ) { }
 
-    @Get("all")
+    @Get('all')
     async get_all() {
         return await this.partnersService.get_all();
     }
@@ -25,7 +36,7 @@ export class PartnersController {
         await this.adminsService.create({
             partner_name: dto.partner_name.toLowerCase(),
             email: dto.email,
-            password: dto.password
+            password: dto.password,
         });
         return partner;
     }
@@ -41,11 +52,9 @@ export class PartnersController {
         return this.partnersService.updateLogo(body);
     }
 
-
     @UseGuards(AuthGuard('jwt'), AdminGuard)
     @Patch('name')
     async updateName(@Body() body: PartnersUpdateNameDTO) {
         return this.partnersService.updateName(body);
     }
-
 }

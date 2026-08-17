@@ -9,6 +9,6 @@ import { AccountsModule } from '../accounts/accounts.module';
     imports: [TypeOrmModule.forFeature([BenefitTypeEntity]), AccountsModule],
     controllers: [BenefitTypeController],
     providers: [BenefitTypeService],
-    exports: [BenefitTypeService]
+    exports: [BenefitTypeService],
 })
 export class BenefitTypeModule { }

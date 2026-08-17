@@ -1,4 +1,4 @@
-import { BenefitTypeEntity } from "./benefit-types.entity";
+import { BenefitTypeEntity } from './benefit-types.entity';
 
 export interface BenefitTypeDTO {
     id_type: number;
@@ -19,6 +19,6 @@ export class BenefitTypeMapper {
         return {
             id_type: benefitType.id_type,
             name: benefitType.name,
-        }
+        };
     }
 }

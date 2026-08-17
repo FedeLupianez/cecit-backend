@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsUrl, IsEmail } from "class-validator";
+import { IsNotEmpty, IsString, IsUrl, IsEmail } from 'class-validator';
 
 export interface PartnersDTO {
     id_partner: string;
@@ -20,7 +20,6 @@ export class PartnersUpdateLogoDTO {
     new_logo: string;
 }
 
-
 export class PartnersUpdateNameDTO {
     @IsNotEmpty()
     id_partner: string;
@@ -30,7 +29,6 @@ export class PartnersUpdateNameDTO {
 }
 
 export class PartnersCreateDTO {
-
     @IsNotEmpty()
     partner_name: string;
 

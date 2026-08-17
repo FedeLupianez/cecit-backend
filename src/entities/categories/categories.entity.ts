@@ -3,7 +3,6 @@ import { PartnersCategoriesEntity } from '../partners_categories/partners_catego
 
 @Entity('Categories')
 export class CategoriesEntity {
-
     @PrimaryGeneratedColumn()
     id_category: number;
 
@@ -16,6 +15,6 @@ export class CategoriesEntity {
     @Column({ default: true })
     active: boolean;
 
-    @OneToMany(() => PartnersCategoriesEntity, pc => pc.category)
+    @OneToMany(() => PartnersCategoriesEntity, (pc) => pc.category)
     partners: PartnersCategoriesEntity[];
 }

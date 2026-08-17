@@ -6,7 +6,6 @@ import { CecitAdminGuard } from 'src/auth/cecitadmin.guard';
 
 @Controller('partners-categories')
 export class PartnersCategoriesController {
-
     constructor(private service: PartnersCategoriesService) { }
 
     @UseGuards(AuthGuard('jwt'), CecitAdminGuard)

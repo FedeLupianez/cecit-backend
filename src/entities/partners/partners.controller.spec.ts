@@ -3,23 +3,23 @@ import { PartnersController } from './partners.controller';
 import { PartnersAdminsService } from '../partnersadmins/partnersadmins.service';
 
 describe('PartnersController', () => {
-  let controller: PartnersController;
+    let controller: PartnersController;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [PartnersController],
-      providers: [
-        {
-          provide: PartnersAdminsService,
-          useValue: { create: jest.fn() },
-        },
-      ],
-    }).compile();
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            controllers: [PartnersController],
+            providers: [
+                {
+                    provide: PartnersAdminsService,
+                    useValue: { create: jest.fn() },
+                },
+            ],
+        }).compile();
 
-    controller = module.get<PartnersController>(PartnersController);
-  });
+        controller = module.get<PartnersController>(PartnersController);
+    });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
+    it('should be defined', () => {
+        expect(controller).toBeDefined();
+    });
 });

@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm'
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { BenefitsEntity } from './benefits.entity';
 import { BenefitsService } from './benefits.service';
 import { BenefitsController } from './benefits.controller';
@@ -11,11 +11,19 @@ import { BenefitTypeModule } from '../benefit-types/benefit-types.module';
 import { PartnersCategoriesModule } from '../partners_categories/partners_categories.module';
 import { PaymentBenefitModule } from '../payment_benefit/payment_benefit.module';
 
-
 @Module({
-    imports: [TypeOrmModule.forFeature([BenefitsEntity]), DbModule, CategoriesModule, PartnersModule, AccountsModule, BenefitTypeModule, PartnersCategoriesModule, PaymentBenefitModule],
+    imports: [
+        TypeOrmModule.forFeature([BenefitsEntity]),
+        DbModule,
+        CategoriesModule,
+        PartnersModule,
+        AccountsModule,
+        BenefitTypeModule,
+        PartnersCategoriesModule,
+        PaymentBenefitModule,
+    ],
     providers: [BenefitsService],
     controllers: [BenefitsController],
-    exports: [BenefitsService]
+    exports: [BenefitsService],
 })
 export class BenefitsModule { }

@@ -6,7 +6,10 @@ import { PartnersCategoriesController } from './partners_categories.controller';
 import { AccountsModule } from '../accounts/accounts.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([PartnersCategoriesEntity]), AccountsModule],
+    imports: [
+        TypeOrmModule.forFeature([PartnersCategoriesEntity]),
+        AccountsModule,
+    ],
     controllers: [PartnersCategoriesController],
     providers: [PartnersCategoriesService],
     exports: [PartnersCategoriesService],

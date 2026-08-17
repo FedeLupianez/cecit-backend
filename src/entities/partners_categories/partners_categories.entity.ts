@@ -4,7 +4,6 @@ import { CategoriesEntity } from '../categories/categories.entity';
 
 @Entity('Partners_Categories')
 export class PartnersCategoriesEntity {
-
     @PrimaryColumn({ type: 'varchar', length: 4, name: 'id_partner' })
     id_partner: string;
 

@@ -1,4 +1,11 @@
-import { Entity, Column, ManyToOne, PrimaryColumn, JoinColumn, BeforeInsert } from 'typeorm';
+import {
+    Entity,
+    Column,
+    ManyToOne,
+    PrimaryColumn,
+    JoinColumn,
+    BeforeInsert,
+} from 'typeorm';
 import { UsersEntity } from '../users/users.entity';
 import { BenefitsEntity } from '../benefits/benefits.entity';
 

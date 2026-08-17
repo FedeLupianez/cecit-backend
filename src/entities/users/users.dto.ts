@@ -4,8 +4,8 @@
  * podemos controlar qué datos se devuelven y cuáles no
  * */
 
-import { IsEmail, IsNotEmpty, IsString } from "class-validator";
-import { UsersEntity } from "./users.entity";
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { UsersEntity } from './users.entity';
 
 export interface UsersDTO {
     id_user: string;
@@ -30,7 +30,6 @@ export interface UsersDeleteDTO {
     id_user: string;
 }
 
-
 export class UsersMapper {
     static toDTO(user: UsersEntity): UsersDTO {
         return {
@@ -38,6 +37,6 @@ export class UsersMapper {
             dni: user.dni,
             name: user.name,
             last_name: user.lastname,
-        }
+        };
     }
 }

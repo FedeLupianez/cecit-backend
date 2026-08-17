@@ -1,6 +1,11 @@
-
-
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryColumn } from 'typeorm';
+import {
+    Column,
+    Entity,
+    JoinColumn,
+    OneToMany,
+    OneToOne,
+    PrimaryColumn,
+} from 'typeorm';
 import { PartnersCategoriesEntity } from '../partners_categories/partners_categories.entity';
 import { UsersEntity } from '../users/users.entity';
 
@@ -10,7 +15,7 @@ export class PartnersEntity {
     id_partner: string;
 
     @Column({ type: 'varchar', length: 50, name: 'name' })
-    name !: string;
+    name!: string;
 
     @Column({ type: 'varchar', length: 255, name: 'logo' })
     logo: string;
@@ -28,6 +33,6 @@ export class PartnersEntity {
     @Column({ type: 'boolean', name: 'active', default: true })
     active: boolean;
 
-    @OneToMany(() => PartnersCategoriesEntity, pc => pc.partner)
+    @OneToMany(() => PartnersCategoriesEntity, (pc) => pc.partner)
     categories: PartnersCategoriesEntity[];
 }

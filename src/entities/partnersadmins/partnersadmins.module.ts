@@ -8,11 +8,15 @@ import { PartnersModule } from '../partners/partners.module';
 import { AccountsModule } from '../accounts/accounts.module';
 import { AdminGuard } from 'src/auth/admin.guard';
 
-
 @Module({
-    imports: [TypeOrmModule.forFeature([PartnersAdminsEntity]), DbModule, forwardRef(() => PartnersModule), AccountsModule],
+    imports: [
+        TypeOrmModule.forFeature([PartnersAdminsEntity]),
+        DbModule,
+        forwardRef(() => PartnersModule),
+        AccountsModule,
+    ],
     controllers: [PartnersAdminsController],
     providers: [PartnersAdminsService, AdminGuard],
-    exports: [PartnersAdminsService]
+    exports: [PartnersAdminsService],
 })
 export class PartnersAdminsModule { }

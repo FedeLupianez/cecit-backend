@@ -46,8 +46,7 @@ export class VouchersService {
         const vouchers = await this.vouchersRepository.findBy({
             id_user,
         });
-        if (!vouchers)
-            throw new NotFoundException('Vouchers not found');
+        if (!vouchers) throw new NotFoundException('Vouchers not found');
         const vouchersList = vouchers.map((v) => VouchersMapper.toDTO(v));
         return vouchersList;
     }
@@ -56,8 +55,7 @@ export class VouchersService {
         const vouchers = await this.vouchersRepository.findBy({
             id_benefit,
         });
-        if (!vouchers)
-            throw new NotFoundException('Vouchers not found');
+        if (!vouchers) throw new NotFoundException('Vouchers not found');
         const vouchersList = vouchers.map((v) => VouchersMapper.toDTO(v));
         return vouchersList;
     }
@@ -66,8 +64,7 @@ export class VouchersService {
         const voucher = await this.vouchersRepository.findOneBy({
             token,
         });
-        if (!voucher)
-            throw new NotFoundException('Voucher not found');
+        if (!voucher) throw new NotFoundException('Voucher not found');
         return VouchersMapper.toDTO(voucher);
     }
 
@@ -75,8 +72,7 @@ export class VouchersService {
         const vouchers = await this.vouchersRepository.findBy({
             status,
         });
-        if (!vouchers)
-            throw new NotFoundException('Vouchers not found');
+        if (!vouchers) throw new NotFoundException('Vouchers not found');
         const vouchersList = vouchers.map((v) => VouchersMapper.toDTO(v));
         return vouchersList;
     }
@@ -85,17 +81,18 @@ export class VouchersService {
         this.logger.log(`Creating voucher for benefit ${voucher.id_benefit}`);
         const benefit = await this.benefitsService.findOne(voucher.id_benefit);
 
-        if (!benefit)
-            throw new NotFoundException('Benefit not found');
+        if (!benefit) throw new NotFoundException('Benefit not found');
 
-        const incremented = await this.benefitsService.incrementCoupons(voucher.id_benefit, benefit.max_coupons);
+        const incremented = await this.benefitsService.incrementCoupons(
+            voucher.id_benefit,
+            benefit.max_coupons,
+        );
 
-        if (!incremented)
-            throw new ConflictException('Max coupons reached');
+        if (!incremented) throw new ConflictException('Max coupons reached');
 
         const newVoucher = this.vouchersRepository.create({
             id_benefit: benefit.id_benefit,
-            id_user: voucher.id_user
+            id_user: voucher.id_user,
         });
 
         newVoucher.token = await this.dbService.getNewToken();
@@ -119,11 +116,10 @@ export class VouchersService {
         if (!token) throw new BadRequestException('Token does not exists');
         const exists = await this.vouchersRepository.exists({
             where: {
-                token: token
-            }
+                token: token,
+            },
         });
-        if (!exists)
-            throw new BadRequestException('Voucher does not exists');
+        if (!exists) throw new BadRequestException('Voucher does not exists');
         const html: string = `
             <div style='font-size:38px;font-family:'Segoe UI';width:100%;text-align:center;align-items:center;justify-content:center;'>
                 <p>${token}</p>
