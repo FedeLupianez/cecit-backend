@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CacheModule } from '@nestjs/cache-manager';
 
 import { UsersModule } from './entities/users/users.module';
 import { BenefitsModule } from './entities/benefits/benefits.module';
@@ -27,6 +28,7 @@ import { SshTunnelService } from './ssh/ssh-tunnel.service';
 @Module({
     imports: [
         ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env.development' }),
+        CacheModule.register({ isGlobal: true, ttl: 60000 }),
         SshTunnelModule,
         TypeOrmModule.forRootAsync({
             imports: [SshTunnelModule],
@@ -42,12 +44,11 @@ import { SshTunnelService } from './ssh/ssh-tunnel.service';
                     database: process.env.DB_NAME,
                     autoLoadEntities: true,
                     synchronize: false,
-                }
-            }
+                };
+            },
         }),
         ThrottlerModule.forRoot({
-            throttlers: [{ ttl: 60000, limit: 20 }]
-
+            throttlers: [{ ttl: 60000, limit: 20 }],
         }),
         CategoriesModule,
         UsersModule,
@@ -64,9 +65,10 @@ import { SshTunnelService } from './ssh/ssh-tunnel.service';
         AccountsModule,
     ],
     controllers: [AppController],
-    providers: [AppService,
+    providers: [
+        AppService,
         { provide: APP_GUARD, useClass: ThrottlerGuard },
         { provide: APP_INTERCEPTOR, useClass: NoTransformInterceptor },
-    ]
+    ],
 })
 export class AppModule { }
