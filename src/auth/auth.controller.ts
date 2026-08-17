@@ -26,7 +26,7 @@ export class AuthController {
             secure: secure_cookies,
             sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
             path: '/',
-            maxAge: days * 24 * 60 * 60 * 10000
+            maxAge: days * 24 * 60 * 60 * 1000
         });
         return {
             access_token: newTokens.access_token
@@ -43,7 +43,7 @@ export class AuthController {
             secure: secure_cookies,
             sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
             path: '/',
-            maxAge: days * 24 * 60 * 60 * 10000
+            maxAge: days * 24 * 60 * 60 * 1000
         });
         return {
             access_token: newTokens.access_token
@@ -60,7 +60,7 @@ export class AuthController {
             secure: secure_cookies,
             sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
             path: '/',
-            maxAge: days * 24 * 60 * 60 * 10000
+            maxAge: days * 24 * 60 * 60 * 1000
         });
         return {
             access_token: newTokens.access_token
@@ -70,7 +70,6 @@ export class AuthController {
     @Post('logout')
     async logout(@Req() req) {
         const token = req.cookies['refresh_token_cecit'];
-        await this.authService.validateRefreshToken(token);
         await this.authService.logout(token);
     }
 }

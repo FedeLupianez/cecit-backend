@@ -16,7 +16,6 @@ export class AccountsService {
             id_user: account.id_user,
             email: account.email,
             password: account.password,
-            role: account.role
         })
         const stored = await this.accountsRepo.save(newAccount);
         if (!stored)

@@ -1,5 +1,7 @@
 
-import { Column, Entity, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
+
+import {Column, Entity, JoinColumn, OneToMany, OneToOne, ManyToOne, PrimaryColumn } from 'typeorm';
+import { PartnersCategoriesEntity } from '../partners_categories/partners_categories.entity';
 import { UsersEntity } from '../users/users.entity';
 
 @Entity('Partners')
@@ -16,6 +18,13 @@ export class PartnersEntity {
     @Column({ type: 'varchar', length: 255, name: 'direction' })
     direction: string;
 
+    @Column({ type: 'varchar', length: 4, name: 'id_owner' })
+    id_owner: string;
+
+    @OneToOne(() => UsersEntity, { nullable: false })
+    @JoinColumn({ name: 'id_owner', referencedColumnName: 'id_user' })
+    owner: UsersEntity;
+
     @Column({ type: 'boolean', name: 'active', default: true })
     active: boolean;
 
@@ -26,4 +35,7 @@ export class PartnersEntity {
     @ManyToOne(() => UsersEntity, { nullable: false })
     @JoinColumn({ name: 'id_owner', referencedColumnName: 'id_user' })
     owner!: UsersEntity;
+
+    @OneToMany(() => PartnersCategoriesEntity, pc => pc.partner)
+    categories: PartnersCategoriesEntity[];
 }

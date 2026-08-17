@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { PartnersCategoriesEntity } from '../partners_categories/partners_categories.entity';
 
 @Entity('Categories')
 export class CategoriesEntity {
@@ -14,4 +15,7 @@ export class CategoriesEntity {
 
     @Column({ default: true })
     active: boolean;
+
+    @OneToMany(() => PartnersCategoriesEntity, pc => pc.category)
+    partners: PartnersCategoriesEntity[];
 }

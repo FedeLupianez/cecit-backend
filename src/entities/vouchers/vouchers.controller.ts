@@ -12,6 +12,7 @@ import {
     NotFoundException,
     Res,
     UseGuards,
+    Logger,
 } from '@nestjs/common';
 import { VouchersService } from './vouchers.service';
 import { VoucherStatus } from './vouchers.entity';
@@ -25,6 +26,7 @@ import { AuthGuard } from '@nestjs/passport';
 
 @Controller('vouchers')
 export class VouchersController {
+    private readonly logger = new Logger(VouchersController.name);
     constructor(private readonly voucherService: VouchersService) { }
 
     @Get('all')
@@ -55,7 +57,7 @@ export class VouchersController {
     @UseGuards(AuthGuard('jwt'))
     @Post('create')
     async create(@Body() voucher: VouchersCreateDTO) {
-        console.log(voucher);
+        this.logger.log(`Creating voucher for user ${voucher.id_user}, benefit ${voucher.id_benefit}`);
         const newVoucher = await this.voucherService.create(voucher);
         return VouchersMapper.toDTO(newVoucher);
     }

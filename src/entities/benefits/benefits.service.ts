@@ -1,5 +1,7 @@
-import { BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+
 import { BenefitsMapper, BenefitsDTO, BenefitsCreateDTO, BenefitsDeleteDTO, type BenefitsReturn } from './benefits.dto';
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { BenefitsEntity, BenefitStatus } from './benefits.entity';
 import { PartnersEntity } from '../partners/partners.entity';
@@ -11,10 +13,13 @@ import { PartnersCategoriesEntity } from '../partners_categories/partners_catego
 import { PartnersCategoriesReturn } from '../partners_categories/partners_categories.dto';
 import { AccountsService } from '../accounts/accounts.service';
 import { AccountsEntity } from '../accounts/accounts.entity';
+
 import { LessThanOrEqual, MoreThanOrEqual } from 'typeorm'; 
+import { PaymentBenefitEntity } from '../payment_benefit/payment_benefit.entity';
 
 @Injectable()
 export class BenefitsService {
+    private readonly logger = new Logger(BenefitsService.name);
     constructor(
         @InjectRepository(BenefitsEntity)
         private readonly benefitsRepository: Repository<BenefitsEntity>,
@@ -28,6 +33,9 @@ export class BenefitsService {
 
         @InjectRepository(PartnersCategoriesEntity)
         private readonly partnersCategoriesRepo: Repository<PartnersCategoriesEntity>,
+
+        @InjectRepository(PaymentBenefitEntity)
+        private readonly paymentBenefitRepo: Repository<PaymentBenefitEntity>,
 
         @Inject() private readonly dbService: DbService
     ) { };
@@ -55,34 +63,9 @@ export class BenefitsService {
         };
     }
 
-    async get_all(): Promise<BenefitsReturn[]> {
-        const benefits = await this.benefitsRepository.find();
-        if (!benefits)
-            throw new InternalServerErrorException('There is no benefits yet');
-        const benefitsMapped: BenefitsReturn[] = await Promise.all(benefits.map(async (b): Promise<BenefitsReturn> => {
-            const benefitType = await this.benefitTypeRepository.findOneBy({ id_type: b.id_type });
-            const categories = await this.get_categories(b.id_partner);
-            if (!benefitType)
-                throw new InternalServerErrorException('Category not found');
-            return {
-                id_benefit: b.id_benefit,
-                id_admin: b.id_admin,
-                id_partner: b.id_partner,
-                type: benefitType.name,
-                start_date: b.start_date,
-                end_date: b.end_date,
-                image: b.image,
-                title: b.title,
-                description: b.description,
-                coupons: b.coupons,
-                max_coupons: b.max_coupons,
-                categories: categories?.categories || []
-            }
-        }))
-        return benefitsMapped;
-    }
 
     async create(benefit: BenefitsCreateDTO) {
+        this.logger.log(`Creating benefit: ${benefit.title}`);
         const admin: AccountsEntity | null = await this.accountService.get_by_id(benefit.id_admin);
         if (!admin) {
             throw new NotFoundException('El administrador no existe');
@@ -118,19 +101,98 @@ export class BenefitsService {
     }
 
     async get_carousel(): Promise<BenefitsDTO[]> {
-    const today = new Date();
+      const today = new Date();
 
-    const benefits = await this.benefitsRepository.find({
-        where: {
-            status: BenefitStatus.ACTIVE,
-            start_date: LessThanOrEqual(today),
-            end_date: MoreThanOrEqual(today),
-        },
-        order: {
-            date_entered: 'DESC',
-        },
-    });
+      const benefits = await this.benefitsRepository.find({
+          where: {
+              status: BenefitStatus.ACTIVE,
+              start_date: LessThanOrEqual(today),
+              end_date: MoreThanOrEqual(today),
+          },
+          order: {
+              date_entered: 'DESC',
+          },
+      });
 
-    return benefits.map((benefit) => BenefitsMapper.toDTO(benefit));
-}
+      return benefits.map((benefit) => BenefitsMapper.toDTO(benefit));
+  }
+    private async mapBenefits(benefits: BenefitsEntity[]): Promise<BenefitsReturn[]> {
+        const benefitsMapped: BenefitsReturn[] = await Promise.all(benefits.map(async (b): Promise<BenefitsReturn> => {
+            const categories = b.partner.categories.map((c) => c.category.name);
+            const paymentMethods: PaymentBenefitEntity[] = await this.paymentBenefitRepo.find({
+                relations: ['payment_method'],
+                where: {
+                    id_benefit: b.id_benefit
+                }
+            });
+            const paymentMethodsNames: string[] = paymentMethods.map((p) => p.payment_method.name);
+            return {
+                direction: b.partner.direction,
+                id_benefit: b.id_benefit,
+                id_admin: b.id_admin,
+                id_partner: b.id_partner,
+                partner: b.partner.name,
+                payment_methods: paymentMethodsNames,
+                type: b.type.name,
+                start_date: b.start_date,
+                end_date: b.end_date,
+                image: b.image,
+                title: b.title,
+                description: b.description,
+                coupons: b.coupons,
+                max_coupons: b.max_coupons,
+                logo: b.partner.logo,
+                categories: categories || [],
+            }
+        }))
+        return benefitsMapped;
+    }
+
+    async get_all(): Promise<BenefitsReturn[]> {
+        const benefits: BenefitsEntity[] = await this.benefitsRepository.find({ relations: ['partner', 'partner.categories', 'partner.categories.category', 'type'] });
+        if (!benefits)
+            throw new InternalServerErrorException('There is no benefits yet');
+        return await this.mapBenefits(benefits);
+    }
+
+    async get_popular(): Promise<BenefitsReturn[]> {
+
+        const benefits: BenefitsEntity[] = await this.benefitsRepository.find({
+            relations: [
+                'partner',
+                'partner.categories',
+                'partner.categories.category',
+                'type'
+            ],
+            order: {
+                coupons: 'DESC'
+            },
+            take: 20
+        });
+
+        if (!benefits)
+            throw new InternalServerErrorException('There is no benefits yet');
+
+        return await this.mapBenefits(benefits);
+    }
+
+    async get_news() {
+        const benefits: BenefitsEntity[] = await this.benefitsRepository.find({
+            relations: [
+                'partner',
+                'partner.categories',
+                'partner.categories.category',
+                'type'
+            ],
+            order: {
+                date_entered: 'DESC'
+            },
+            take: 20
+        });
+
+        if (!benefits)
+            throw new InternalServerErrorException('There is no benefits yet');
+
+        return await this.mapBenefits(benefits);
+    }
 }

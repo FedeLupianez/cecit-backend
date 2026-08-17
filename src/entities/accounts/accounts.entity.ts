@@ -22,7 +22,7 @@ export class AccountsEntity {
     password: string;
 
     @Index()
-    @Column({ type: 'enum', enum: AccountRole, nullable: false })
+    @Column({ type: 'enum', enum: AccountRole, default: AccountRole.USER, nullable: false })
     role: AccountRole;
 
     @Column({ type: 'timestamp', name: 'last_activity', default: () => 'CURRENT_TIMESTAMP' })

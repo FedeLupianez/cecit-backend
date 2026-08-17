@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as pup from 'puppeteer';
 import * as http from 'http';
 
 @Injectable()
 export class PdfService {
+    private readonly logger = new Logger(PdfService.name);
     private urlToBase64(url: string): Promise<string> {
         return new Promise((resolve, reject) => {
             http
@@ -29,6 +30,7 @@ export class PdfService {
     }
 
     async generatePDF(html: string): Promise<Buffer> {
+        this.logger.debug('Generating PDF');
         const browser = await pup.launch({
             headless: true,
         });

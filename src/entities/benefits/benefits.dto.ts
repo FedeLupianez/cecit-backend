@@ -38,8 +38,12 @@ export interface BenefitsReturn {
     id_benefit: string;
     id_admin: string;
     id_partner: string;
+    partner: string;
     type: string;
     categories: string[];
+    payment_methods: string[];
+    logo: string;
+    direction: string;
     start_date: Date;
     end_date: Date;
     image: string;
