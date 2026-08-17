@@ -11,6 +11,7 @@ import { UsersModule } from 'src/entities/users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PartnersEntity } from 'src/entities/partners/partners.entity';
 import { PartnersAdminsEntity } from 'src/entities/partnersadmins/partnersadmins.entity';
+import { PartnersModule } from 'src/entities/partners/partners.module';
 
 @Global()
 @Module({
@@ -22,9 +23,10 @@ import { PartnersAdminsEntity } from 'src/entities/partnersadmins/partnersadmins
             signOptions: { expiresIn: (configService.get<string>('JWT_ACCESS_EXPIRATION') || '15m') as `${number}${'s' | 'm' | 'h' | 'd'}` }
         })
     }),
-    TypeOrmModule.forFeature([RefreshTokenEntity,]),
+    TypeOrmModule.forFeature([RefreshTokenEntity, PartnersEntity, PartnersAdminsEntity]),
         AccountsModule,
-    forwardRef(() => UsersModule)
+    forwardRef(() => UsersModule),
+    forwardRef(() => PartnersModule)
     ],
     controllers: [AuthController],
     providers: [AuthService, JwtStrategy],

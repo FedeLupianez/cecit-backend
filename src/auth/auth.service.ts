@@ -9,7 +9,7 @@ import { type jwt_payload, RefreshTokenSaveDTO } from './auth.dto';
 import { TokensInterface } from './auth.dto';
 import { AccountsService } from 'src/entities/accounts/accounts.service';
 import { AccountsEntity } from 'src/entities/accounts/accounts.entity';
-import { AccountCreateDTO, LoginDTO } from 'src/entities/accounts/accounts.dto';
+import { AccountCreateDTO, AccountRole, LoginDTO } from 'src/entities/accounts/accounts.dto';
 import { UsersService } from 'src/entities/users/users.service';
 import { PartnersEntity } from 'src/entities/partners/partners.entity';
 import { PartnersService } from 'src/entities/partners/partners.service';
@@ -80,12 +80,13 @@ export class AuthService {
             throw new NotFoundException('User is not cecit partner');
         if (await this.accountService.has_account(account.email))
             throw new BadRequestException('User alredy has an account');
-        
+
         const ownedPartner = await this.PartnersService.getByOwnerId(account.id_user);
-        if (ownedPartner) {
-            account.role = AccountRole.PARTNER_ADMIN;
-        }
         const newUser = await this.accountService.create(account);
+
+        if (ownedPartner)
+            newUser.role = AccountRole.PARTNER_ADMIN;
+
         if (ownedPartner) {
             const partnerAdmin = new PartnersAdminsEntity();
             partnerAdmin.id_user = newUser.id_user;
