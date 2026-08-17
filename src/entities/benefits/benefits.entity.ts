@@ -1,4 +1,12 @@
-import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn, BeforeInsert } from 'typeorm';
+import {
+    Entity,
+    Column,
+    ManyToOne,
+    JoinColumn,
+    PrimaryColumn,
+    BeforeInsert,
+    Index,
+} from 'typeorm';
 import { BenefitTypeEntity } from '../benefit-types/benefit-types.entity';
 import { PartnersEntity } from '../partners/partners.entity';
 import { AccountsEntity } from '../accounts/accounts.entity';
@@ -12,60 +20,64 @@ export enum BenefitStatus {
 @Entity('Benefits')
 export class BenefitsEntity {
     @PrimaryColumn({ type: 'varchar', length: 4 })
-    id_benefit !: string;
+    id_benefit!: string;
 
     @Column({ type: 'varchar', length: 4 })
-    id_admin !: string;
+    id_admin!: string;
 
     @ManyToOne(() => AccountsEntity, { nullable: false })
     @JoinColumn({ name: 'id_admin', referencedColumnName: 'id_user' })
-    admin !: AccountsEntity;
+    admin!: AccountsEntity;
 
     @Column({ type: 'varchar', length: 4 })
-    id_partner !: string;
+    id_partner!: string;
 
     @ManyToOne(() => PartnersEntity, { nullable: false })
     @JoinColumn({ name: 'id_partner', referencedColumnName: 'id_partner' })
-    partner !: PartnersEntity;
+    partner!: PartnersEntity;
 
+    @Index()
     @Column({ type: 'date', default: () => 'CURRENT_DATE' })
-    date_entered !: Date;
+    date_entered!: Date;
 
+    @Index()
     @Column({ type: 'date' })
-    start_date !: Date;
+    start_date!: Date;
 
+    @Index()
     @Column({ type: 'date' })
-    end_date !: Date;
+    end_date!: Date;
 
     @Column({ type: 'varchar', length: 500 })
-    image !: string;
+    image!: string;
 
     @Column({ type: 'varchar', length: 100 })
-    title !: string
+    title!: string;
 
     @Column({ type: 'varchar', length: 500 })
-    description !: string
+    description!: string;
 
-    @Column({ type: 'enum', enum: BenefitStatus, default: BenefitStatus.ACTIVE, })
-    status !: BenefitStatus;
+    @Index()
+    @Column({ type: 'enum', enum: BenefitStatus, default: BenefitStatus.ACTIVE })
+    status!: BenefitStatus;
 
     @Column({ type: 'int' })
-    id_type !: number;
+    id_type!: number;
 
     @ManyToOne(() => BenefitTypeEntity, { nullable: false })
     @JoinColumn({ name: 'id_type', referencedColumnName: 'id_type' })
-    type !: BenefitTypeEntity;
+    type!: BenefitTypeEntity;
 
     @Column({ type: 'int', name: 'max_coupons' })
     max_coupons!: number;
 
+    @Index()
     @Column({ type: 'int' })
-    coupons !: number;
+    coupons!: number;
 
     @BeforeInsert()
     checkImage() {
         if (!this.image)
-            this.image = `https://placehold.co/600x400?text=${this.title}`
+            this.image = `https://placehold.co/600x400?text=${this.title}`;
     }
 }
-
