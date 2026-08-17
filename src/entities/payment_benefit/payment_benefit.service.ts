@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { PaymentBenefitEntity } from './payment_benefit.entity';
 
 @Injectable()
@@ -14,6 +14,14 @@ export class PaymentBenefitService {
         return await this.repo.find({
             relations: ['payment_method'],
             where: { id_benefit },
+        });
+    }
+
+    async findByBenefits(ids_benefits: string[]): Promise<PaymentBenefitEntity[]> {
+        if (ids_benefits.length === 0) return [];
+        return await this.repo.find({
+            relations: ['payment_method'],
+            where: { id_benefit: In(ids_benefits) },
         });
     }
 }
