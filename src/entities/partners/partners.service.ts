@@ -91,4 +91,12 @@ export class PartnersService {
         return PartnersMapper.entityToDto(partner);
     }
 
+    async getByOwnerId(id_owner: string): Promise<PartnersEntity | null> {
+    return await this.partnersRepo.findOne({
+        where: {
+            id_owner,
+        },
+    });
+}
+
 }

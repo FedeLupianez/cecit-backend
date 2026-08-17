@@ -1,5 +1,6 @@
 
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryColumn } from 'typeorm';
+
+import {Column, Entity, JoinColumn, OneToMany, OneToOne, ManyToOne, PrimaryColumn } from 'typeorm';
 import { PartnersCategoriesEntity } from '../partners_categories/partners_categories.entity';
 import { UsersEntity } from '../users/users.entity';
 
@@ -26,6 +27,14 @@ export class PartnersEntity {
 
     @Column({ type: 'boolean', name: 'active', default: true })
     active: boolean;
+
+
+    @Column({ type: 'varchar', length: 4 })
+    id_owner!: string;
+
+    @ManyToOne(() => UsersEntity, { nullable: false })
+    @JoinColumn({ name: 'id_owner', referencedColumnName: 'id_user' })
+    owner!: UsersEntity;
 
     @OneToMany(() => PartnersCategoriesEntity, pc => pc.partner)
     categories: PartnersCategoriesEntity[];

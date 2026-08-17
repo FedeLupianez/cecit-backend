@@ -36,4 +36,9 @@ export class BenefitsController {
         return result
     }
 
+    @Get('carousel')
+    async get_carousel() {
+    return await this.benefitsService.get_carousel();
+    }
+
 }
