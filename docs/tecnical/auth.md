@@ -47,7 +47,7 @@ flowchart TD
 
 1. Se valida que el `id_user` exista en la tabla `Users` (socios de CeCIT). Si no existe, se responde con `404`.
 2. Se verifica que no haya una cuenta registrada previamente con ese `email`. Si existe, se responde con `400`.
-3. Se crea la cuenta en la tabla `Accounts` con rol `USER` por defecto. La contraseña se hashea automáticamente con argon2 gracias al hook `@BeforeInsert` de TypeORM.
+3. Se crea la cuenta en la tabla `Accounts`, el rol de este es asignado automáticamaente a `PARTNER_ADMIN` si el usuario que se registra es propietario de un partner (es decir, si su id_user coincide con el campo `id_owner` de algún registro en la tabla `Partners`), en ese caso, además se crea automáticamaente la relación en la tabla de administradores de partner. En el caso contrario, el rol es asignado automáticamaente como `USER`.
 4. Se genera un refresh token (UUID doble) y se almacena en la tabla `RefreshTokens` con hash SHA-256.
 5. Se firma un access token JWT con los claims: `sub` (id_user), `email` y `jti`.
 6. Se devuelve el `access_token` en el body y el `refresh_token` se setea como cookie httpOnly (`refresh_token_cecit`) con validez de 7 días.
@@ -62,8 +62,6 @@ Set-Cookie: refresh_token_cecit=<JWT>; HttpOnly; Secure; SameSite=Lax; Path=/; M
     "access_token": "askdjaksdjajsd.askdjaksjd.aksdjaskdj",
 }
 ```
-
-**Nota:** Actualmente el registro no asigna roles especiales (`PARTNER_ADMIN`, `CECIT_ADMIN`). La asignación de `PARTNER_ADMIN` basada en `id_owner` de `Partners` está descrita como funcionalidad planeada pero no implementada en el código.
 
 
 ---
