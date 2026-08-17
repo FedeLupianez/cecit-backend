@@ -7,7 +7,7 @@ export class PdfService {
     private readonly logger = new Logger(PdfService.name);
     private urlToBase64(url: string): Promise<string> {
         return new Promise((resolve, reject) => {
-            http
+            const req = http
                 .get(url, (res) => {
                     const chunks: Buffer[] = [];
                     res.on('data', (chunk: Buffer) => chunks.push(chunk));
@@ -26,6 +26,11 @@ export class PdfService {
                     });
                 })
                 .on('error', reject);
+
+            req.setTimeout(5000, () => {
+                req.destroy();
+                reject(new Error(`Timeout fetching ${url}`));
+            });
         });
     }
 
@@ -58,8 +63,7 @@ export class PdfService {
             </html>
         `;
 
-        await page.setContent(fullHtml, { waitUntil: 'load' });
-        await page.waitForNetworkIdle();
+        await page.setContent(fullHtml, { waitUntil: 'domcontentloaded' });
 
         const [cecitLogo, recurso6, recurso8] = await Promise.all([
             this.urlToBase64(
