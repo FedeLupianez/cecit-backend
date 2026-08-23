@@ -13,6 +13,17 @@ export interface VouchersDTO {
     status: VoucherStatus;
 }
 
+export interface VoucherReturn {
+    title: string;
+    image: string;
+    partner: string;
+    endDate: string;
+    methods: string[];
+    direction: string;
+    logo: string;
+    voucherToken: string;
+}
+
 export interface VouchersCreateDTO {
     id_user: string;
     id_benefit: string;

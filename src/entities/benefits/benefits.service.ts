@@ -270,7 +270,15 @@ export class BenefitsService {
     }
 
     async get_benefit(id_benefit: string): Promise<BenefitsReturn> {
-        const benefit = await this.benefitsRepository.findOneBy({ id_benefit: id_benefit });
+        const benefit = await this.benefitsRepository.findOne({
+            where: { id_benefit: id_benefit },
+            relations: [
+                'partner',
+                'partner.categories',
+                'partner.categories.category',
+                'type',
+            ],
+        });
         if (!benefit)
             throw new NotFoundException('Benefit not found');
         return await this.mapBenefit(benefit);

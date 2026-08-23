@@ -17,6 +17,7 @@ import {
     VouchersMapper,
     VoucherBenefitUser,
     ReturnCouponsUser,
+    VoucherReturn,
 } from './vouchers.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { VouchersEntity, VoucherStatus } from './vouchers.entity';
@@ -44,12 +45,28 @@ export class VouchersService {
         return vouchersList;
     }
 
-    async get_by_user(id_user: string): Promise<VouchersDTO[]> {
+    async mapVoucher(voucher: VouchersEntity): Promise<VoucherReturn> {
+        const relatedBenefit = await this.benefitsService.get_benefit(voucher.id_benefit);
+        if (!relatedBenefit)
+            throw new BadRequestException('Invalid Voucher');
+        return {
+            title: relatedBenefit.title,
+            image: relatedBenefit.image,
+            partner: relatedBenefit.partner,
+            endDate: relatedBenefit.end_date.toString(),
+            direction: relatedBenefit.direction,
+            logo: relatedBenefit.logo,
+            methods: relatedBenefit.payment_methods,
+            voucherToken: voucher.token
+        }
+    }
+
+    async get_by_user(id_user: string): Promise<VoucherReturn[]> {
         const vouchers = await this.vouchersRepository.findBy({
             id_user,
         });
         if (!vouchers) throw new NotFoundException('Vouchers not found');
-        const vouchersList = vouchers.map((v) => VouchersMapper.toDTO(v));
+        const vouchersList = await Promise.all(vouchers.map((v) => this.mapVoucher(v)));
         return vouchersList;
     }
 

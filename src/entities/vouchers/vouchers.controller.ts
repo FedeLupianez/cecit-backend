@@ -11,6 +11,7 @@ import {
     Body,
     NotFoundException,
     Res,
+    StreamableFile,
     UseGuards,
     Logger,
 } from '@nestjs/common';
@@ -88,6 +89,6 @@ export class VouchersController {
             'Content-Disposition': `attachment; filename=cecit_voucher_${token}.pdf`,
             'Content-Length': file.length,
         });
-        return file;
+        return new StreamableFile(file);
     }
 }
