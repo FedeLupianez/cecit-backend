@@ -1,3 +1,4 @@
+import { IsNotEmpty } from 'class-validator';
 import { BenefitsEntity } from './benefits.entity';
 
 export interface BenefitsDTO {
@@ -27,9 +28,11 @@ export interface BenefitsCreateDTO {
     description: string;
     coupons: number;
     max_coupons: number;
+    max_per_user: number;
 }
 
-export interface BenefitsDeleteDTO {
+export class BenefitIDTO {
+    @IsNotEmpty()
     id_benefit: string;
 }
 
@@ -50,6 +53,13 @@ export interface BenefitsReturn {
     description: string;
     coupons: number;
     max_coupons: number;
+    max_per_user: number;
+}
+
+export interface CouponsReturn {
+    coupons: number;
+    max_coupons: number;
+    max_per_user: number;
 }
 
 export class BenefitsMapper {

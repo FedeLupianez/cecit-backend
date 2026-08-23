@@ -3,7 +3,7 @@ import { BenefitsService } from './benefits.service';
 import {
     BenefitsMapper,
     type BenefitsCreateDTO,
-    type BenefitsDeleteDTO,
+    BenefitIDTO,
 } from './benefits.dto';
 import { CecitAdminGuard } from 'src/auth/cecitadmin.guard';
 import { AuthGuard } from '@nestjs/passport';
@@ -35,7 +35,7 @@ export class BenefitsController {
 
     @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
     @Delete()
-    async delete(@Body() benefit: BenefitsDeleteDTO) {
+    async delete(@Body() benefit: BenefitIDTO) {
         const result = await this.benefitsService.delete(benefit);
         return result;
     }
@@ -43,5 +43,10 @@ export class BenefitsController {
     @Get('carousel')
     async get_carousel() {
         return await this.benefitsService.get_carousel();
+    }
+
+    @Get('benefit')
+    async get_benefit(@Body() benefit: BenefitIDTO) {
+        return this.benefitsService.get_benefit(benefit.id_benefit);
     }
 }

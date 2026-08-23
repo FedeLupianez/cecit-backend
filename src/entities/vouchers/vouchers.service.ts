@@ -15,6 +15,8 @@ import {
     VouchersCreateDTO,
     VouchersDeleteDTO,
     VouchersMapper,
+    VoucherBenefitUser,
+    ReturnCouponsUser,
 } from './vouchers.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { VouchersEntity, VoucherStatus } from './vouchers.entity';
@@ -75,6 +77,20 @@ export class VouchersService {
         if (!vouchers) throw new NotFoundException('Vouchers not found');
         const vouchersList = vouchers.map((v) => VouchersMapper.toDTO(v));
         return vouchersList;
+    }
+
+    async get_by_user_benefit(vouchers: VoucherBenefitUser): Promise<ReturnCouponsUser> {
+        const total = await this.vouchersRepository.count({
+            where: {
+                id_benefit: vouchers.id_benefit,
+                id_user: vouchers.id_account,
+            },
+        })
+        this.logger.debug(`Result of ${vouchers.id_benefit} | ${vouchers.id_account} = ${total}`)
+        return {
+            id_account: vouchers.id_account,
+            coupons: total
+        }
     }
 
     async create(voucher: VouchersCreateDTO) {

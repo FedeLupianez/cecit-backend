@@ -27,28 +27,37 @@ export class VouchersController {
     constructor(private readonly voucherService: VouchersService) { }
 
     @Get('all')
-    get_all() {
-        return this.voucherService.get_all();
+    async get_all() {
+        return await this.voucherService.get_all();
     }
 
     @Get('byuser')
-    get_by_user(@Query('id_user') id_user: string) {
-        return this.voucherService.get_by_user(id_user);
+    async get_by_user(@Query('id_user') id_user: string) {
+        return await this.voucherService.get_by_user(id_user);
     }
 
     @Get('bybenefit')
-    get_by_benefit(@Query('id_benefit') id_benefit: string) {
-        return this.voucherService.get_by_benefit(id_benefit);
+    async get_by_benefit(@Query('id_benefit') id_benefit: string) {
+        return await this.voucherService.get_by_benefit(id_benefit);
     }
 
     @Get('bytoken')
-    get_by_token(@Query('token') token: string) {
-        return this.voucherService.get_by_token(token);
+    async get_by_token(@Query('token') token: string) {
+        return await this.voucherService.get_by_token(token);
+    }
+
+    @Get('userbenefit')
+    async get_by_user_benefit(
+        @Query('id_account') id_account: string,
+        @Query('id_benefit') id_benefit: string,
+    ) {
+        this.logger.debug(`Account: ${id_account}, Benefit: ${id_benefit}`);
+        return await this.voucherService.get_by_user_benefit({ id_account, id_benefit });
     }
 
     @Get('bystatus')
-    get_by_status(@Query('status') status: VoucherStatus) {
-        return this.voucherService.get_by_status(status);
+    async get_by_status(@Query('status') status: VoucherStatus) {
+        return await this.voucherService.get_by_status(status);
     }
 
     @UseGuards(AuthGuard('jwt'))
@@ -72,13 +81,13 @@ export class VouchersController {
 
     @Get('file')
     @UseGuards(AuthGuard('jwt'))
-    async file(@Query('token') token: string, @Res() res) {
+    async file(@Query('token') token: string, @Res({ passthrough: true }) res) {
         const file = await this.voucherService.gen_file(token);
         res.set({
             'Content-Type': 'application/pdf',
             'Content-Disposition': `attachment; filename=cecit_voucher_${token}.pdf`,
-            'Content-Lenght': file.length,
+            'Content-Length': file.length,
         });
-        return res.end(file);
+        return file;
     }
 }

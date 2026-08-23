@@ -27,6 +27,16 @@ export interface VoucherFileDTO {
     token: string;
 }
 
+export interface VoucherBenefitUser {
+    id_benefit: string;
+    id_account: string;
+}
+
+export interface ReturnCouponsUser {
+    id_account: string;
+    coupons: number;
+}
+
 export class VouchersMapper {
     static toDTO(voucher: VouchersEntity): VouchersDTO {
         return {

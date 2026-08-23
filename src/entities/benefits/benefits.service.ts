@@ -2,8 +2,9 @@ import {
     BenefitsMapper,
     BenefitsDTO,
     BenefitsCreateDTO,
-    BenefitsDeleteDTO,
+    BenefitIDTO,
     type BenefitsReturn,
+    CouponsReturn,
 } from './benefits.dto';
 import {
     BadRequestException,
@@ -102,7 +103,7 @@ export class BenefitsService {
         return await this.benefitsRepository.save(newBenefit);
     }
 
-    async delete(benefit: BenefitsDeleteDTO): Promise<boolean> {
+    async delete(benefit: BenefitIDTO): Promise<boolean> {
         const result = await this.benefitsRepository.delete({
             id_benefit: benefit.id_benefit,
         });
@@ -143,6 +144,35 @@ export class BenefitsService {
 
         return benefits.map((benefit) => BenefitsMapper.toDTO(benefit));
     }
+
+    private async mapBenefit(benefit: BenefitsEntity): Promise<BenefitsReturn> {
+        if (!benefit)
+            throw new BadRequestException('Invalid benefit')
+        const paymentMethods: PaymentBenefitEntity[] = await this.paymentBenefitService.findByBenefit(benefit.id_benefit);
+        const paymentMethodsNames: string[] = paymentMethods.map((p) => p.payment_method.name);
+        const categories = benefit.partner.categories.map(c => c.category.name);
+        const benefitMapped: BenefitsReturn = {
+            direction: benefit.partner.direction,
+            id_benefit: benefit.id_benefit,
+            id_admin: benefit.id_admin,
+            id_partner: benefit.id_partner,
+            partner: benefit.partner.name,
+            payment_methods: paymentMethodsNames,
+            type: benefit.type.name,
+            start_date: benefit.start_date,
+            end_date: benefit.end_date,
+            image: benefit.image,
+            title: benefit.title,
+            description: benefit.description,
+            coupons: benefit.coupons,
+            max_coupons: benefit.max_coupons,
+            logo: benefit.partner.logo,
+            categories: categories || [],
+            max_per_user: benefit.max_per_user
+        };
+        return benefitMapped;
+    }
+
     private async mapBenefits(benefits: BenefitsEntity[]): Promise<BenefitsReturn[]> {
         const ids = benefits.map((b) => b.id_benefit);
         const allPaymentBenefits =
@@ -178,6 +208,7 @@ export class BenefitsService {
                     max_coupons: b.max_coupons,
                     logo: b.partner.logo,
                     categories: categories || [],
+                    max_per_user: b.max_per_user
                 };
             },
         );
@@ -236,5 +267,19 @@ export class BenefitsService {
             throw new InternalServerErrorException('There is no benefits yet');
 
         return await this.mapBenefits(benefits);
+    }
+
+    async get_benefit(id_benefit: string): Promise<BenefitsReturn> {
+        const benefit = await this.benefitsRepository.findOneBy({ id_benefit: id_benefit });
+        if (!benefit)
+            throw new NotFoundException('Benefit not found');
+        return await this.mapBenefit(benefit);
+    }
+
+    async get_coupons(id_benefit: string): Promise<CouponsReturn> {
+        const benefit = await this.benefitsRepository.findOneBy({ id_benefit: id_benefit });
+        if (!benefit)
+            throw new NotFoundException('Benefit not found');
+        return { coupons: benefit.coupons, max_coupons: benefit.max_coupons, max_per_user: benefit.max_per_user };
     }
 }

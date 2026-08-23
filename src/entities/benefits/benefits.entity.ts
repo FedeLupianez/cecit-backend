@@ -75,6 +75,9 @@ export class BenefitsEntity {
     @Column({ type: 'int' })
     coupons!: number;
 
+    @Column({ type: 'int', name: 'max_per_user', default: 3 })
+    max_per_user: number;
+
     @BeforeInsert()
     checkImage() {
         if (!this.image)
