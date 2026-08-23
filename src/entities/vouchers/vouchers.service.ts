@@ -147,17 +147,35 @@ export class VouchersService {
     async gen_file(token: string) {
         this.logger.debug(`Generating PDF for voucher: ${token}`);
         if (!token) throw new BadRequestException('Token does not exists');
-        const exists = await this.vouchersRepository.exists({
-            where: {
-                token: token,
+        const voucher = await this.vouchersRepository.findOne({
+            where: { token },
+            relations: { user: true, benefit: { partner: true } },
+        });
+        if (!voucher) throw new BadRequestException('Voucher does not exists');
+
+        return await this.pdfService.generateInvoicePDF({
+            number: voucher.token,
+            issueDate: voucher.application_date,
+            deliveryDate: voucher.delivery_date,
+            status: voucher.status,
+            customer: {
+                id: voucher.user.id_user,
+                name: voucher.user.name,
+                lastname: voucher.user.lastname,
+                dni: voucher.user.dni,
+            },
+            provider: {
+                name: voucher.benefit.partner.name,
+                logo: voucher.benefit.partner.logo,
+                address: voucher.benefit.partner.direction,
+            },
+            item: {
+                title: voucher.benefit.title,
+                description: voucher.benefit.description,
+                image: voucher.benefit.image,
+                startDate: voucher.benefit.start_date,
+                endDate: voucher.benefit.end_date,
             },
         });
-        if (!exists) throw new BadRequestException('Voucher does not exists');
-        const html: string = `
-            <div style='font-size:38px;font-family:'Segoe UI';width:100%;text-align:center;align-items:center;justify-content:center;'>
-                <p>${token}</p>
-            </div>
-        `;
-        return await this.pdfService.generatePDF(html);
     }
 }
