@@ -1,4 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { VouchersEntity } from '../entities/vouchers/vouchers.entity';
 import * as pup from 'puppeteer';
 
 export interface InvoiceCustomer {
@@ -47,6 +50,11 @@ const STATUS_STYLES: Record<string, string> = {
 @Injectable()
 export class PdfService {
     private readonly logger = new Logger(PdfService.name);
+
+    constructor(
+        @InjectRepository(VouchersEntity)
+        private readonly vouchersRepository: Repository<VouchersEntity>,
+    ) { }
 
     private escapeHtml(value: string): string {
         return value
@@ -511,6 +519,50 @@ export class PdfService {
                 }
             </style>
         `;
+    }
+
+    async generateVoucherPDF(token: string): Promise<Buffer> {
+        this.logger.debug(`Generating PDF for voucher: ${token}`);
+
+        if (!token) throw new BadRequestException('Token does not exists');
+
+        /*
+         * Buscamos el voucher por el token recibido
+         * como query param, junto con sus relaciones,
+         * para obtener los datos vigentes al momento
+         * de generar el PDF.
+         */
+        const voucher = await this.vouchersRepository.findOne({
+            where: { token },
+            relations: { user: true, benefit: { partner: true } },
+        });
+
+        if (!voucher) throw new BadRequestException('Voucher does not exists');
+
+        return await this.generateInvoicePDF({
+            number: voucher.token,
+            issueDate: voucher.application_date,
+            deliveryDate: voucher.delivery_date,
+            status: voucher.status,
+            customer: {
+                id: voucher.user.id_user,
+                name: voucher.user.name,
+                lastname: voucher.user.lastname,
+                dni: voucher.user.dni,
+            },
+            provider: {
+                name: voucher.benefit.partner.name,
+                logo: voucher.benefit.partner.logo,
+                address: voucher.benefit.partner.direction,
+            },
+            item: {
+                title: voucher.benefit.title,
+                description: voucher.benefit.description,
+                image: voucher.benefit.image,
+                startDate: voucher.benefit.start_date,
+                endDate: voucher.benefit.end_date,
+            },
+        });
     }
 
     async generateInvoicePDF(
