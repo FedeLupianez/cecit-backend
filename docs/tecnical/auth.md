@@ -280,3 +280,9 @@ flowchart LR
     H -->|401 Expired| I[POST /auth/refresh]
     I --> A
 ```
+
+## Futuras features:
+- Agregar un EVENT que borre los refresh tokens de la base de datos que estén expirados:
+```sql
+    DELETE FROM RefreshTokens WHERE CURRENT_TIMESTAMP > expires_at;
+```

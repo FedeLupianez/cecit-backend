@@ -40,11 +40,16 @@ export class VouchersEntity {
     @Column({ default: null, type: 'date' })
     delivery_date!: Date;
 
+    @Column({ type: 'date', name: 'limit_date', default: '2026-05-11' })
+    limit_date!: Date;
+
     @Column({ type: 'enum', enum: VoucherStatus, default: VoucherStatus.PENDING })
     status!: VoucherStatus;
 
     @BeforeInsert()
     setDate() {
         this.application_date = new Date();
+        this.limit_date = new Date();
+        this.limit_date.setDate(this.application_date.getDate() + 7);
     }
 }

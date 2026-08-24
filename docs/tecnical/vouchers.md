@@ -271,3 +271,9 @@ Archivo PDF con headers:
 Content-Type: application/pdf
 Content-Disposition: attachment; filename=cecit_voucher_<token>.pdf
 ```
+
+## Futuras features
+- Agregar un EVENT que actualice el status de los vouchers según si está expirado o no en la fecha actual:
+```sql
+    UPDATE Vouchers SET status = 'EXPIRED' WHERE CURRENT_DATE > limit_date;
+```
