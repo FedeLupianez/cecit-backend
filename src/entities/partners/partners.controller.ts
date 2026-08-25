@@ -1,9 +1,10 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { PartnersService } from './partners.service';
 import { PartnersAdminsService } from '../partnersadmins/partnersadmins.service';
 import { PartnersCreateDTO, PartnersUpdateLogoDTO, PartnersUpdateNameDTO } from './partners.dto';
 import { AdminGuard } from 'src/auth/admin.guard';
 import { AuthGuard } from '@nestjs/passport';
+import { PartnerAdminGuard } from 'src/auth/partneradmin.guard';
 
 
 @Controller('partners')
@@ -17,6 +18,12 @@ export class PartnersController {
     @Get("all")
     async get_all() {
         return await this.partnersService.get_all();
+    }
+
+    @Get('me')
+    @UseGuards(AuthGuard('jwt'), PartnerAdminGuard)
+    async get_current_partner(@Req() request) {
+        return await this.adminsService.get_partner_for_admin(request.user.user_id);
     }
 
     @Post()

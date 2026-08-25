@@ -8,10 +8,11 @@ import { DbModule } from '../../common/database/db.module';
 import { AccountsModule } from '../accounts/accounts.module';
 import { PassportModule } from '@nestjs/passport';
 import { UsersModule } from '../users/users.module';
+import { PartnerAdminGuard } from 'src/auth/partneradmin.guard';
 
 @Module({
     imports: [TypeOrmModule.forFeature([PartnersEntity]), forwardRef(() => PartnersAdminsModule), DbModule, AccountsModule, PassportModule, UsersModule],
-    providers: [PartnersService],
+    providers: [PartnersService, PartnerAdminGuard],
     controllers: [PartnersController],
     exports: [PartnersService]
 })
