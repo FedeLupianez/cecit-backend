@@ -13,6 +13,7 @@ export enum VoucherStatus {
     PENDING = 'PENDING',
     DELIVERED = 'DELIVERED',
     EXPIRED = 'EXPIRED',
+    REJECTED = 'REJECTED'
 }
 
 @Entity('Vouchers')

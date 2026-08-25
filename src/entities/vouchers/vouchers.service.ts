@@ -18,6 +18,7 @@ import {
     VoucherBenefitUser,
     ReturnCouponsUser,
     VoucherReturn,
+    VoucherPartnerView,
 } from './vouchers.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { VouchersEntity, VoucherStatus } from './vouchers.entity';
@@ -53,11 +54,11 @@ export class VouchersService {
             title: relatedBenefit.title,
             image: relatedBenefit.image,
             partner: relatedBenefit.partner,
-            endDate: relatedBenefit.end_date.toString(),
+            endDate: relatedBenefit.end_date,
             direction: relatedBenefit.direction,
             logo: relatedBenefit.logo,
             methods: relatedBenefit.payment_methods,
-            voucherToken: voucher.token
+            token: voucher.token
         }
     }
 
@@ -79,12 +80,59 @@ export class VouchersService {
         return vouchersList;
     }
 
-    async get_by_token(token: string): Promise<VouchersDTO> {
-        const voucher = await this.vouchersRepository.findOneBy({
-            token,
+    async get_by_token(token: string): Promise<VoucherPartnerView> {
+        if (!token)
+            throw new BadRequestException('Token is empty');
+        const voucher = await this.vouchersRepository.findOne({
+            where: {
+                token: token
+            },
+            relations: [
+                'benefit',
+                'benefit.partner',
+                'user'
+            ]
         });
-        if (!voucher) throw new NotFoundException('Voucher not found');
-        return VouchersMapper.toDTO(voucher);
+        if (!voucher)
+            throw new NotFoundException('Voucher not found');
+        const mappedVoucher: VoucherReturn = await this.mapVoucher(voucher);
+        return {
+            token: voucher.token,
+            title: voucher.benefit.title,
+            image: voucher.benefit.image,
+            partner: voucher.benefit.partner.name,
+            endDate: voucher.limit_date,
+            direction: voucher.benefit.partner.direction,
+            logo: voucher.benefit.partner.logo,
+            user_name: `${voucher.user.name} ${voucher.user.lastname}`,
+            user_dni: voucher.user.dni,
+            methods: mappedVoucher.methods
+        }
+    }
+
+    async redeem_voucher(token: string): Promise<boolean> {
+        const voucher = await this.vouchersRepository.findOneBy({ token: token });
+        if (!voucher)
+            throw new BadRequestException('Invalid Token');
+        if (voucher.status == VoucherStatus.EXPIRED || voucher.status == VoucherStatus.DELIVERED || voucher.status == VoucherStatus.REJECTED)
+            throw new BadRequestException('Invalid Voucher to redeem');
+        voucher.status = VoucherStatus.DELIVERED;
+        voucher.delivery_date = new Date();
+        await this.vouchersRepository.save(voucher);
+        this.logger.debug(`Voucher ${token} redeemed`);
+        return true;
+    }
+
+    async reject_voucher(token: string): Promise<boolean> {
+        const voucher = await this.vouchersRepository.findOneBy({ token: token });
+        if (!voucher)
+            throw new BadRequestException('Invalid Token');
+        if (voucher.status == VoucherStatus.EXPIRED || voucher.status == VoucherStatus.DELIVERED)
+            throw new BadRequestException('Invalid Voucher to reject');
+        voucher.status = VoucherStatus.REJECTED;
+        await this.vouchersRepository.save(voucher);
+        this.logger.debug(`Voucher ${token} rejected`);
+        return true;
     }
 
     async get_by_status(status: VoucherStatus): Promise<VouchersDTO[] | null> {

@@ -17,11 +17,11 @@ export interface VoucherReturn {
     title: string;
     image: string;
     partner: string;
-    endDate: string;
+    endDate: Date;
     methods: string[];
     direction: string;
     logo: string;
-    voucherToken: string;
+    token: string;
 }
 
 export interface VouchersCreateDTO {
@@ -46,6 +46,11 @@ export interface VoucherBenefitUser {
 export interface ReturnCouponsUser {
     id_account: string;
     coupons: number;
+}
+
+export interface VoucherPartnerView extends VoucherReturn {
+    user_name: string;
+    user_dni: string;
 }
 
 export class VouchersMapper {

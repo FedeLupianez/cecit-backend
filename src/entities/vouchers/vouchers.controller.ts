@@ -21,6 +21,7 @@ import { VouchersMapper } from './vouchers.dto';
 import type { VouchersCreateDTO, VouchersDeleteDTO } from './vouchers.dto';
 
 import { AuthGuard } from '@nestjs/passport';
+import { AdminGuard } from 'src/auth/admin.guard';
 
 @Controller('vouchers')
 export class VouchersController {
@@ -43,6 +44,7 @@ export class VouchersController {
     }
 
     @Get('bytoken')
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
     async get_by_token(@Query('token') token: string) {
         return await this.voucherService.get_by_token(token);
     }
@@ -90,5 +92,17 @@ export class VouchersController {
             'Content-Length': file.length,
         });
         return new StreamableFile(file);
+    }
+
+    @Post('redeem')
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    async redeem(@Query('token') token: string) {
+        return await this.voucherService.redeem_voucher(token);
+    }
+
+    @Post('reject')
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    async reject(@Query('token') token: string) {
+        return await this.voucherService.reject_voucher(token);
     }
 }
