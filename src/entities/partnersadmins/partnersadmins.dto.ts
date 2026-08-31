@@ -22,7 +22,7 @@ export class PartnersAdminsCreateDTO {
 export class PartnersAdminsMapper {
     static toDTO(admin: PartnersAdminsEntity): PartnersAdminsDTO {
         return {
-            id_admin: admin.id_user,
+            id_admin: admin.id_account,
             id_partner: admin.id_partner,
         };
     }

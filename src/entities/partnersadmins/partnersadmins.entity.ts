@@ -4,8 +4,8 @@ import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
 @Entity('Partners_Admins')
 export class PartnersAdminsEntity {
-    @PrimaryColumn({ type: 'varchar', length: 4, name: 'id_user' })
-    id_user: string;
+    @PrimaryColumn({ type: 'varchar', length: 4, name: 'id_account' })
+    id_account: string;
 
     @PrimaryColumn({ type: 'varchar', length: 4, name: 'id_partner' })
     id_partner: string;
@@ -15,6 +15,6 @@ export class PartnersAdminsEntity {
     partner: PartnersEntity;
 
     @ManyToOne(() => AccountsEntity, { nullable: false })
-    @JoinColumn({ name: 'id_user', referencedColumnName: 'id_user' })
+    @JoinColumn({ name: 'id_account', referencedColumnName: 'id_user' })
     account: AccountsEntity;
 }

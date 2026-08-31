@@ -6,6 +6,8 @@ import {
     Param,
     Patch,
     Post,
+    Req,
+    UnauthorizedException,
     UseGuards,
 } from '@nestjs/common';
 import { PartnersService } from './partners.service';
@@ -57,4 +59,7 @@ export class PartnersController {
     async updateName(@Body() body: PartnersUpdateNameDTO) {
         return this.partnersService.updateName(body);
     }
+
+
+
 }
