@@ -4,6 +4,7 @@ import { PartnersAdminsEntity } from './partnersadmins.entity';
 import { Repository } from 'typeorm';
 import { type PartnersAdminsCreateDTO } from './partnersadmins.dto';
 import { PartnersService } from '../partners/partners.service';
+import { PartnersEntity } from '../partners/partners.entity';
 import { DbService } from 'src/common/database/db.service';
 
 @Injectable()
@@ -35,5 +36,16 @@ export class PartnersAdminsService {
         if (!admin)
             throw new NotFoundException('Admin does not exists');
         return admin;
+    }
+
+    async get_partner_for_admin(id_admin: string): Promise<PartnersEntity> {
+        if (!id_admin) throw new BadRequestException('id admin is required');
+
+        const admin = await this.adminsRepo.findOne({
+            where: { id_user: id_admin },
+            relations: { partner: true },
+        });
+        if (!admin) throw new NotFoundException('Partner admin does not exist');
+        return admin.partner;
     }
 }
