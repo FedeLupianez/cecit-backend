@@ -14,6 +14,8 @@ import {
     StreamableFile,
     UseGuards,
     Logger,
+    Patch,
+    BadRequestException,
 } from '@nestjs/common';
 import { VouchersService } from './vouchers.service';
 import { VoucherStatus } from './vouchers.entity';
@@ -94,15 +96,14 @@ export class VouchersController {
         return new StreamableFile(file);
     }
 
-    @Post('redeem')
+    @Patch('')
     @UseGuards(AuthGuard('jwt'), AdminGuard)
-    async redeem(@Query('token') token: string) {
-        return await this.voucherService.redeem_voucher(token);
-    }
-
-    @Post('reject')
-    @UseGuards(AuthGuard('jwt'), AdminGuard)
-    async reject(@Query('token') token: string) {
-        return await this.voucherService.reject_voucher(token);
+    async updateVoucher(@Query('action') action: string, @Query('token') token: string) {
+        if (action == 'redeem') {
+            return await this.voucherService.redeem_voucher(token);
+        } else if (action == 'reject') {
+            return await this.voucherService.reject_voucher(token);
+        }
+        throw new BadRequestException('Bad Action')
     }
 }
