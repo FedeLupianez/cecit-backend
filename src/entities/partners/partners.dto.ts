@@ -4,7 +4,7 @@ export interface PartnersDTO {
     id_partner: string;
     name: string;
     logo: string;
-    direction: string;
+    directions: string[];
     active: boolean;
 }
 export interface PartnerLogo {
@@ -44,6 +44,6 @@ export class PartnersCreateDTO {
     @IsUrl()
     logo: string;
 
-    @IsString()
-    direction: string;
+    @IsString({ each: true })
+    directions: string[];
 }

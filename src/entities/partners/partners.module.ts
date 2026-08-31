@@ -6,6 +6,7 @@ import { PartnersController } from './partners.controller';
 import { PartnersAdminsModule } from '../partnersadmins/partnersadmins.module';
 import { DbModule } from '../../common/database/db.module';
 import { AccountsModule } from '../accounts/accounts.module';
+import { DirectionsModule } from './directions.module';
 
 @Module({
     imports: [
@@ -13,6 +14,7 @@ import { AccountsModule } from '../accounts/accounts.module';
         forwardRef(() => PartnersAdminsModule),
         DbModule,
         AccountsModule,
+        DirectionsModule,
     ],
     providers: [PartnersService],
     controllers: [PartnersController],

@@ -534,7 +534,7 @@ export class PdfService {
          */
         const voucher = await this.vouchersRepository.findOne({
             where: { token },
-            relations: { user: true, benefit: { partner: true } },
+            relations: { user: true, benefit: { partner: { directions: true } } },
         });
 
         if (!voucher) throw new BadRequestException('Voucher does not exists');
@@ -553,7 +553,9 @@ export class PdfService {
             provider: {
                 name: voucher.benefit.partner.name,
                 logo: voucher.benefit.partner.logo,
-                address: voucher.benefit.partner.direction,
+                address: (voucher.benefit.partner.directions ?? [])
+                    .map((d) => d.direction)
+                    .join(', '),
             },
             item: {
                 title: voucher.benefit.title,

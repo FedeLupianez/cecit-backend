@@ -11,6 +11,13 @@ export class SshTunnelService {
 
   async createTunnel(): Promise<void> {
     if (this.ready) return;
+    if (process.env.DB_HOST === 'localhost') {
+      this.logger.log(
+        'DB_HOST is localhost, skipping SSH tunnel (local database)',
+      );
+      this.ready = true;
+      return;
+    }
     this.logger.log('Establishing SSH tunnel...');
 
     this.connection = new Client();

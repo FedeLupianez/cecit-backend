@@ -55,7 +55,7 @@ export class VouchersService {
             image: relatedBenefit.image,
             partner: relatedBenefit.partner,
             endDate: relatedBenefit.end_date,
-            direction: relatedBenefit.direction,
+            directions: relatedBenefit.directions,
             logo: relatedBenefit.logo,
             methods: relatedBenefit.payment_methods,
             token: voucher.token
@@ -90,6 +90,7 @@ export class VouchersService {
             relations: [
                 'benefit',
                 'benefit.partner',
+                'benefit.partner.directions',
                 'user'
             ]
         });
@@ -102,7 +103,7 @@ export class VouchersService {
             image: voucher.benefit.image,
             partner: voucher.benefit.partner.name,
             endDate: voucher.limit_date,
-            direction: voucher.benefit.partner.direction,
+            directions: (voucher.benefit.partner.directions ?? []).map((d) => d.direction),
             logo: voucher.benefit.partner.logo,
             user_name: `${voucher.user.name} ${voucher.user.lastname}`,
             user_dni: voucher.user.dni,
@@ -197,7 +198,7 @@ export class VouchersService {
         if (!token) throw new BadRequestException('Token does not exists');
         const voucher = await this.vouchersRepository.findOne({
             where: { token },
-            relations: { user: true, benefit: { partner: true } },
+            relations: { user: true, benefit: { partner: { directions: true } } },
         });
         if (!voucher) throw new BadRequestException('Voucher does not exists');
 
@@ -215,7 +216,9 @@ export class VouchersService {
             provider: {
                 name: voucher.benefit.partner.name,
                 logo: voucher.benefit.partner.logo,
-                address: voucher.benefit.partner.direction,
+                address: (voucher.benefit.partner.directions ?? [])
+                    .map((d) => d.direction)
+                    .join(', '),
             },
             item: {
                 title: voucher.benefit.title,

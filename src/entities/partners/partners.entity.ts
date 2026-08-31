@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { PartnersCategoriesEntity } from '../partners_categories/partners_categories.entity';
 import { UsersEntity } from '../users/users.entity';
+import { Directions } from './directions.entity';
 
 @Entity('Partners')
 export class PartnersEntity {
@@ -19,9 +20,6 @@ export class PartnersEntity {
 
     @Column({ type: 'varchar', length: 255, name: 'logo' })
     logo: string;
-
-    @Column({ type: 'varchar', length: 255, name: 'direction' })
-    direction: string;
 
     @Column({ type: 'varchar', length: 4, name: 'id_owner' })
     id_owner: string;
@@ -35,4 +33,7 @@ export class PartnersEntity {
 
     @OneToMany(() => PartnersCategoriesEntity, (pc) => pc.partner)
     categories: PartnersCategoriesEntity[];
+
+    @OneToMany(() => Directions, (d) => d.partner)
+    directions: Directions[];
 }

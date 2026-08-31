@@ -19,7 +19,7 @@ export interface VoucherReturn {
     partner: string;
     endDate: Date;
     methods: string[];
-    direction: string;
+    directions: string[];
     logo: string;
     token: string;
 }

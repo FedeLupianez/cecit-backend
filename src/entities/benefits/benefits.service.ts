@@ -152,7 +152,7 @@ export class BenefitsService {
         const paymentMethodsNames: string[] = paymentMethods.map((p) => p.payment_method.name);
         const categories = benefit.partner.categories.map(c => c.category.name);
         const benefitMapped: BenefitsReturn = {
-            direction: benefit.partner.direction,
+            directions: (benefit.partner.directions ?? []).map((d) => d.direction),
             id_benefit: benefit.id_benefit,
             id_admin: benefit.id_admin,
             id_partner: benefit.id_partner,
@@ -192,7 +192,7 @@ export class BenefitsService {
                     (p) => p.payment_method.name,
                 );
                 return {
-                    direction: b.partner.direction,
+                    directions: (b.partner.directions ?? []).map((d) => d.direction),
                     id_benefit: b.id_benefit,
                     id_admin: b.id_admin,
                     id_partner: b.id_partner,
@@ -219,6 +219,7 @@ export class BenefitsService {
         const benefits: BenefitsEntity[] = await this.benefitsRepository.find({
             relations: [
                 'partner',
+                'partner.directions',
                 'partner.categories',
                 'partner.categories.category',
                 'type',
@@ -233,6 +234,7 @@ export class BenefitsService {
         const benefits: BenefitsEntity[] = await this.benefitsRepository.find({
             relations: [
                 'partner',
+                'partner.directions',
                 'partner.categories',
                 'partner.categories.category',
                 'type',
@@ -253,6 +255,7 @@ export class BenefitsService {
         const benefits: BenefitsEntity[] = await this.benefitsRepository.find({
             relations: [
                 'partner',
+                'partner.directions',
                 'partner.categories',
                 'partner.categories.category',
                 'type',
@@ -274,6 +277,7 @@ export class BenefitsService {
             where: { id_benefit: id_benefit },
             relations: [
                 'partner',
+                'partner.directions',
                 'partner.categories',
                 'partner.categories.category',
                 'type',

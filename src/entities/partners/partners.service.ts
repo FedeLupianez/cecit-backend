@@ -16,6 +16,7 @@ import { PartnersMapper } from './partners.mapper';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DbService } from 'src/common/database/db.service';
+import { DirectionsService } from './directions.service';
 
 @Injectable()
 export class PartnersService {
@@ -23,6 +24,7 @@ export class PartnersService {
         @InjectRepository(PartnersEntity)
         private readonly partnersRepo: Repository<PartnersEntity>,
         private readonly dbService: DbService,
+        private readonly directionsService: DirectionsService,
     ) { }
 
     async get_all(): Promise<PartnerLogo[]> {
@@ -41,12 +43,14 @@ export class PartnersService {
         const newPartner = this.partnersRepo.create({
             id_partner: newId,
             name: partner.partner_name.toLowerCase(),
-            direction: partner.direction,
             logo: partner.logo,
         });
         const storedPartner = await this.partnersRepo.save(newPartner);
         if (!storedPartner) {
             throw new InternalServerErrorException('Partner was not created');
+        }
+        if (partner.directions?.length) {
+            await this.directionsService.createMany(newId, partner.directions);
         }
         return storedPartner;
     }
@@ -72,7 +76,10 @@ export class PartnersService {
 
     async get_by_name(name: string): Promise<PartnersDTO> {
         if (!name) throw new BadRequestException('partner name is empty');
-        const stored = await this.partnersRepo.findOneBy({ name: name });
+        const stored = await this.partnersRepo.findOne({
+            where: { name: name },
+            relations: { directions: true },
+        });
         if (!stored) throw new NotFoundException('Partner not exists');
         return PartnersMapper.entityToDto(stored);
     }

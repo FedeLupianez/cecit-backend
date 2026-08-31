@@ -8,7 +8,6 @@ export class PartnersMapper {
         entity.id_partner = dto.id_partner;
         entity.name = dto.name.toLowerCase();
         entity.logo = dto.logo;
-        entity.direction = dto.direction;
         entity.active = dto.active;
 
         return entity;
@@ -19,7 +18,7 @@ export class PartnersMapper {
             id_partner: entity.id_partner,
             name: entity.name,
             logo: entity.logo,
-            direction: entity.direction,
+            directions: (entity.directions ?? []).map((d) => d.direction),
             active: entity.active,
         };
     }

@@ -45,7 +45,7 @@ export interface BenefitsReturn {
     categories: string[];
     payment_methods: string[];
     logo: string;
-    direction: string;
+    directions: string[];
     start_date: Date;
     end_date: Date;
     image: string;
