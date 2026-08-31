@@ -11,10 +11,11 @@ import { PartnersCategoriesEntity } from '../partners_categories/partners_catego
 import { AccountsModule } from '../accounts/accounts.module';
 import { PassportModule } from '@nestjs/passport';
 import { PaymentBenefitEntity } from '../payment_benefit/payment_benefit.entity';
+import { PartnersAdminsModule } from '../partnersadmins/partnersadmins.module';
 
 
 @Module({
-    imports: [TypeOrmModule.forFeature([BenefitsEntity, BenefitTypeEntity, PartnersCategoriesEntity, PaymentBenefitEntity]), DbModule, CategoriesModule, PartnersModule, AccountsModule, PassportModule],
+    imports: [TypeOrmModule.forFeature([BenefitsEntity, BenefitTypeEntity, PartnersCategoriesEntity, PaymentBenefitEntity]), DbModule, CategoriesModule, PartnersModule, PartnersAdminsModule, AccountsModule, PassportModule],
     providers: [BenefitsService],
     controllers: [BenefitsController],
     exports: [BenefitsService]

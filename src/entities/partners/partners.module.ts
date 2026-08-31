@@ -14,6 +14,6 @@ import { PartnerAdminGuard } from 'src/auth/partneradmin.guard';
     imports: [TypeOrmModule.forFeature([PartnersEntity]), forwardRef(() => PartnersAdminsModule), DbModule, AccountsModule, PassportModule, UsersModule],
     providers: [PartnersService, PartnerAdminGuard],
     controllers: [PartnersController],
-    exports: [PartnersService]
+    exports: [PartnersService, PartnerAdminGuard]
 })
 export class PartnersModule { }
