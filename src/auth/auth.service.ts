@@ -42,6 +42,10 @@ export class AuthService {
         this.logger.debug(`Validating user: ${email}`);
         const user = await this.accountService.get_by_email(email);
 
+        if (!user?.password)
+            throw new UnauthorizedException('Invalid Credentials');
+        this.logger.debug(`Password : ${passwd}`);
+
         const passwordValid = await verify(user.password, passwd);
 
         if (!passwordValid)

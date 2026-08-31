@@ -1,0 +1,120 @@
+import { MigrationInterface, QueryRunner } from "typeorm";
+
+export class AllDb1788216129258 implements MigrationInterface {
+    name = 'AllDb1788216129258'
+
+    public async up(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`ALTER TABLE \`Directions\` DROP FOREIGN KEY \`1\``);
+        await queryRunner.query(`ALTER TABLE \`Partners\` DROP FOREIGN KEY \`Partners_owners_fk\``);
+        await queryRunner.query(`ALTER TABLE \`PaymentMethods_Benefits\` DROP FOREIGN KEY \`FK_1020856c55a0eabf5757f6f60b0\``);
+        await queryRunner.query(`ALTER TABLE \`PaymentMethods_Benefits\` DROP FOREIGN KEY \`FK_fde159496e03a8c7dc3501b22f3\``);
+        await queryRunner.query(`ALTER TABLE \`Partners_Admins\` DROP FOREIGN KEY \`FK_b43cdde5e6118c5bae9670806a5\``);
+        await queryRunner.query(`ALTER TABLE \`Partners_Admins\` DROP FOREIGN KEY \`FK_dc285106d5fcee21e1338908db1\``);
+        await queryRunner.query(`DROP INDEX \`IDX_0c5666efc38b6f023b7814c73d\` ON \`Accounts\``);
+        await queryRunner.query(`DROP INDEX \`IDX_a8902d4754e89411bbc04a9774\` ON \`RefreshTokens\``);
+        await queryRunner.query(`DROP INDEX \`id_partner\` ON \`Directions\``);
+        await queryRunner.query(`ALTER TABLE \`Users\` CHANGE \`last_name\` \`lastname\` varchar(50) NOT NULL`);
+        await queryRunner.query(`ALTER TABLE \`Partners_Admins\` CHANGE \`id_account\` \`id_user\` varchar(4) NOT NULL`);
+        await queryRunner.query(`ALTER TABLE \`Directions\` CHANGE \`id_direction\` \`id_direction\` int NOT NULL`);
+        await queryRunner.query(`ALTER TABLE \`Directions\` DROP PRIMARY KEY`);
+        await queryRunner.query(`ALTER TABLE \`Directions\` DROP COLUMN \`id_direction\``);
+        await queryRunner.query(`ALTER TABLE \`RefreshTokens\` ADD \`email\` varchar(50) NOT NULL`);
+        await queryRunner.query(`ALTER TABLE \`Directions\` ADD \`id\` int NOT NULL PRIMARY KEY AUTO_INCREMENT`);
+        await queryRunner.query(`ALTER TABLE \`Accounts\` ADD UNIQUE INDEX \`IDX_0c5666efc38b6f023b7814c73d\` (\`email\`)`);
+        await queryRunner.query(`ALTER TABLE \`Accounts\` DROP COLUMN \`password\``);
+        await queryRunner.query(`ALTER TABLE \`Accounts\` ADD \`password\` varchar(255) NULL`);
+        await queryRunner.query(`ALTER TABLE \`Accounts\` CHANGE \`role\` \`role\` enum ('USER', 'CECIT_ADMIN', 'PARTNER_ADMIN') NOT NULL DEFAULT 'USER'`);
+        await queryRunner.query(`ALTER TABLE \`Directions\` CHANGE \`id_partner\` \`id_partner\` varchar(4) NOT NULL`);
+        await queryRunner.query(`ALTER TABLE \`Directions\` DROP COLUMN \`direction\``);
+        await queryRunner.query(`ALTER TABLE \`Directions\` ADD \`direction\` varchar(150) NOT NULL`);
+        await queryRunner.query(`ALTER TABLE \`Partners\` CHANGE \`id_owner\` \`id_owner\` varchar(4) NOT NULL`);
+        await queryRunner.query(`ALTER TABLE \`Partners\` ADD UNIQUE INDEX \`IDX_4d9e114868b838c8a507e386ac\` (\`id_owner\`)`);
+        await queryRunner.query(`ALTER TABLE \`Benefits\` CHANGE \`date_entered\` \`date_entered\` date NOT NULL DEFAULT CURRENT_DATE`);
+        await queryRunner.query(`ALTER TABLE \`Benefits\` DROP COLUMN \`image\``);
+        await queryRunner.query(`ALTER TABLE \`Benefits\` ADD \`image\` varchar(500) NOT NULL`);
+        await queryRunner.query(`ALTER TABLE \`Benefits\` CHANGE \`max_per_user\` \`max_per_user\` int NOT NULL DEFAULT '3'`);
+        await queryRunner.query(`ALTER TABLE \`Vouchers\` CHANGE \`limit_date\` \`limit_date\` date NOT NULL DEFAULT '2026-05-11'`);
+        await queryRunner.query(`ALTER TABLE \`Vouchers\` CHANGE \`status\` \`status\` enum ('PENDING', 'DELIVERED', 'EXPIRED', 'REJECTED') NOT NULL DEFAULT 'PENDING'`);
+        await queryRunner.query(`ALTER TABLE \`Accounts\` ADD UNIQUE INDEX \`IDX_0c5666efc38b6f023b7814c73d\` (\`email\`)`);
+        await queryRunner.query(`ALTER TABLE \`Accounts\` CHANGE \`role\` \`role\` enum ('USER', 'CECIT_ADMIN', 'PARTNER_ADMIN') NOT NULL DEFAULT 'USER'`);
+        await queryRunner.query(`ALTER TABLE \`Directions\` CHANGE \`id_partner\` \`id_partner\` varchar(4) NOT NULL`);
+        await queryRunner.query(`ALTER TABLE \`Partners\` CHANGE \`id_owner\` \`id_owner\` varchar(4) NOT NULL`);
+        await queryRunner.query(`ALTER TABLE \`Partners\` ADD UNIQUE INDEX \`IDX_4d9e114868b838c8a507e386ac\` (\`id_owner\`)`);
+        await queryRunner.query(`ALTER TABLE \`Benefits\` CHANGE \`date_entered\` \`date_entered\` date NOT NULL DEFAULT CURRENT_DATE`);
+        await queryRunner.query(`ALTER TABLE \`Benefits\` CHANGE \`max_per_user\` \`max_per_user\` int NOT NULL DEFAULT '3'`);
+        await queryRunner.query(`ALTER TABLE \`Vouchers\` CHANGE \`limit_date\` \`limit_date\` date NOT NULL DEFAULT '2026-05-11'`);
+        await queryRunner.query(`ALTER TABLE \`Vouchers\` CHANGE \`status\` \`status\` enum ('PENDING', 'DELIVERED', 'EXPIRED', 'REJECTED') NOT NULL DEFAULT 'PENDING'`);
+        await queryRunner.query(`CREATE UNIQUE INDEX \`REL_4d9e114868b838c8a507e386ac\` ON \`Partners\` (\`id_owner\`)`);
+        await queryRunner.query(`CREATE INDEX \`IDX_a16720258707094a7b428c97bb\` ON \`Benefits\` (\`date_entered\`)`);
+        await queryRunner.query(`CREATE INDEX \`IDX_7e9400ee7b86f7a09c84d40d9a\` ON \`Benefits\` (\`start_date\`)`);
+        await queryRunner.query(`CREATE INDEX \`IDX_20cb92aacb351dc0b03e4000f3\` ON \`Benefits\` (\`end_date\`)`);
+        await queryRunner.query(`CREATE INDEX \`IDX_6b0b4658559d4b81a0d54dadb4\` ON \`Benefits\` (\`status\`)`);
+        await queryRunner.query(`CREATE INDEX \`IDX_5ad4aa48976a5fa65c352fb287\` ON \`Benefits\` (\`coupons\`)`);
+        await queryRunner.query(`ALTER TABLE \`Accounts\` ADD CONSTRAINT \`FK_ef4e45b5f5c3bc64d66142cbcbb\` FOREIGN KEY (\`id_user\`) REFERENCES \`Users\`(\`id_user\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`RefreshTokens\` ADD CONSTRAINT \`FK_f85c169d27ed0e5a8e87434ff55\` FOREIGN KEY (\`email\`) REFERENCES \`Accounts\`(\`email\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Directions\` ADD CONSTRAINT \`FK_bd5cfbcad9f31d8f2e1830ad873\` FOREIGN KEY (\`id_partner\`) REFERENCES \`Partners\`(\`id_partner\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Partners\` ADD CONSTRAINT \`FK_4d9e114868b838c8a507e386acf\` FOREIGN KEY (\`id_owner\`) REFERENCES \`Users\`(\`id_user\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`PaymentMethods_Benefits\` ADD CONSTRAINT \`FK_7c725b86f1f2cb0256ce1d3f36e\` FOREIGN KEY (\`id_payment_method\`) REFERENCES \`PaymentMethods\`(\`id_payment_method\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`PaymentMethods_Benefits\` ADD CONSTRAINT \`FK_c4525e24654be41a18f16cee9d9\` FOREIGN KEY (\`id_benefit\`) REFERENCES \`Benefits\`(\`id_benefit\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Partners_Admins\` ADD CONSTRAINT \`FK_982f7cfb0f30395471a22b5bb53\` FOREIGN KEY (\`id_partner\`) REFERENCES \`Partners\`(\`id_partner\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Partners_Admins\` ADD CONSTRAINT \`FK_caf63610dab0cef3b75d87c04af\` FOREIGN KEY (\`id_user\`) REFERENCES \`Accounts\`(\`id_user\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+    }
+
+    public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`ALTER TABLE \`Partners_Admins\` DROP FOREIGN KEY \`FK_caf63610dab0cef3b75d87c04af\``);
+        await queryRunner.query(`ALTER TABLE \`Partners_Admins\` DROP FOREIGN KEY \`FK_982f7cfb0f30395471a22b5bb53\``);
+        await queryRunner.query(`ALTER TABLE \`PaymentMethods_Benefits\` DROP FOREIGN KEY \`FK_c4525e24654be41a18f16cee9d9\``);
+        await queryRunner.query(`ALTER TABLE \`PaymentMethods_Benefits\` DROP FOREIGN KEY \`FK_7c725b86f1f2cb0256ce1d3f36e\``);
+        await queryRunner.query(`ALTER TABLE \`Partners\` DROP FOREIGN KEY \`FK_4d9e114868b838c8a507e386acf\``);
+        await queryRunner.query(`ALTER TABLE \`Directions\` DROP FOREIGN KEY \`FK_bd5cfbcad9f31d8f2e1830ad873\``);
+        await queryRunner.query(`ALTER TABLE \`RefreshTokens\` DROP FOREIGN KEY \`FK_f85c169d27ed0e5a8e87434ff55\``);
+        await queryRunner.query(`ALTER TABLE \`Accounts\` DROP FOREIGN KEY \`FK_ef4e45b5f5c3bc64d66142cbcbb\``);
+        await queryRunner.query(`DROP INDEX \`IDX_5ad4aa48976a5fa65c352fb287\` ON \`Benefits\``);
+        await queryRunner.query(`DROP INDEX \`IDX_6b0b4658559d4b81a0d54dadb4\` ON \`Benefits\``);
+        await queryRunner.query(`DROP INDEX \`IDX_20cb92aacb351dc0b03e4000f3\` ON \`Benefits\``);
+        await queryRunner.query(`DROP INDEX \`IDX_7e9400ee7b86f7a09c84d40d9a\` ON \`Benefits\``);
+        await queryRunner.query(`DROP INDEX \`IDX_a16720258707094a7b428c97bb\` ON \`Benefits\``);
+        await queryRunner.query(`DROP INDEX \`REL_4d9e114868b838c8a507e386ac\` ON \`Partners\``);
+        await queryRunner.query(`ALTER TABLE \`Vouchers\` CHANGE \`status\` \`status\` enum ('PENDING', 'DELIVERED', 'EXPIRED') NOT NULL DEFAULT 'PENDING'`);
+        await queryRunner.query(`ALTER TABLE \`Vouchers\` CHANGE \`limit_date\` \`limit_date\` date NULL DEFAULT '2026-12-09'`);
+        await queryRunner.query(`ALTER TABLE \`Benefits\` CHANGE \`max_per_user\` \`max_per_user\` int NULL DEFAULT 3`);
+        await queryRunner.query(`ALTER TABLE \`Benefits\` CHANGE \`date_entered\` \`date_entered\` date NOT NULL DEFAULT curdate()`);
+        await queryRunner.query(`ALTER TABLE \`Partners\` DROP INDEX \`IDX_4d9e114868b838c8a507e386ac\``);
+        await queryRunner.query(`ALTER TABLE \`Partners\` CHANGE \`id_owner\` \`id_owner\` varchar(4) NULL`);
+        await queryRunner.query(`ALTER TABLE \`Directions\` CHANGE \`id_partner\` \`id_partner\` varchar(4) NULL`);
+        await queryRunner.query(`ALTER TABLE \`Accounts\` CHANGE \`role\` \`role\` enum ('PARTNER_ADMIN', 'USER', 'CECIT_ADMIN') NULL`);
+        await queryRunner.query(`ALTER TABLE \`Accounts\` DROP INDEX \`IDX_0c5666efc38b6f023b7814c73d\``);
+        await queryRunner.query(`ALTER TABLE \`Vouchers\` CHANGE \`status\` \`status\` enum ('PENDING', 'DELIVERED', 'EXPIRED') NOT NULL DEFAULT 'PENDING'`);
+        await queryRunner.query(`ALTER TABLE \`Vouchers\` CHANGE \`limit_date\` \`limit_date\` date NULL DEFAULT '2026-12-09'`);
+        await queryRunner.query(`ALTER TABLE \`Benefits\` CHANGE \`max_per_user\` \`max_per_user\` int NULL DEFAULT 3`);
+        await queryRunner.query(`ALTER TABLE \`Benefits\` DROP COLUMN \`image\``);
+        await queryRunner.query(`ALTER TABLE \`Benefits\` ADD \`image\` varchar(100) NOT NULL`);
+        await queryRunner.query(`ALTER TABLE \`Benefits\` CHANGE \`date_entered\` \`date_entered\` date NOT NULL DEFAULT curdate()`);
+        await queryRunner.query(`ALTER TABLE \`Partners\` DROP INDEX \`IDX_4d9e114868b838c8a507e386ac\``);
+        await queryRunner.query(`ALTER TABLE \`Partners\` CHANGE \`id_owner\` \`id_owner\` varchar(4) NULL`);
+        await queryRunner.query(`ALTER TABLE \`Directions\` DROP COLUMN \`direction\``);
+        await queryRunner.query(`ALTER TABLE \`Directions\` ADD \`direction\` varchar(255) NOT NULL`);
+        await queryRunner.query(`ALTER TABLE \`Directions\` CHANGE \`id_partner\` \`id_partner\` varchar(4) NULL`);
+        await queryRunner.query(`ALTER TABLE \`Accounts\` CHANGE \`role\` \`role\` enum ('PARTNER_ADMIN', 'USER', 'CECIT_ADMIN') NULL`);
+        await queryRunner.query(`ALTER TABLE \`Accounts\` DROP COLUMN \`password\``);
+        await queryRunner.query(`ALTER TABLE \`Accounts\` ADD \`password\` varchar(50) NULL`);
+        await queryRunner.query(`ALTER TABLE \`Accounts\` DROP INDEX \`IDX_0c5666efc38b6f023b7814c73d\``);
+        await queryRunner.query(`ALTER TABLE \`Directions\` DROP COLUMN \`id\``);
+        await queryRunner.query(`ALTER TABLE \`RefreshTokens\` DROP COLUMN \`email\``);
+        await queryRunner.query(`ALTER TABLE \`Directions\` ADD \`id_direction\` int NOT NULL AUTO_INCREMENT`);
+        await queryRunner.query(`ALTER TABLE \`Directions\` ADD PRIMARY KEY (\`id_direction\`)`);
+        await queryRunner.query(`ALTER TABLE \`Directions\` CHANGE \`id_direction\` \`id_direction\` int NOT NULL AUTO_INCREMENT`);
+        await queryRunner.query(`ALTER TABLE \`Partners_Admins\` CHANGE \`id_user\` \`id_account\` varchar(4) NOT NULL`);
+        await queryRunner.query(`ALTER TABLE \`Users\` CHANGE \`lastname\` \`last_name\` varchar(50) NOT NULL`);
+        await queryRunner.query(`CREATE INDEX \`id_partner\` ON \`Directions\` (\`id_partner\`)`);
+        await queryRunner.query(`CREATE INDEX \`IDX_a8902d4754e89411bbc04a9774\` ON \`RefreshTokens\` (\`token_hash\`)`);
+        await queryRunner.query(`CREATE UNIQUE INDEX \`IDX_0c5666efc38b6f023b7814c73d\` ON \`Accounts\` (\`email\`)`);
+        await queryRunner.query(`ALTER TABLE \`Partners_Admins\` ADD CONSTRAINT \`FK_dc285106d5fcee21e1338908db1\` FOREIGN KEY (\`id_partner\`) REFERENCES \`Partners\`(\`id_partner\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Partners_Admins\` ADD CONSTRAINT \`FK_b43cdde5e6118c5bae9670806a5\` FOREIGN KEY (\`id_account\`) REFERENCES \`Accounts\`(\`id_user\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`PaymentMethods_Benefits\` ADD CONSTRAINT \`FK_fde159496e03a8c7dc3501b22f3\` FOREIGN KEY (\`id_benefit\`) REFERENCES \`Benefits\`(\`id_benefit\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`PaymentMethods_Benefits\` ADD CONSTRAINT \`FK_1020856c55a0eabf5757f6f60b0\` FOREIGN KEY (\`id_payment_method\`) REFERENCES \`PaymentMethods\`(\`id_payment_method\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Partners\` ADD CONSTRAINT \`Partners_owners_fk\` FOREIGN KEY (\`id_owner\`) REFERENCES \`Users\`(\`id_user\`) ON DELETE RESTRICT ON UPDATE RESTRICT`);
+        await queryRunner.query(`ALTER TABLE \`Directions\` ADD CONSTRAINT \`1\` FOREIGN KEY (\`id_partner\`) REFERENCES \`Partners\`(\`id_partner\`) ON DELETE RESTRICT ON UPDATE RESTRICT`);
+    }
+
+}

@@ -9,8 +9,8 @@ import { PartnersEntity } from './partners.entity';
 
 @Entity('Directions')
 export class Directions {
-    @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
-    id: number;
+    @PrimaryGeneratedColumn({ type: 'int', name: 'id_direction' })
+    id_direction: number;
 
     @Column({ type: 'varchar', length: 4, name: 'id_partner' })
     id_partner: string;

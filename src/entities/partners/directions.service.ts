@@ -18,7 +18,7 @@ export class DirectionsService {
     constructor(
         @InjectRepository(Directions)
         private readonly repo: Repository<Directions>,
-    ) {}
+    ) { }
 
     async create(data: DirectionsCreateDTO): Promise<Directions> {
         const direction = this.repo.create(data);
@@ -45,14 +45,14 @@ export class DirectionsService {
     }
 
     async update(data: DirectionsUpdateDTO): Promise<Directions> {
-        const direction = await this.repo.findOneBy({ id: data.id });
+        const direction = await this.repo.findOneBy({ id_direction: data.id });
         if (!direction) throw new NotFoundException('Direction not found');
         direction.direction = data.direction;
         return await this.repo.save(direction);
     }
 
     async remove(data: DirectionsDeleteDTO): Promise<boolean> {
-        const direction = await this.repo.findOneBy({ id: data.id });
+        const direction = await this.repo.findOneBy({ id_direction: data.id });
         if (!direction) throw new NotFoundException('Direction not found');
         const result = await this.repo.delete(direction);
         if (!result)
