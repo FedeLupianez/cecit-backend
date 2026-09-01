@@ -17,15 +17,14 @@ import { PartnersEntity } from './partners.entity';
 import { PartnersMapper } from './partners.mapper';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { DbService } from 'src/common/database/db.service';
 import { DirectionsService } from './directions.service';
+import { generateUniqueId } from 'src/common/utils/id-generator';
 
 @Injectable()
 export class PartnersService {
     constructor(
         @InjectRepository(PartnersEntity)
         private readonly partnersRepo: Repository<PartnersEntity>,
-        private readonly dbService: DbService,
         private readonly directionsService: DirectionsService,
     ) { }
 
@@ -41,7 +40,7 @@ export class PartnersService {
     }
 
     async create(partner: PartnersCreateDTO): Promise<PartnersEntity> {
-        const newId = await this.dbService.getNewId('Partners', 'id_partner');
+        const newId = await generateUniqueId(this.partnersRepo, 'id_partner');
         const newPartner = this.partnersRepo.create({
             id_partner: newId,
             name: partner.partner_name.toLowerCase(),

@@ -3,7 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { BenefitsEntity } from './benefits.entity';
 import { BenefitsService } from './benefits.service';
 import { BenefitsController } from './benefits.controller';
-import { DbModule } from 'src/common/database/db.module';
 import { CategoriesModule } from '../categories/categories.module';
 import { PartnersModule } from '../partners/partners.module';
 import { AccountsModule } from '../accounts/accounts.module';
@@ -14,7 +13,6 @@ import { PaymentBenefitModule } from '../payment_benefit/payment_benefit.module'
 @Module({
     imports: [
         TypeOrmModule.forFeature([BenefitsEntity]),
-        DbModule,
         CategoriesModule,
         PartnersModule,
         AccountsModule,

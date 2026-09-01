@@ -19,11 +19,11 @@ import { BenefitsEntity, BenefitStatus } from './benefits.entity';
 import { PartnersEntity } from '../partners/partners.entity';
 import { BenefitTypeEntity } from '../benefit-types/benefit-types.entity';
 import { Repository } from 'typeorm';
-import { DbService } from 'src/common/database/db.service';
 import { PartnersService } from '../partners/partners.service';
 import { PartnersCategoriesReturn } from '../partners_categories/partners_categories.dto';
 import { AccountsService } from '../accounts/accounts.service';
 import { AccountsEntity } from '../accounts/accounts.entity';
+import { generateUniqueId } from 'src/common/utils/id-generator';
 
 import { LessThan, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 import { PaymentBenefitEntity } from '../payment_benefit/payment_benefit.entity';
@@ -43,7 +43,6 @@ export class BenefitsService {
         private readonly benefitTypeService: BenefitTypeService,
         private readonly partnersCategoriesService: PartnersCategoriesService,
         private readonly paymentBenefitService: PaymentBenefitService,
-        private readonly dbService: DbService,
     ) { }
 
     async get_categories(id_partner: string): Promise<PartnersCategoriesReturn | null> {
@@ -88,7 +87,7 @@ export class BenefitsService {
             throw new NotFoundException('El tipo de beneficio no existe');
         }
 
-        const newId = await this.dbService.getNewId('Benefits', 'id_benefit');
+        const newId = await generateUniqueId(this.benefitsRepository, 'id_benefit');
         const newBenefit = this.benefitsRepository.create({
             ...benefit,
             id_benefit: newId,

@@ -15,7 +15,6 @@ import { PartnersAdminsModule } from './entities/partnersadmins/partnersadmins.m
 import { PaymentMethodsModule } from './entities/payment-methods/payment-methods.module';
 import { PaymentBenefitModule } from './entities/payment_benefit/payment_benefit.module';
 import { AuthModule } from './auth/auth.module';
-import { DbModule } from './common/database/db.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { NoTransformInterceptor } from './common/no-transform.interceptor';
@@ -60,7 +59,6 @@ import { SshTunnelService } from './ssh/ssh-tunnel.service';
         PaymentMethodsModule,
         PaymentBenefitModule,
         AuthModule,
-        DbModule,
         PartnersModule,
         AccountsModule,
     ],

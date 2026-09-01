@@ -24,8 +24,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { VouchersEntity, VoucherStatus } from './vouchers.entity';
 import { Repository } from 'typeorm';
 import { BenefitsService } from '../benefits/benefits.service';
-import { DbService } from '../../common/database/db.service';
 import { PdfService } from 'src/pdf/pdf.service';
+import { generateUniqueToken } from 'src/common/utils/id-generator';
 
 @Injectable()
 export class VouchersService {
@@ -34,7 +34,6 @@ export class VouchersService {
         @InjectRepository(VouchersEntity)
         private readonly vouchersRepository: Repository<VouchersEntity>,
         private readonly benefitsService: BenefitsService,
-        private readonly dbService: DbService,
         private readonly pdfService: PdfService,
     ) { }
 
@@ -179,7 +178,7 @@ export class VouchersService {
             id_user: voucher.id_user,
         });
 
-        newVoucher.token = await this.dbService.getNewToken();
+        newVoucher.token = await generateUniqueToken(this.vouchersRepository, 'token');
 
         return await this.vouchersRepository.save(newVoucher);
     }

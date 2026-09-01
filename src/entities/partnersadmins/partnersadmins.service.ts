@@ -11,7 +11,7 @@ import { PartnersAdminsEntity } from './partnersadmins.entity';
 import { Repository } from 'typeorm';
 import { type PartnersAdminsCreateDTO } from './partnersadmins.dto';
 import { PartnersService } from '../partners/partners.service';
-import { DbService } from 'src/common/database/db.service';
+import { generateUniqueId } from 'src/common/utils/id-generator';
 
 @Injectable()
 export class PartnersAdminsService {
@@ -20,12 +20,11 @@ export class PartnersAdminsService {
         private readonly adminsRepo: Repository<PartnersAdminsEntity>,
         @Inject(forwardRef(() => PartnersService))
         private readonly partnersService: PartnersService,
-        private readonly dbService: DbService,
     ) { }
 
     async create(admin: PartnersAdminsCreateDTO): Promise<PartnersAdminsEntity> {
         const partner = await this.partnersService.get_by_name(admin.partner_name);
-        const newId = await this.dbService.getNewId('Partners_Admins', 'id_account');
+        const newId = await generateUniqueId(this.adminsRepo, 'id_account');
         const newAdmin = this.adminsRepo.create({
             id_account: newId,
             id_partner: partner.id_partner,
