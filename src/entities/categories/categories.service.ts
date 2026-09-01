@@ -33,7 +33,9 @@ export class CategoriesService {
         const cached = await this.cache.get<CategoriesDTO[]>('categories:all');
         if (cached) return cached;
 
-        const categories = await this.repo.find();
+        const categories = await this.repo.find({
+            order: { name: 'ASC' }
+        });
         if (!categories) throw new NotFoundException('Categories is Empty');
         const mapped = categories.map((c) => CategoriesMapper.toDTO(c));
         await this.cache.set('categories:all', mapped);
