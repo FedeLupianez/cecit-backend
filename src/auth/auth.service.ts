@@ -7,7 +7,7 @@ import {
     NotFoundException,
     UnauthorizedException,
 } from '@nestjs/common';
-import { verify } from 'argon2';
+import { hash, verify } from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RefreshTokenEntity } from '../entities/refresh-token.entity';
@@ -190,5 +190,31 @@ export class AuthService {
     getEmail(token: string) {
         const payload: jwt_payload = this.jwtService.verify(token);
         return payload.email;
+    }
+
+    async updatePasswd(email: string, current_password: string, new_password: string): Promise<boolean> {
+        const account = await this.accountService.get_by_email(email);
+        if (!account)
+            throw new NotFoundException('Cuenta no encontrada');
+        const passwordValid = await verify(account.password, current_password);
+        if (!passwordValid)
+            throw new UnauthorizedException('Invalid Password');
+
+        await account.change_psswd(new_password);
+        await this.accountService.save(account);
+        return true;
+    }
+
+    async updateEmail(email: string, new_email: string, current_password: string): Promise<boolean> {
+        const account = await this.accountService.get_by_email(email);
+        if (!account)
+            throw new NotFoundException('Cuenta no encontrada');
+        const passwordValid = await verify(account.password, current_password);
+        if (!passwordValid)
+            throw new UnauthorizedException('Invalid Password');
+        await this.refreshTokenRepo.delete({ email });
+        await account.change_email(new_email);
+        await this.accountService.save(account);
+        return true;
     }
 }

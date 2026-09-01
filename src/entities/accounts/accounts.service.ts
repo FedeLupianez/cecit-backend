@@ -47,6 +47,10 @@ export class AccountsService {
         return account;
     }
 
+    async save(account: AccountsEntity): Promise<AccountsEntity> {
+        return await this.accountsRepo.save(account);
+    }
+
     async has_account(email: string): Promise<boolean> {
         if (!email || !isEmail(email))
             throw new BadRequestException('Email invalid');

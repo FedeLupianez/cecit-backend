@@ -56,4 +56,12 @@ export class AccountsEntity {
     async hashPassword() {
         this.password = await hash(this.password);
     }
+
+    async change_psswd(new_password: string) {
+        this.password = await hash(new_password);
+    }
+
+    async change_email(new_email: string) {
+        this.email = new_email;
+    }
 }

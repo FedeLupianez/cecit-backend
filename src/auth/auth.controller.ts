@@ -1,14 +1,16 @@
 import {
+    BadRequestException,
     Body,
     Controller,
     Get,
+    Patch,
     Post,
     Req,
     Res,
     UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { TokensInterface } from './auth.dto';
+import { TokensInterface, UpdateProfileDTO } from './auth.dto';
 import { Throttle } from '@nestjs/throttler';
 import { AccountCreateDTO, LoginDTO } from 'src/entities/accounts/accounts.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -82,5 +84,20 @@ export class AuthController {
     async logout(@Req() req) {
         const token = req.cookies['refresh_token_cecit'];
         await this.authService.logout(token);
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Patch('update')
+    async updateProfile(@Body() body: UpdateProfileDTO) {
+        switch (body.process) {
+            case 'PASSWD':
+                if (!body.new_password)
+                    throw new BadRequestException('Current Password is empty');
+                return await this.authService.updatePasswd(body.email, body.current_password, body.new_password);
+            case 'EMAIL':
+                if (!body.new_email)
+                    throw new BadRequestException('New email is empty');
+                return await this.authService.updateEmail(body.email, body.new_email, body.current_password);
+        }
     }
 }
