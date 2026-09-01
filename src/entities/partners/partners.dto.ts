@@ -47,3 +47,18 @@ export class PartnersCreateDTO {
     @IsString({ each: true })
     directions: string[];
 }
+
+export class AddLocationDTO {
+    @IsNotEmpty()
+    id_partner: string;
+
+    @IsNotEmpty()
+    @IsString()
+    direction: string;
+}
+
+export interface GetLocationsReturn {
+    id_partner: string;
+    id_location: number;
+    direction: string;
+}

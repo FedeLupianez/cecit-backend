@@ -6,6 +6,7 @@ import {
     Param,
     Patch,
     Post,
+    Query,
     Req,
     UnauthorizedException,
     UseGuards,
@@ -13,6 +14,7 @@ import {
 import { PartnersService } from './partners.service';
 import { PartnersAdminsService } from '../partnersadmins/partnersadmins.service';
 import {
+    AddLocationDTO,
     PartnersCreateDTO,
     PartnersUpdateLogoDTO,
     PartnersUpdateNameDTO,
@@ -60,6 +62,15 @@ export class PartnersController {
         return this.partnersService.updateName(body);
     }
 
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    @Get('locations')
+    async getLocatoins(@Query('id_partner') id_partner: string) {
+        return this.partnersService.getLocations(id_partner);
+    }
 
-
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    @Post('locations')
+    async addLocation(@Body() body: AddLocationDTO) {
+        return this.partnersService.addLocation(body);
+    }
 }

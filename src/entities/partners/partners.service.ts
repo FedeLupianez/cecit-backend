@@ -5,6 +5,8 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import type {
+    AddLocationDTO,
+    GetLocationsReturn,
     PartnerLogo,
     PartnersCreateDTO,
     PartnersDTO,
@@ -108,5 +110,23 @@ export class PartnersService {
                 id_owner,
             },
         });
+    }
+
+    async addLocation({ id_partner, direction }: AddLocationDTO): Promise<boolean> {
+        const partner = await this.partnersRepo.findOneBy({ id_partner });
+        if (!partner) throw new NotFoundException('Partner not found');
+        await this.directionsService.create({ id_partner, direction });
+        return true;
+    }
+
+    async getLocations(id_partner: string): Promise<GetLocationsReturn[]> {
+        const directions = await this.directionsService.findByPartner(id_partner);
+        return directions.map((d) => {
+            return {
+                id_partner: d.id_partner,
+                id_location: d.id_direction,
+                direction: d.direction
+            }
+        })
     }
 }
