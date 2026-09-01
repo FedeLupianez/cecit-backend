@@ -22,6 +22,7 @@ export interface VoucherReturn {
     directions: string[];
     logo: string;
     token: string;
+    status: VoucherStatus;
 }
 
 export interface VouchersCreateDTO {

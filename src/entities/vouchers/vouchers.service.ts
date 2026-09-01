@@ -58,7 +58,8 @@ export class VouchersService {
             directions: relatedBenefit.directions,
             logo: relatedBenefit.logo,
             methods: relatedBenefit.payment_methods,
-            token: voucher.token
+            token: voucher.token,
+            status: voucher.status
         }
     }
 
@@ -107,7 +108,8 @@ export class VouchersService {
             logo: voucher.benefit.partner.logo,
             user_name: `${voucher.user.name} ${voucher.user.lastname}`,
             user_dni: voucher.user.dni,
-            methods: mappedVoucher.methods
+            methods: mappedVoucher.methods,
+            status: voucher.status
         }
     }
 
