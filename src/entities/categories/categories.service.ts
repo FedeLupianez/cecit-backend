@@ -64,4 +64,14 @@ export class CategoriesService {
         if (!category) throw new NotFoundException('Category not found');
         return category;
     }
+
+    async toggleActive(id_category: number, active: boolean): Promise<CategoriesEntity> {
+        const category = await this.get_by_id(id_category);
+        category.active = active;
+        const stored = await this.repo.save(category);
+        await this.cache.del('categories:all');
+        await this.cache.del('categories:actives');
+        await this.cache.del('categories:active');
+        return stored;
+    }
 }
