@@ -7,7 +7,11 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { AccountsEntity } from './accounts.entity';
 import { Repository } from 'typeorm';
-import { AccountCreateDTO } from './accounts.dto';
+import {
+    AccountCreateDTO,
+    AccountsDTO,
+    AccountsUpdateDTO,
+} from './accounts.dto';
 import { isEmail } from 'class-validator';
 
 @Injectable()
@@ -55,5 +59,59 @@ export class AccountsService {
         if (!email || !isEmail(email))
             throw new BadRequestException('Email invalid');
         return await this.accountsRepo.exists({ where: { email: email } });
+    }
+
+    private toDTO(account: AccountsEntity): AccountsDTO {
+        return {
+            id_user: account.id_user,
+            email: account.email,
+            role: account.role,
+            active: account.active,
+            last_activity: account.last_activity,
+            name: account.user?.name ?? '',
+            lastname: account.user?.lastname ?? '',
+            dni: account.user?.dni ?? '',
+        };
+    }
+
+    async get_all(): Promise<AccountsDTO[]> {
+        const accounts = await this.accountsRepo.find({
+            relations: ['user'],
+            order: { id_user: 'ASC' },
+        });
+        if (!accounts)
+            throw new InternalServerErrorException('Accounts are empty');
+        return accounts.map((account) => this.toDTO(account));
+    }
+
+    async update(dto: AccountsUpdateDTO): Promise<AccountsDTO> {
+        if (!dto.id_user) throw new BadRequestException('Id is empty');
+        const account = await this.get_by_id(dto.id_user);
+
+        if (dto.email !== undefined) {
+            const newEmail = dto.email.trim().toLowerCase();
+            const inUse = await this.accountsRepo.exists({
+                where: { email: newEmail },
+            });
+            if (inUse && newEmail !== account.email?.toLowerCase())
+                throw new BadRequestException('Email already in use');
+            account.email = newEmail;
+        }
+
+        if (dto.password) {
+            await account.change_psswd(dto.password);
+        }
+
+        if (dto.active !== undefined) {
+            account.active = dto.active;
+        }
+
+        await this.accountsRepo.save(account);
+        const updated = await this.accountsRepo.findOne({
+            where: { id_user: account.id_user },
+            relations: ['user'],
+        });
+        if (!updated) throw new NotFoundException('Account not found');
+        return this.toDTO(updated);
     }
 }

@@ -7,8 +7,6 @@ import {
     Patch,
     Post,
     Query,
-    Req,
-    UnauthorizedException,
     UseGuards,
 } from '@nestjs/common';
 import { PartnersService } from './partners.service';
@@ -64,7 +62,7 @@ export class PartnersController {
 
     @UseGuards(AuthGuard('jwt'), AdminGuard)
     @Get('locations')
-    async getLocatoins(@Query('id_partner') id_partner: string) {
+    async getLocations(@Query('id_partner') id_partner: string) {
         return this.partnersService.getLocations(id_partner);
     }
 

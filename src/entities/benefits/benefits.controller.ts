@@ -1,9 +1,18 @@
-import { Body, Controller, Delete, Get, Post, UseGuards } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Patch,
+    Post,
+    UseGuards,
+} from '@nestjs/common';
 import { BenefitsService } from './benefits.service';
 import {
     BenefitsMapper,
     type BenefitsCreateDTO,
     BenefitIDTO,
+    BenefitsUpdateDTO,
 } from './benefits.dto';
 import { CecitAdminGuard } from 'src/auth/cecitadmin.guard';
 import { AuthGuard } from '@nestjs/passport';
@@ -38,6 +47,12 @@ export class BenefitsController {
     async delete(@Body() benefit: BenefitIDTO) {
         const result = await this.benefitsService.delete(benefit);
         return result;
+    }
+
+    @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
+    @Patch()
+    async update(@Body() benefit: BenefitsUpdateDTO) {
+        return await this.benefitsService.update(benefit);
     }
 
     @Get('carousel')

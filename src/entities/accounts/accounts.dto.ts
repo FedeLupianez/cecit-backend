@@ -1,4 +1,10 @@
-import { IsEmail, IsNotEmpty } from 'class-validator';
+import {
+    IsBoolean,
+    IsEmail,
+    IsNotEmpty,
+    IsOptional,
+    IsString,
+} from 'class-validator';
 
 export enum AccountRole {
     USER = 'USER',
@@ -31,4 +37,32 @@ export interface Account {
     password: string;
     last_activity: string;
     active: string;
+}
+
+export interface AccountsDTO {
+    id_user: string;
+    email: string | null;
+    role: AccountRole;
+    active: boolean;
+    last_activity: Date;
+    name: string;
+    lastname: string;
+    dni: string;
+}
+
+export class AccountsUpdateDTO {
+    @IsNotEmpty()
+    id_user: string;
+
+    @IsOptional()
+    @IsEmail()
+    email?: string;
+
+    @IsOptional()
+    @IsString()
+    password?: string;
+
+    @IsOptional()
+    @IsBoolean()
+    active?: boolean;
 }

@@ -7,6 +7,7 @@ import {
     Post,
     Req,
     Res,
+    UnauthorizedException,
     UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -89,15 +90,18 @@ export class AuthController {
     @UseGuards(AuthGuard('jwt'))
     @Patch('update')
     async updateProfile(@Body() body: UpdateProfileDTO) {
+        const validUser = await this.authService.validateUser(body.email, body.current_password);
+        if (!validUser)
+            throw new UnauthorizedException('Invalid Credentials');
         switch (body.process) {
             case 'PASSWD':
                 if (!body.new_password)
                     throw new BadRequestException('Current Password is empty');
-                return await this.authService.updatePasswd(body.email, body.current_password, body.new_password);
+                return await this.authService.updatePasswd(validUser.id_user, body.new_password);
             case 'EMAIL':
                 if (!body.new_email)
                     throw new BadRequestException('New email is empty');
-                return await this.authService.updateEmail(body.email, body.new_email, body.current_password);
+                return await this.authService.updateEmail(validUser.id_user, body.new_email);
         }
     }
 }

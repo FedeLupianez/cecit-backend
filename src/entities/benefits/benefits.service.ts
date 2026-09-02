@@ -3,6 +3,7 @@ import {
     BenefitsDTO,
     BenefitsCreateDTO,
     BenefitIDTO,
+    BenefitsUpdateDTO,
     type BenefitsReturn,
     CouponsReturn,
 } from './benefits.dto';
@@ -114,6 +115,36 @@ export class BenefitsService {
         return true;
     }
 
+    async update(dto: BenefitsUpdateDTO): Promise<BenefitsReturn> {
+        const benefit = await this.benefitsRepository.findOne({
+            where: { id_benefit: dto.id_benefit },
+            relations: [
+                'partner',
+                'partner.directions',
+                'partner.categories',
+                'partner.categories.category',
+                'type',
+            ],
+        });
+        if (!benefit) throw new NotFoundException('Benefit not found');
+
+        if (dto.title !== undefined) benefit.title = dto.title;
+        if (dto.description !== undefined) benefit.description = dto.description;
+        if (dto.image !== undefined) benefit.image = dto.image;
+        if (dto.start_date !== undefined) benefit.start_date = dto.start_date;
+        if (dto.end_date !== undefined) benefit.end_date = dto.end_date;
+        if (dto.coupons !== undefined) benefit.coupons = dto.coupons;
+        if (dto.max_coupons !== undefined)
+            benefit.max_coupons = dto.max_coupons;
+        if (dto.max_per_user !== undefined)
+            benefit.max_per_user = dto.max_per_user;
+        if (dto.status !== undefined)
+            benefit.status = dto.status as BenefitStatus;
+
+        await this.benefitsRepository.save(benefit);
+        return await this.get_benefit(benefit.id_benefit);
+    }
+
     async findOne(id_benefit: string): Promise<BenefitsEntity | null> {
         return await this.benefitsRepository.findOneBy({ id_benefit });
     }
@@ -167,7 +198,8 @@ export class BenefitsService {
             max_coupons: benefit.max_coupons,
             logo: benefit.partner.logo,
             categories: categories || [],
-            max_per_user: benefit.max_per_user
+            max_per_user: benefit.max_per_user,
+            status: benefit.status,
         };
         return benefitMapped;
     }
@@ -207,7 +239,8 @@ export class BenefitsService {
                     max_coupons: b.max_coupons,
                     logo: b.partner.logo,
                     categories: categories || [],
-                    max_per_user: b.max_per_user
+                    max_per_user: b.max_per_user,
+                    status: b.status
                 };
             },
         );

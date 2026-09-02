@@ -7,7 +7,6 @@ import {
 import type {
     AddLocationDTO,
     GetLocationsReturn,
-    PartnerLogo,
     PartnersCreateDTO,
     PartnersDTO,
     PartnersUpdateLogoDTO,
@@ -28,15 +27,15 @@ export class PartnersService {
         private readonly directionsService: DirectionsService,
     ) { }
 
-    async get_all(): Promise<PartnerLogo[]> {
+    async get_all(): Promise<PartnersDTO[]> {
         const partners = await this.partnersRepo.find({
-            select: {
-                name: true,
-                logo: true,
-            },
+            relations: { directions: true },
+            order: { name: 'ASC' },
         });
         if (!partners) throw new NotFoundException('Partners are empty');
-        return partners;
+        return partners.map((partner) =>
+            PartnersMapper.entityToDto(partner),
+        );
     }
 
     async create(partner: PartnersCreateDTO): Promise<PartnersEntity> {

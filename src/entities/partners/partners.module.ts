@@ -6,6 +6,7 @@ import { PartnersController } from './partners.controller';
 import { PartnersAdminsModule } from '../partnersadmins/partnersadmins.module';
 import { AccountsModule } from '../accounts/accounts.module';
 import { DirectionsModule } from './directions.module';
+import { AdminGuard } from 'src/auth/admin.guard';
 
 @Module({
     imports: [
@@ -14,7 +15,7 @@ import { DirectionsModule } from './directions.module';
         AccountsModule,
         DirectionsModule,
     ],
-    providers: [PartnersService],
+    providers: [PartnersService, AdminGuard],
     controllers: [PartnersController],
     exports: [PartnersService],
 })

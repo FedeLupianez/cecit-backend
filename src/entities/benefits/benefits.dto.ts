@@ -1,4 +1,4 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl } from 'class-validator';
 import { BenefitsEntity } from './benefits.entity';
 
 export interface BenefitsDTO {
@@ -36,6 +36,45 @@ export class BenefitIDTO {
     id_benefit: string;
 }
 
+export class BenefitsUpdateDTO {
+    @IsNotEmpty()
+    id_benefit: string;
+
+    @IsOptional()
+    @IsString()
+    title?: string;
+
+    @IsOptional()
+    @IsString()
+    description?: string;
+
+    @IsOptional()
+    @IsUrl()
+    image?: string;
+
+    @IsOptional()
+    start_date?: Date;
+
+    @IsOptional()
+    end_date?: Date;
+
+    @IsOptional()
+    @IsNumber()
+    coupons?: number;
+
+    @IsOptional()
+    @IsNumber()
+    max_coupons?: number;
+
+    @IsOptional()
+    @IsNumber()
+    max_per_user?: number;
+
+    @IsOptional()
+    @IsString()
+    status?: string;
+}
+
 export interface BenefitsReturn {
     id_benefit: string;
     id_admin: string;
@@ -54,6 +93,7 @@ export interface BenefitsReturn {
     coupons: number;
     max_coupons: number;
     max_per_user: number;
+    status: string;
 }
 
 export interface CouponsReturn {

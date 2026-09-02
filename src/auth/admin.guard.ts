@@ -6,15 +6,24 @@ import {
     UnauthorizedException,
 } from '@nestjs/common';
 import { AccountRole } from 'src/entities/accounts/accounts.dto';
+import { AccountsService } from 'src/entities/accounts/accounts.service';
 import { PartnersAdminsService } from 'src/entities/partnersadmins/partnersadmins.service';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
-    constructor(private readonly relationService: PartnersAdminsService) { }
+    constructor(
+        private readonly relationService: PartnersAdminsService,
+        private readonly accountService: AccountsService,
+    ) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
         if (!request.user) throw new UnauthorizedException('Not authenticated');
+
+        const account = await this.accountService.get_by_email(request.user.email);
+        if (!account) throw new NotFoundException('Account not found');
+        if (account.role === AccountRole.CECIT_ADMIN) return true;
+
         const id_user = request.user?.user_id ?? request.body?.user_id;
         if (!id_user)
             throw new NotFoundException('Partner id not found in request');
@@ -22,7 +31,6 @@ export class AdminGuard implements CanActivate {
         if (!relation) throw new NotFoundException('User is not Admin');
 
         const partner = relation.partner;
-        const account = relation.account;
 
         if (account.role != AccountRole.PARTNER_ADMIN)
             throw new UnauthorizedException('Admin access required');

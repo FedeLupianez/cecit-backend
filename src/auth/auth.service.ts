@@ -44,7 +44,6 @@ export class AuthService {
 
         if (!user?.password)
             throw new UnauthorizedException('Invalid Credentials');
-        this.logger.debug(`Password : ${passwd}`);
 
         const passwordValid = await verify(user.password, passwd);
 
@@ -192,29 +191,23 @@ export class AuthService {
         return payload.email;
     }
 
-    async updatePasswd(email: string, current_password: string, new_password: string): Promise<boolean> {
-        const account = await this.accountService.get_by_email(email);
-        if (!account)
-            throw new NotFoundException('Cuenta no encontrada');
-        const passwordValid = await verify(account.password, current_password);
-        if (!passwordValid)
-            throw new UnauthorizedException('Invalid Password');
-
-        await account.change_psswd(new_password);
-        await this.accountService.save(account);
+    async updatePasswd(id_user: string, new_password: string): Promise<boolean> {
+        const result = await this.accountService.update({
+            id_user: id_user,
+            password: new_password
+        });
+        if (!result)
+            throw new InternalServerErrorException('Error changing email');
         return true;
     }
 
-    async updateEmail(email: string, new_email: string, current_password: string): Promise<boolean> {
-        const account = await this.accountService.get_by_email(email);
-        if (!account)
-            throw new NotFoundException('Cuenta no encontrada');
-        const passwordValid = await verify(account.password, current_password);
-        if (!passwordValid)
-            throw new UnauthorizedException('Invalid Password');
-        await this.refreshTokenRepo.delete({ email });
-        await account.change_email(new_email);
-        await this.accountService.save(account);
+    async updateEmail(id_user: string, new_email: string): Promise<boolean> {
+        const result = await this.accountService.update({
+            id_user: id_user,
+            email: new_email
+        });
+        if (!result)
+            throw new InternalServerErrorException('Error changing email');
         return true;
     }
 }
