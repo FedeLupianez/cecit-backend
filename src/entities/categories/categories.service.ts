@@ -42,6 +42,22 @@ export class CategoriesService {
         return mapped;
     }
 
+    async findActives() {
+        const cached = await this.cache.get<CategoriesDTO[]>('categories:actives');
+        if (cached) return cached;
+
+        const categories = await this.repo.find({
+            where: {
+                active: true
+            },
+            order: { name: 'ASC' }
+        });
+        if (!categories) throw new NotFoundException('Categories is Empty');
+        const mapped = categories.map((c) => CategoriesMapper.toDTO(c));
+        await this.cache.set('categories:active', mapped);
+        return mapped;
+    }
+
     async get_by_id(id_category: number): Promise<CategoriesEntity> {
         if (!id_category) throw new BadRequestException('Id is required');
         const category = await this.repo.findOneBy({ id_category: id_category });

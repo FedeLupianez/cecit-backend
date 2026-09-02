@@ -19,4 +19,10 @@ export class CategoriesController {
     async findAll() {
         return await this.service.findAll();
     }
+
+    @Get('actives')
+    async getActives() {
+        return await this.service.findActives();
+    }
+
 }
