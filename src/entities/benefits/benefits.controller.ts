@@ -25,6 +25,11 @@ export class BenefitsController {
         return await this.benefitsService.get_all();
     }
 
+    @Get('actives')
+    async getActives() {
+        return await this.benefitsService.get_actives();
+    }
+
     @Get('popular')
     async get_popular() {
         return await this.benefitsService.get_popular();

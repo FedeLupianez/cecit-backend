@@ -262,6 +262,25 @@ export class BenefitsService {
         return await this.mapBenefits(benefits);
     }
 
+    async get_actives(): Promise<BenefitsReturn[]> {
+        const benefits: BenefitsEntity[] = await this.benefitsRepository.find({
+            relations: [
+                'partner',
+                'partner.directions',
+                'partner.categories',
+                'partner.categories.category',
+                'type',
+            ],
+        });
+        if (!benefits)
+            throw new InternalServerErrorException('There is no benefits yet');
+
+        const filtered = benefits.filter((b) =>
+            b.partner.categories.some((c) => c.category.active),
+        );
+        return await this.mapBenefits(filtered);
+    }
+
     async get_popular(): Promise<BenefitsReturn[]> {
         const benefits: BenefitsEntity[] = await this.benefitsRepository.find({
             relations: [
@@ -280,7 +299,11 @@ export class BenefitsService {
         if (!benefits)
             throw new InternalServerErrorException('There is no benefits yet');
 
-        return await this.mapBenefits(benefits);
+        const filtered = benefits.filter((b) =>
+            b.partner.categories.some((c) => c.category.active),
+        );
+
+        return await this.mapBenefits(filtered);
     }
 
     async get_news() {
@@ -301,7 +324,11 @@ export class BenefitsService {
         if (!benefits)
             throw new InternalServerErrorException('There is no benefits yet');
 
-        return await this.mapBenefits(benefits);
+        const filtered = benefits.filter((b) =>
+            b.partner.categories.some((c) => c.category.active),
+        );
+
+        return await this.mapBenefits(filtered);
     }
 
     async get_benefit(id_benefit: string): Promise<BenefitsReturn> {
