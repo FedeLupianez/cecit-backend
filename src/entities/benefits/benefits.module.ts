@@ -9,6 +9,8 @@ import { AccountsModule } from '../accounts/accounts.module';
 import { BenefitTypeModule } from '../benefit-types/benefit-types.module';
 import { PartnersCategoriesModule } from '../partners_categories/partners_categories.module';
 import { PaymentBenefitModule } from '../payment_benefit/payment_benefit.module';
+import { AdminGuard } from 'src/auth/admin.guard';
+import { PartnersAdminsModule } from '../partnersadmins/partnersadmins.module';
 
 @Module({
     imports: [
@@ -19,8 +21,9 @@ import { PaymentBenefitModule } from '../payment_benefit/payment_benefit.module'
         BenefitTypeModule,
         PartnersCategoriesModule,
         PaymentBenefitModule,
+        PartnersAdminsModule
     ],
-    providers: [BenefitsService],
+    providers: [BenefitsService, AdminGuard],
     controllers: [BenefitsController],
     exports: [BenefitsService],
 })

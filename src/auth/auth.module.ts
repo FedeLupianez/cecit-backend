@@ -32,7 +32,7 @@ import { CecitAdminGuard } from './cecitadmin.guard';
     AccountsModule,
     forwardRef(() => UsersModule),
     forwardRef(() => PartnersModule),
-    PartnersAdminsModule,
+    forwardRef(() => PartnersAdminsModule),
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, CecitAdminGuard],

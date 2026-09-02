@@ -353,4 +353,21 @@ export class BenefitsService {
             throw new NotFoundException('Benefit not found');
         return { coupons: benefit.coupons, max_coupons: benefit.max_coupons, max_per_user: benefit.max_per_user };
     }
+
+    async get_by_partner(id_partner: string): Promise<BenefitsReturn[]> {
+        const benefits: BenefitsEntity[] = await this.benefitsRepository.find({
+            where: {id_partner: id_partner, status: BenefitStatus.ACTIVE},
+            relations: [
+                'partner',
+                'partner.directions',
+                'partner.categories',
+                'partner.categories.category',
+                'type',
+            ],
+        });
+        if (!benefits)
+            throw new InternalServerErrorException('There is no benefits yet');
+
+        return await this.mapBenefits(benefits);
+    }
 }
