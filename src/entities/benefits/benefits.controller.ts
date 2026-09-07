@@ -19,6 +19,7 @@ import {
 } from './benefits.dto';
 import { CecitAdminGuard } from 'src/auth/cecitadmin.guard';
 import { AuthGuard } from '@nestjs/passport';
+import { AdminGuard } from 'src/auth/admin.guard';
 
 @Controller('benefits')
 export class BenefitsController {
@@ -45,6 +46,12 @@ export class BenefitsController {
         return await this.benefitsService.get_news();
     }
 
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    @Get('partner')
+    async get_by_partner(@Query('id_partner') id_partner: string) {
+        return await this.benefitsService.get_by_partner(id_partner);
+    }
+
     @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
     @Post()
     async create(@Body() benefit: BenefitsCreateDTO) {
@@ -67,7 +74,6 @@ export class BenefitsController {
 
     @Get('search')
     async search(@Query() query: BenefitsSearchDTO) {
-        this.logger.debug(query);
         return await this.benefitsService.search(query.text);
     }
 
