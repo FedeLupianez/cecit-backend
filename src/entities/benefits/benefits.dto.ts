@@ -102,6 +102,12 @@ export interface CouponsReturn {
     max_per_user: number;
 }
 
+export class BenefitsSearchDTO {
+    @IsNotEmpty()
+    @IsString()
+    text: string;
+}
+
 export class BenefitsMapper {
     static toDTO(benefit: BenefitsEntity): BenefitsDTO {
         return {

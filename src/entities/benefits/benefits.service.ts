@@ -306,6 +306,25 @@ export class BenefitsService {
         return await this.mapBenefits(filtered);
     }
 
+    async search(q: string): Promise<BenefitsReturn[]> {
+        this.logger.debug(q);
+        if (!q) throw new BadRequestException('Search text is required');
+        const benefits: BenefitsEntity[] = await this.benefitsRepository
+            .createQueryBuilder('benefit')
+            .leftJoinAndSelect('benefit.partner', 'partner')
+            .leftJoinAndSelect('benefit.type', 'type')
+            .leftJoinAndSelect('partner.directions', 'directions')
+            .leftJoinAndSelect('partner.categories', 'categories')
+            .leftJoinAndSelect('categories.category', 'category')
+            .where(
+                '(LOWER(benefit.title) LIKE LOWER(:q) OR LOWER(benefit.description) LIKE LOWER(:q)) AND status = :status',
+                { q: `%${q}%`, status: BenefitStatus.ACTIVE },
+            )
+            .getMany();
+
+        return this.mapBenefits(benefits);
+    }
+
     async get_news() {
         const benefits: BenefitsEntity[] = await this.benefitsRepository.find({
             relations: [

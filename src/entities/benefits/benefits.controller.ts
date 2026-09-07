@@ -3,8 +3,10 @@ import {
     Controller,
     Delete,
     Get,
+    Logger,
     Patch,
     Post,
+    Query,
     UseGuards,
 } from '@nestjs/common';
 import { BenefitsService } from './benefits.service';
@@ -13,12 +15,15 @@ import {
     type BenefitsCreateDTO,
     BenefitIDTO,
     BenefitsUpdateDTO,
+    BenefitsSearchDTO,
 } from './benefits.dto';
 import { CecitAdminGuard } from 'src/auth/cecitadmin.guard';
 import { AuthGuard } from '@nestjs/passport';
 
 @Controller('benefits')
 export class BenefitsController {
+    private readonly logger = new Logger('Benefits');
+
     constructor(private readonly benefitsService: BenefitsService) { }
     @Get('all')
     async get_all() {
@@ -58,6 +63,12 @@ export class BenefitsController {
     @Patch()
     async update(@Body() benefit: BenefitsUpdateDTO) {
         return await this.benefitsService.update(benefit);
+    }
+
+    @Get('search')
+    async search(@Query() query: BenefitsSearchDTO) {
+        this.logger.debug(query);
+        return await this.benefitsService.search(query.text);
     }
 
     @Get('carousel')
