@@ -201,7 +201,12 @@ export class AuthService {
         return true;
     }
 
-    async updateEmail(id_user: string, new_email: string): Promise<boolean> {
+    async updateEmail(id_user: string, actual_email: string, new_email: string): Promise<boolean> {
+        // Borrar los refresh tokens asociados
+        await this.refreshTokenRepo.delete({
+            email: actual_email
+        });
+
         const result = await this.accountService.update({
             id_user: id_user,
             email: new_email

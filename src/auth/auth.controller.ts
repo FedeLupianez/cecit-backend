@@ -101,7 +101,7 @@ export class AuthController {
             case 'EMAIL':
                 if (!body.new_email)
                     throw new BadRequestException('New email is empty');
-                return await this.authService.updateEmail(validUser.id_user, body.new_email);
+                return await this.authService.updateEmail(validUser.id_user, validUser.email, body.new_email);
         }
     }
 }
