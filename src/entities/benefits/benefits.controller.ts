@@ -3,7 +3,6 @@ import {
     Controller,
     Delete,
     Get,
-    Logger,
     Patch,
     Post,
     Query,
@@ -23,7 +22,6 @@ import { AdminGuard } from 'src/auth/admin.guard';
 
 @Controller('benefits')
 export class BenefitsController {
-    private readonly logger = new Logger('Benefits');
 
     constructor(private readonly benefitsService: BenefitsService) { }
     @Get('all')

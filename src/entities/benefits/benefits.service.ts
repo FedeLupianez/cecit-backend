@@ -97,10 +97,18 @@ export class BenefitsService {
             type: type,
         });
 
+
         if (!newId) {
             throw new InternalServerErrorException('No se pudo generar el beneficio');
         }
-        return await this.benefitsRepository.save(newBenefit);
+        const storedBenefit = await this.benefitsRepository.save(newBenefit);
+        if (!storedBenefit)
+            throw new InternalServerErrorException('Error creating Benefit');
+
+        benefit.payment_methods.map(async (p) => {
+            await this.paymentBenefitService.make_relation(newBenefit.id_benefit, p);
+        });
+        return storedBenefit;
     }
 
     async delete(benefit: BenefitIDTO): Promise<boolean> {
