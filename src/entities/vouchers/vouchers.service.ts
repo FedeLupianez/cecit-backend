@@ -162,7 +162,7 @@ export class VouchersService {
 
     async create(voucher: VouchersCreateDTO) {
         this.logger.log(`Creating voucher for benefit ${voucher.id_benefit}`);
-        const benefit = await this.benefitsService.findOne(voucher.id_benefit);
+        const benefit = await this.benefitsService.findOneActive({ where: { id_benefit: voucher.id_benefit } });
 
         if (!benefit) throw new NotFoundException('Benefit not found');
 

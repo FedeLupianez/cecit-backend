@@ -19,7 +19,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { BenefitsEntity, BenefitStatus } from './benefits.entity';
 import { PartnersEntity } from '../partners/partners.entity';
 import { BenefitTypeEntity } from '../benefit-types/benefit-types.entity';
-import { Repository } from 'typeorm';
+import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import { PartnersService } from '../partners/partners.service';
 import { PartnersCategoriesReturn } from '../partners_categories/partners_categories.dto';
 import { AccountsService } from '../accounts/accounts.service';
@@ -45,6 +45,39 @@ export class BenefitsService {
         private readonly partnersCategoriesService: PartnersCategoriesService,
         private readonly paymentBenefitService: PaymentBenefitService,
     ) { }
+    private readonly defaultRelations = [
+        'partner',
+        'partner.directions',
+        'partner.categories',
+        'partner.categories.category',
+        'type',
+    ];
+
+    private async findActives(options?: FindManyOptions<BenefitsEntity>) {
+        const benefits = await this.benefitsRepository.find({
+            relations: this.defaultRelations,
+            ...options,
+            where: { ...(options?.where as object), status: BenefitStatus.ACTIVE },
+        });
+
+        const filtered = benefits.filter((b) =>
+            b.partner.categories.some((c) => c.category.active),
+        );
+        return filtered;
+    }
+
+    async findOneActive(options?: FindOneOptions<BenefitsEntity>): Promise<BenefitsEntity | null> {
+        const benefit = await this.benefitsRepository.findOne({
+            relations: this.defaultRelations,
+            ...options,
+            where: { ...(options?.where as object), status: BenefitStatus.ACTIVE },
+        });
+        if (!benefit)
+            throw new NotFoundException('Benefit not foudn');
+        if (!benefit.partner.categories.some((c) => c.category.active))
+            return null;
+        return benefit;
+    }
 
     async get_categories(id_partner: string): Promise<PartnersCategoriesReturn | null> {
         if (!id_partner) throw new BadRequestException('ID partner is required');
@@ -122,15 +155,8 @@ export class BenefitsService {
     }
 
     async update(dto: BenefitsUpdateDTO): Promise<BenefitsReturn> {
-        const benefit = await this.benefitsRepository.findOne({
+        const benefit = await this.findOneActive({
             where: { id_benefit: dto.id_benefit },
-            relations: [
-                'partner',
-                'partner.directions',
-                'partner.categories',
-                'partner.categories.category',
-                'type',
-            ],
         });
         if (!benefit) throw new NotFoundException('Benefit not found');
 
@@ -151,9 +177,6 @@ export class BenefitsService {
         return await this.get_benefit(benefit.id_benefit);
     }
 
-    async findOne(id_benefit: string): Promise<BenefitsEntity | null> {
-        return await this.benefitsRepository.findOneBy({ id_benefit });
-    }
 
     async incrementCoupons(id_benefit: string, maxCoupons: number): Promise<boolean> {
         const result = await this.benefitsRepository.increment(
@@ -167,9 +190,8 @@ export class BenefitsService {
     async get_carousel(): Promise<BenefitsDTO[]> {
         const today = new Date();
 
-        const benefits = await this.benefitsRepository.find({
+        const benefits = await this.findActives({
             where: {
-                status: BenefitStatus.ACTIVE,
                 start_date: LessThanOrEqual(today),
                 end_date: MoreThanOrEqual(today),
             },
@@ -177,6 +199,8 @@ export class BenefitsService {
                 date_entered: 'DESC',
             },
         });
+        if (!benefits)
+            throw new NotFoundException('Benefits not found');
 
         return benefits.map((benefit) => BenefitsMapper.toDTO(benefit));
     }
@@ -269,15 +293,7 @@ export class BenefitsService {
     }
 
     async get_actives(): Promise<BenefitsReturn[]> {
-        const benefits: BenefitsEntity[] = await this.benefitsRepository.find({
-            relations: [
-                'partner',
-                'partner.directions',
-                'partner.categories',
-                'partner.categories.category',
-                'type',
-            ],
-        });
+        const benefits: BenefitsEntity[] = await this.findActives();
         if (!benefits)
             throw new InternalServerErrorException('There is no benefits yet');
 
@@ -288,14 +304,7 @@ export class BenefitsService {
     }
 
     async get_popular(): Promise<BenefitsReturn[]> {
-        const benefits: BenefitsEntity[] = await this.benefitsRepository.find({
-            relations: [
-                'partner',
-                'partner.directions',
-                'partner.categories',
-                'partner.categories.category',
-                'type',
-            ],
+        const benefits: BenefitsEntity[] = await this.findActives({
             order: {
                 coupons: 'DESC',
             },
@@ -332,14 +341,7 @@ export class BenefitsService {
     }
 
     async get_news() {
-        const benefits: BenefitsEntity[] = await this.benefitsRepository.find({
-            relations: [
-                'partner',
-                'partner.directions',
-                'partner.categories',
-                'partner.categories.category',
-                'type',
-            ],
+        const benefits: BenefitsEntity[] = await this.findActives({
             order: {
                 date_entered: 'DESC',
             },
@@ -349,23 +351,12 @@ export class BenefitsService {
         if (!benefits)
             throw new InternalServerErrorException('There is no benefits yet');
 
-        const filtered = benefits.filter((b) =>
-            b.partner.categories.some((c) => c.category.active),
-        );
-
-        return await this.mapBenefits(filtered);
+        return await this.mapBenefits(benefits);
     }
 
     async get_benefit(id_benefit: string): Promise<BenefitsReturn> {
-        const benefit = await this.benefitsRepository.findOne({
+        const benefit = await this.findOneActive({
             where: { id_benefit: id_benefit },
-            relations: [
-                'partner',
-                'partner.directions',
-                'partner.categories',
-                'partner.categories.category',
-                'type',
-            ],
         });
         if (!benefit)
             throw new NotFoundException('Benefit not found');
@@ -373,22 +364,15 @@ export class BenefitsService {
     }
 
     async get_coupons(id_benefit: string): Promise<CouponsReturn> {
-        const benefit = await this.benefitsRepository.findOneBy({ id_benefit: id_benefit });
+        const benefit = await this.findOneActive({ where: { id_benefit: id_benefit } });
         if (!benefit)
             throw new NotFoundException('Benefit not found');
         return { coupons: benefit.coupons, max_coupons: benefit.max_coupons, max_per_user: benefit.max_per_user };
     }
 
     async get_by_partner(id_partner: string): Promise<BenefitsReturn[]> {
-        const benefits: BenefitsEntity[] = await this.benefitsRepository.find({
-            where: { id_partner: id_partner, status: BenefitStatus.ACTIVE },
-            relations: [
-                'partner',
-                'partner.directions',
-                'partner.categories',
-                'partner.categories.category',
-                'type',
-            ],
+        const benefits: BenefitsEntity[] = await this.findActives({
+            where: { id_partner: id_partner },
         });
         if (!benefits)
             throw new InternalServerErrorException('There is no benefits yet');
