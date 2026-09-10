@@ -112,9 +112,7 @@ export class BenefitsService {
     }
 
     async delete(benefit: BenefitIDTO): Promise<boolean> {
-        const result = await this.benefitsRepository.delete({
-            id_benefit: benefit.id_benefit,
-        });
+        const result = await this.benefitsRepository.update(benefit.id_benefit, { status: BenefitStatus.INACTIVE });
         if (!result) {
             throw new NotFoundException(
                 'El beneficio que se quiere borrar no fué encontrado',
