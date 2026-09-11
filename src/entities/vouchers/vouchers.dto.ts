@@ -10,6 +10,7 @@ export interface VouchersDTO {
     id_benefit: string;
     application_date: Date;
     delivery_date: Date;
+    limit_date: Date;
     status: VoucherStatus;
 }
 
@@ -62,6 +63,7 @@ export class VouchersMapper {
             token: voucher.token,
             application_date: voucher.application_date,
             delivery_date: voucher.delivery_date,
+            limit_date: voucher.limit_date,
             status: voucher.status,
         };
     }
