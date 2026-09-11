@@ -68,9 +68,26 @@ export class VouchersService {
         const vouchers = await this.vouchersRepository.findBy({
             id_user,
         });
-        if (!vouchers) throw new NotFoundException('Vouchers not found');
-        const vouchersList = await Promise.all(vouchers.map((v) => this.mapVoucher(v)));
-        return vouchersList;
+        if (!vouchers || vouchers.length === 0) return [];
+        const benefitsMap = await this.benefitsService.getMappedByIds(
+            vouchers.map((v) => v.id_benefit),
+        );
+        return vouchers
+            .filter((v) => benefitsMap.has(v.id_benefit))
+            .map((v) => {
+                const b = benefitsMap.get(v.id_benefit)!;
+                return {
+                    title: b.title,
+                    image: b.image,
+                    partner: b.partner,
+                    endDate: b.end_date,
+                    directions: b.directions,
+                    logo: b.logo,
+                    methods: b.payment_methods,
+                    token: v.token,
+                    status: v.status,
+                };
+            });
     }
 
     async get_by_benefit(id_benefit: string): Promise<VouchersDTO[]> {
@@ -98,7 +115,9 @@ export class VouchersService {
         });
         if (!voucher)
             throw new NotFoundException('Voucher not found');
-        const mappedVoucher: VoucherReturn = await this.mapVoucher(voucher);
+        const methods = await this.benefitsService.getPaymentMethodNames(
+            voucher.benefit.id_benefit,
+        );
         return {
             token: voucher.token,
             title: voucher.benefit.title,
@@ -109,7 +128,7 @@ export class VouchersService {
             logo: voucher.benefit.partner.logo,
             user_name: `${voucher.user.name} ${voucher.user.lastname}`,
             user_dni: voucher.user.dni,
-            methods: mappedVoucher.methods,
+            methods,
             status: voucher.status
         }
     }

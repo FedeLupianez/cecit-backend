@@ -17,13 +17,10 @@ import {
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { BenefitsEntity, BenefitStatus } from './benefits.entity';
-import { PartnersEntity } from '../partners/partners.entity';
-import { BenefitTypeEntity } from '../benefit-types/benefit-types.entity';
-import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
+import { FindManyOptions, FindOneOptions, In, Repository } from 'typeorm';
 import { PartnersService } from '../partners/partners.service';
 import { PartnersCategoriesReturn } from '../partners_categories/partners_categories.dto';
 import { AccountsService } from '../accounts/accounts.service';
-import { AccountsEntity } from '../accounts/accounts.entity';
 import { generateUniqueId } from 'src/common/utils/id-generator';
 
 import { LessThan, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
@@ -57,25 +54,27 @@ export class BenefitsService {
         const benefits = await this.benefitsRepository.find({
             relations: this.defaultRelations,
             ...options,
-            where: { ...(options?.where as object), status: BenefitStatus.ACTIVE },
+            where: {
+                ...(options?.where as object),
+                status: BenefitStatus.ACTIVE,
+                partner: { categories: { category: { active: true } } },
+            },
         });
-
-        const filtered = benefits.filter((b) =>
-            b.partner.categories.some((c) => c.category.active),
-        );
-        return filtered;
+        return benefits;
     }
 
-    async findOneActive(options?: FindOneOptions<BenefitsEntity>): Promise<BenefitsEntity | null> {
+    async findOneActive(options?: FindOneOptions<BenefitsEntity>): Promise<BenefitsEntity> {
         const benefit = await this.benefitsRepository.findOne({
             relations: this.defaultRelations,
             ...options,
-            where: { ...(options?.where as object), status: BenefitStatus.ACTIVE },
+            where: {
+                ...(options?.where as object),
+                status: BenefitStatus.ACTIVE,
+                partner: { categories: { category: { active: true } } },
+            },
         });
         if (!benefit)
-            throw new NotFoundException('Benefit not foudn');
-        if (!benefit.partner.categories.some((c) => c.category.active))
-            return null;
+            throw new NotFoundException('Benefit not found');
         return benefit;
     }
 
@@ -99,23 +98,18 @@ export class BenefitsService {
 
     async create(benefit: BenefitsCreateDTO) {
         this.logger.log(`Creating benefit: ${benefit.title}`);
-        const admin: AccountsEntity | null = await this.accountService.get_by_id(
-            benefit.id_admin,
-        );
+        const [admin, partner, type] = await Promise.all([
+            this.accountService.get_by_id(benefit.id_admin),
+            this.partnersService.get_by_id(benefit.id_partner),
+            this.benefitTypeService.get_by_id(benefit.id_type),
+        ]);
         if (!admin) {
             throw new NotFoundException('El administrador no existe');
         }
 
-        const partner: PartnersEntity | null = await this.partnersService.get_by_id(
-            benefit.id_partner,
-        );
-
         if (!partner) {
             throw new NotFoundException('El socio no existe');
         }
-
-        const type: BenefitTypeEntity | null =
-            await this.benefitTypeService.get_by_id(benefit.id_type);
 
         if (!type) {
             throw new NotFoundException('El tipo de beneficio no existe');
@@ -138,9 +132,11 @@ export class BenefitsService {
         if (!storedBenefit)
             throw new InternalServerErrorException('Error creating Benefit');
 
-        benefit.payment_methods.map(async (p) => {
-            await this.paymentBenefitService.make_relation(newBenefit.id_benefit, p);
-        });
+        await Promise.all(
+            (benefit.payment_methods ?? []).map((p) =>
+                this.paymentBenefitService.make_relation(newBenefit.id_benefit, p),
+            ),
+        );
         return storedBenefit;
     }
 
@@ -297,10 +293,7 @@ export class BenefitsService {
         if (!benefits)
             throw new InternalServerErrorException('There is no benefits yet');
 
-        const filtered = benefits.filter((b) =>
-            b.partner.categories.some((c) => c.category.active),
-        );
-        return await this.mapBenefits(filtered);
+        return await this.mapBenefits(benefits);
     }
 
     async get_popular(): Promise<BenefitsReturn[]> {
@@ -314,11 +307,7 @@ export class BenefitsService {
         if (!benefits)
             throw new InternalServerErrorException('There is no benefits yet');
 
-        const filtered = benefits.filter((b) =>
-            b.partner.categories.some((c) => c.category.active),
-        );
-
-        return await this.mapBenefits(filtered);
+        return await this.mapBenefits(benefits);
     }
 
     async search(q: string): Promise<BenefitsReturn[]> {
@@ -332,8 +321,8 @@ export class BenefitsService {
             .leftJoinAndSelect('partner.categories', 'categories')
             .leftJoinAndSelect('categories.category', 'category')
             .where(
-                '(LOWER(benefit.title) LIKE LOWER(:q) OR LOWER(benefit.description) LIKE LOWER(:q)) AND status = :status',
-                { q: `%${q}%`, status: BenefitStatus.ACTIVE },
+                '(LOWER(benefit.title) LIKE LOWER(:q) OR LOWER(benefit.description) LIKE LOWER(:q)) AND benefit.status = :status AND category.active = :catActive',
+                { q: `%${q}%`, status: BenefitStatus.ACTIVE, catActive: true },
             )
             .getMany();
 
@@ -352,6 +341,27 @@ export class BenefitsService {
             throw new InternalServerErrorException('There is no benefits yet');
 
         return await this.mapBenefits(benefits);
+    }
+
+    async getPaymentMethodNames(id_benefit: string): Promise<string[]> {
+        const relations =
+            await this.paymentBenefitService.findByBenefit(id_benefit);
+        return relations.map((p) => p.payment_method.name);
+    }
+
+    async getMappedByIds(ids: string[]): Promise<Map<string, BenefitsReturn>> {
+        const unique = [...new Set(ids)];
+        if (unique.length === 0) return new Map();
+        const benefits: BenefitsEntity[] = await this.benefitsRepository.find({
+            relations: this.defaultRelations,
+            where: {
+                id_benefit: In(unique),
+                status: BenefitStatus.ACTIVE,
+                partner: { categories: { category: { active: true } } },
+            },
+        });
+        const mapped = await this.mapBenefits(benefits);
+        return new Map(mapped.map((m) => [m.id_benefit, m]));
     }
 
     async get_benefit(id_benefit: string): Promise<BenefitsReturn> {

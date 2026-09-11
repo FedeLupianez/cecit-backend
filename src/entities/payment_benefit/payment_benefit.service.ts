@@ -21,7 +21,7 @@ export class PaymentBenefitService {
     }
 
     async findByBenefits(ids_benefits: string[]): Promise<PaymentBenefitEntity[]> {
-        if (ids_benefits.length === 1) return [];
+        if (!ids_benefits || ids_benefits.length === 0) return [];
         return await this.repo.find({
             relations: ['payment_method'],
             where: { id_benefit: In(ids_benefits) },

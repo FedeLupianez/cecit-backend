@@ -43,12 +43,12 @@ export class AuthService {
         const user = await this.accountService.get_by_email(email);
 
         if (!user?.password)
-            throw new UnauthorizedException('Invalid Credentials');
+            throw new UnauthorizedException('Invalid credentials');
 
         const passwordValid = await verify(user.password, passwd);
 
         if (!passwordValid)
-            throw new BadRequestException('Password does not match');
+            throw new UnauthorizedException('Invalid credentials');
         return user;
     }
 
@@ -121,7 +121,7 @@ export class AuthService {
     async login(userLogin: LoginDTO): Promise<TokensInterface> {
         this.logger.log(`Login attempt: ${userLogin.email}`);
         const user = await this.validateUser(userLogin.email, userLogin.password);
-        if (!user) throw new UnauthorizedException('Invalid Credentials');
+        if (!user) throw new UnauthorizedException('Invalid credentials');
         const newToken = this.generateRefreshToken();
         await this.saveRefreshToken({ token: newToken, email: user.email });
         const payload = {
