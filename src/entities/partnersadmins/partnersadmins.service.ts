@@ -14,6 +14,8 @@ import { type PartnersAdminsCreateDTO } from './partnersadmins.dto';
 import { PartnersService } from '../partners/partners.service';
 import { generateUniqueId } from 'src/common/utils/id-generator';
 import { AccountRole } from '../accounts/accounts.dto';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 
 @Injectable()
 export class PartnersAdminsService {
@@ -22,6 +24,7 @@ export class PartnersAdminsService {
         private readonly adminsRepo: Repository<PartnersAdminsEntity>,
         @Inject(forwardRef(() => PartnersService))
         private readonly partnersService: PartnersService,
+        @Inject(CACHE_MANAGER) private cache: Cache,
     ) { }
 
     async create(admin: PartnersAdminsCreateDTO): Promise<PartnersAdminsEntity> {
@@ -62,6 +65,9 @@ export class PartnersAdminsService {
     }
 
     async verify_admin(id_admin: string, id_partner: string): Promise<PartnersAdminsEntity> {
+        const cached = await this.cache.get<PartnersAdminsEntity>(`admin-partner:${id_admin}_${id_partner}`);
+        if (cached)
+            return cached;
         const relation = await this.adminsRepo.findOne({
             where: {
                 id_account: id_admin,
@@ -76,6 +82,7 @@ export class PartnersAdminsService {
             throw new UnauthorizedException('User is not admin');
         if (relation.account.role == AccountRole.USER)
             throw new UnauthorizedException('User is not admin');
+        await this.cache.set(`admin-partner:${id_admin}_${id_partner}`, relation);
         return relation;
     }
 }

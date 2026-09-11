@@ -5,6 +5,7 @@ import {
     PrimaryColumn,
     JoinColumn,
     BeforeInsert,
+    Index,
 } from 'typeorm';
 import { UsersEntity } from '../users/users.entity';
 import { BenefitsEntity } from '../benefits/benefits.entity';
@@ -21,6 +22,7 @@ export class VouchersEntity {
     @PrimaryColumn({ type: 'varchar', length: 6 })
     token!: string;
 
+    @Index()
     @Column({ type: 'varchar', length: 4 })
     id_user!: string;
 
@@ -28,6 +30,7 @@ export class VouchersEntity {
     @JoinColumn({ name: 'id_user', referencedColumnName: 'id_user' })
     user!: UsersEntity;
 
+    @Index()
     @Column({ type: 'varchar', length: 4 })
     id_benefit!: string;
 
@@ -44,6 +47,7 @@ export class VouchersEntity {
     @Column({ type: 'date', name: 'limit_date', default: '2026-05-11' })
     limit_date!: Date;
 
+    @Index()
     @Column({ type: 'enum', enum: VoucherStatus, default: VoucherStatus.PENDING })
     status!: VoucherStatus;
 
