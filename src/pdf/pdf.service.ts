@@ -65,17 +65,29 @@ export class PdfService {
             .replace(/'/g, '&#39;');
     }
 
-    private formatDate(date?: Date | null): string {
+    private formatDate(date?: Date | string | null): string {
         if (!date) return '—';
 
-        const d = new Date(date);
+        /*
+         * Las columnas `date` de la DB llegan como string 'YYYY-MM-DD'
+         * (o Date a medianoche UTC). Parsearlas con `new Date()` y usar
+         * getDate()/getMonth() corre todo a hora local (UTC-3) y muestra
+         * el día anterior. Por eso se extrae el calendario sin convertir
+         * zona horaria.
+         */
+        if (typeof date === 'string') {
+            const m = date.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+        }
+
+        const d = date instanceof Date ? date : new Date(date);
 
         if (isNaN(d.getTime())) return '—';
 
-        const dd = String(d.getDate()).padStart(2, '0');
-        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getUTCDate()).padStart(2, '0');
+        const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
 
-        return `${dd}/${mm}/${d.getFullYear()}`;
+        return `${dd}/${mm}/${d.getUTCFullYear()}`;
     }
 
     private async tryImage(url?: string): Promise<string | null> {
