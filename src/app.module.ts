@@ -22,12 +22,14 @@ import { PartnersModule } from './entities/partners/partners.module';
 import { AccountsModule } from './entities/accounts/accounts.module';
 import { SshTunnelModule } from './ssh/ssh-tunnel.module';
 import { SshTunnelService } from './ssh/ssh-tunnel.service';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Global()
 @Module({
     imports: [
         ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env.development' }),
         CacheModule.register({ isGlobal: true, ttl: 60000 }),
+        ScheduleModule.forRoot(),
         SshTunnelModule,
         TypeOrmModule.forRootAsync({
             imports: [SshTunnelModule],

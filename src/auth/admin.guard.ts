@@ -19,6 +19,10 @@ export class AdminGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
         if (!request.user) throw new UnauthorizedException('Not authenticated');
+        // Fast-path: un CECIT_ADMIN firmado pasa sin consulta a DB.
+        // El resto sigue el flujo con DB (fuente de verdad para roles y
+        // relaciones partner-admin).
+        if (request.user.role === AccountRole.CECIT_ADMIN) return true;
 
         const account = await this.accountService.get_by_email(request.user.email);
         if (!account) throw new NotFoundException('Account not found');

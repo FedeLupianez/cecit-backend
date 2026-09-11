@@ -11,8 +11,8 @@ import { hash, verify } from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RefreshTokenEntity } from '../entities/refresh-token.entity';
-import { Repository } from 'typeorm';
-import { type jwt_payload, RefreshTokenSaveDTO } from './auth.dto';
+import { LessThan, Repository } from 'typeorm';
+import { type jwt_payload, RefreshResult, RefreshTokenSaveDTO } from './auth.dto';
 import { TokensInterface } from './auth.dto';
 import { AccountsService } from 'src/entities/accounts/accounts.service';
 import { AccountsEntity } from 'src/entities/accounts/accounts.entity';
@@ -24,6 +24,18 @@ import {
 import { UsersService } from 'src/entities/users/users.service';
 import { PartnersService } from 'src/entities/partners/partners.service';
 import { PartnersAdminsService } from 'src/entities/partnersadmins/partnersadmins.service';
+import { Cron, CronExpression } from '@nestjs/schedule';
+
+const DEFAULT_REFRESH_DAYS = 7;
+
+// Ventana en la que el refresh token anterior sigue aceptándose después de
+// rotar. Cubre navegaciones concurrentes sin abrir una ventana útil a un
+// atacante (el token viejo no extiende su vigencia, solo se acorta a esto).
+const REFRESH_GRACE_MS = 60_000;
+
+export function getRefreshDays(): number {
+    return Number(process.env.REFRESH_TOKEN_EXPIRES) || DEFAULT_REFRESH_DAYS;
+}
 
 @Injectable()
 export class AuthService {
@@ -110,6 +122,7 @@ export class AuthService {
         const payload = {
             sub: newUser.id_user,
             email: newUser.email,
+            role: newUser.role,
             jti: randomUUID(),
         };
         return {
@@ -127,6 +140,7 @@ export class AuthService {
         const payload = {
             sub: user.id_user,
             email: user.email,
+            role: user.role,
             jti: randomUUID(),
         };
         return {
@@ -135,18 +149,37 @@ export class AuthService {
         };
     }
 
-    async refresh(token: string): Promise<TokensInterface> {
+    async refresh(token: string): Promise<RefreshResult> {
         const actualToken = await this.getRefreshToken(this.hashToken(token));
 
-        if (!(await this.validateRefreshToken(actualToken))) {
+        try {
+            await this.validateRefreshToken(actualToken);
+        } catch {
+            // Token vencido o revocado: se elimina y se rechaza.
             await this.refreshTokenRepo.delete({ id_token: actualToken.id_token });
             throw new UnauthorizedException('Invalid token');
         }
 
         const newToken = this.generateRefreshToken();
-        await actualToken.change_token(newToken);
-        await this.refreshTokenRepo.save(actualToken);
+        await this.saveRefreshToken({ token: newToken, email: actualToken.email });
+
+        // Retiro con gracia: el token anterior sigue válido por
+        // REFRESH_GRACE_MS para que los refresh concurrentes (el layout del
+        // frontend refresca en cada navegación) no fallen con "Token not
+        // found". Solo se acorta la vigencia, nunca se extiende.
+        const remaining = new Date(actualToken.expires_at).getTime() - Date.now();
+        if (remaining > REFRESH_GRACE_MS) {
+            actualToken.expires_at = new Date(Date.now() + REFRESH_GRACE_MS);
+            await this.refreshTokenRepo.save(actualToken);
+        }
+
+        // Limpieza oportunista de tokens vencidos de este email.
+        await this.refreshTokenRepo
+            .delete({ email: actualToken.email, expires_at: LessThan(new Date()) })
+            .catch(() => undefined);
+
         const account = await this.accountService.get_by_email(actualToken.email);
+        if (!account) throw new UnauthorizedException('Invalid token');
 
         const payload: jwt_payload = {
             sub: account.id_user,
@@ -161,13 +194,26 @@ export class AuthService {
         return {
             access_token: this.jwtService.sign(payload),
             refresh_token: newToken,
+            // Mismo shape que GET /auth/profile (JwtStrategy.validate).
+            profile: {
+                user_id: account.id_user,
+                email: account.email,
+                role: account.role,
+            },
         };
     }
 
     async logout(refreshToken: string): Promise<void> {
+        // Logout idempotente: si no hay token o ya no existe, igual se
+        // considera éxito para no romper el flujo del cliente.
+        if (!refreshToken) return;
         this.logger.log('Logging out user');
-        const token = await this.getRefreshToken(this.hashToken(refreshToken));
-        await this.refreshTokenRepo.delete({ id_token: token.id_token });
+        await this.refreshTokenRepo.delete({ token_hash: this.hashToken(refreshToken) });
+    }
+
+    @Cron(CronExpression.EVERY_DAY_AT_3AM)
+    async purgeExpiredRefreshTokens(): Promise<void> {
+        await this.refreshTokenRepo.delete({ expires_at: LessThan(new Date()) });
     }
 
     private generateRefreshToken(): string {

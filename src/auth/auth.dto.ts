@@ -17,6 +17,18 @@ export interface TokensInterface {
     refresh_token: string;
 }
 
+export interface ProfilePayload {
+    user_id: string;
+    email: string;
+    role: string;
+}
+
+// Respuesta del refresh: incluye el perfil para que el cliente no necesite
+// un segundo request a GET /auth/profile.
+export interface RefreshResult extends TokensInterface {
+    profile: ProfilePayload;
+}
+
 export class RefreshTokenSaveDTO {
     @IsEmail()
     @IsNotEmpty()

@@ -40,9 +40,8 @@ export class RefreshTokenEntity {
     @BeforeInsert()
     setDate() {
         this.expires_at = new Date();
-        this.expires_at.setDate(
-            this.expires_at.getDate() + Number(process.env.REFRESH_TOKEN_EXPIRES),
-        );
+        const days = Number(process.env.REFRESH_TOKEN_EXPIRES) || 7;
+        this.expires_at.setDate(this.expires_at.getDate() + days);
     }
 
     @BeforeInsert()
