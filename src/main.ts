@@ -2,15 +2,19 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConsoleLogger, ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
+import compression from 'compression';
+
+const isProd = process.env.NODE_ENV === 'production';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
         logger: new ConsoleLogger({
             prefix: 'CecitBackend',
             timestamp: true,
-            logLevels: ['log', 'error', 'warn', 'debug', 'verbose'],
+            logLevels: isProd ? ['log', 'error', 'warn'] : ['log', 'error', 'warn', 'debug', 'verbose'],
         }),
     });
+    app.use(compression());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     app.enableCors({
         origin: process.env.FRONT_URL,
