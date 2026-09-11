@@ -28,6 +28,7 @@ import { PaymentBenefitEntity } from '../payment_benefit/payment_benefit.entity'
 import { BenefitTypeService } from '../benefit-types/benefit-types.service';
 import { PartnersCategoriesService } from '../partners_categories/partners_categories.service';
 import { PaymentBenefitService } from '../payment_benefit/payment_benefit.service';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class BenefitsService {
@@ -400,5 +401,13 @@ export class BenefitsService {
             throw new InternalServerErrorException('There is no benefits yet');
 
         return await this.mapBenefits(benefits);
+    }
+
+    @Cron('0 0 * * *')
+    async update_benefit_status_date() {
+        const today = new Date();
+        await this.benefitsRepository.update({
+            end_date: LessThan(today)
+        }, { status: BenefitStatus.INACTIVE });
     }
 }

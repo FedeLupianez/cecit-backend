@@ -1,6 +1,3 @@
-/*
- *  servicios para get_all(), get_by_user() y get_by_benefit()
- * */
 
 import {
     BadRequestException,
@@ -22,11 +19,12 @@ import {
 } from './vouchers.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { VouchersEntity, VoucherStatus } from './vouchers.entity';
-import { Repository } from 'typeorm';
+import { LessThan, Repository } from 'typeorm';
 import { BenefitsService } from '../benefits/benefits.service';
 import { PdfService } from 'src/pdf/pdf.service';
 import { generateUniqueToken } from 'src/common/utils/id-generator';
 import { PartnersAdminsService } from '../partnersadmins/partnersadmins.service';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class VouchersService {
@@ -265,5 +263,13 @@ export class VouchersService {
                 endDate: voucher.benefit.end_date,
             },
         });
+    }
+
+    @Cron('0 0 * * *')
+    async update_expiration_status() {
+        const today = new Date();
+        await this.vouchersRepository.update({
+            limit_date: LessThan(today)
+        }, { status: VoucherStatus.EXPIRED });
     }
 }
