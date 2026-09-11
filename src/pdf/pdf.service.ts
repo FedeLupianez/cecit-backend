@@ -1,8 +1,15 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+    BadRequestException,
+    Injectable,
+    Logger,
+    OnModuleDestroy,
+    OnModuleInit,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { VouchersEntity } from '../entities/vouchers/vouchers.entity';
 import * as pup from 'puppeteer';
+import type { Browser } from 'puppeteer';
 
 export interface InvoiceCustomer {
     id: string;
@@ -47,14 +54,112 @@ const STATUS_STYLES: Record<string, string> = {
     EXPIRED: 'color:#b91c1c;background-color:#fee2e2;',
 };
 
+/*
+ * Imágenes fijas del layout (header/footer). Antes se descargaban
+ * en cada request; ahora se cachean en memoria con TTL largo.
+ * Se usa https para evitar el redirect http->https en cada fetch.
+ */
+const STATIC_IMAGES = {
+    cecitLogo:
+        'https://centrodecomercioag.com.ar/wp-content/uploads/2023/07/cecit2023.png',
+    recurso6:
+        'https://centrodecomercioag.com.ar/wp-content/uploads/2025/04/Recurso-6.png',
+    recurso8:
+        'https://centrodecomercioag.com.ar/wp-content/uploads/2025/04/Recurso-8.png',
+} as const;
+
+const FETCH_TIMEOUT_MS = 5000;
+const STATIC_IMAGE_TTL_MS = 24 * 60 * 60 * 1000;
+const DYNAMIC_IMAGE_TTL_MS = 6 * 60 * 60 * 1000;
+const MAX_CACHED_IMAGES = 100;
+/* Descarta imágenes absurdas antes de inflar el HTML a base64. */
+const MAX_IMAGE_BYTES = 2_500_000;
+
+interface CachedImage {
+    data: string;
+    expiresAt: number;
+}
+
 @Injectable()
-export class PdfService {
+export class PdfService implements OnModuleInit, OnModuleDestroy {
     private readonly logger = new Logger(PdfService.name);
+
+    /*
+     * Singleton del browser: lanzarlo por PDF (~0.5-2s + 100-200MB)
+     * era el cuello de botella principal. Se lanza una vez y se
+     * reutiliza vía páginas efímeras (page.close por request).
+     */
+    private browser: Browser | null = null;
+    private browserLaunching: Promise<Browser> | null = null;
+
+    /* Caché en memoria LRU simple + deduplicación de fetches. */
+    private readonly imageCache = new Map<string, CachedImage>();
+    private readonly inflightFetches = new Map<string, Promise<string>>();
 
     constructor(
         @InjectRepository(VouchersEntity)
         private readonly vouchersRepository: Repository<VouchersEntity>,
     ) { }
+
+    onModuleInit() {
+        /* Warmup en background: no bloquea el arranque ni los tests. */
+        void this.warmup().catch((e) =>
+            this.logger.warn(`PDF warmup failed: ${e?.message ?? e}`),
+        );
+    }
+
+    async onModuleDestroy() {
+        this.imageCache.clear();
+        this.inflightFetches.clear();
+        if (this.browser) {
+            try {
+                await this.browser.close();
+            } catch {
+                /* Ya cerrado / proceso muerto: nada que hacer. */
+            } finally {
+                this.browser = null;
+            }
+        }
+    }
+
+    private async warmup(): Promise<void> {
+        await this.getBrowser();
+        await this.getStaticImages();
+    }
+
+    private async getBrowser(): Promise<Browser> {
+        if (this.browser?.connected) return this.browser;
+        /* Cierro referencia stale si el proceso murió. */
+        if (this.browser && !this.browser.connected) {
+            this.browser = null;
+        }
+        if (this.browserLaunching) return this.browserLaunching;
+
+        this.browserLaunching = pup
+            .launch({
+                headless: true,
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-gpu',
+                    '--no-first-run',
+                    '--no-zygote',
+                ],
+            })
+            .then((browser) => {
+                browser.on('disconnected', () => {
+                    if (this.browser === browser) this.browser = null;
+                });
+                this.browser = browser;
+                return browser;
+            })
+            .finally(() => {
+                this.browserLaunching = null;
+            });
+
+        return this.browserLaunching;
+    }
 
     private escapeHtml(value: string): string {
         return value
@@ -94,7 +199,7 @@ export class PdfService {
         if (!url) return null;
 
         try {
-            return await this.urlToBase64(url);
+            return await this.urlToBase64(url, DYNAMIC_IMAGE_TTL_MS);
         } catch (e) {
             this.logger.warn(
                 `Could not load image ${url}: ${e?.message ?? e}`,
@@ -102,6 +207,45 @@ export class PdfService {
 
             return null;
         }
+    }
+
+    private getFromCache(url: string): string | null {
+        const cached = this.imageCache.get(url);
+        if (!cached) return null;
+        if (cached.expiresAt < Date.now()) {
+            this.imageCache.delete(url);
+            return null;
+        }
+        /* Refresh LRU: los más usados quedan al final. */
+        this.imageCache.delete(url);
+        this.imageCache.set(url, cached);
+        return cached.data;
+    }
+
+    private setCache(url: string, data: string, ttlMs: number): void {
+        if (this.imageCache.has(url)) this.imageCache.delete(url);
+        while (this.imageCache.size >= MAX_CACHED_IMAGES) {
+            const oldest = this.imageCache.keys().next();
+            if (oldest.done) break;
+            this.imageCache.delete(oldest.value);
+        }
+        this.imageCache.set(url, {
+            data,
+            expiresAt: Date.now() + ttlMs,
+        });
+    }
+
+    private async getStaticImages(): Promise<{
+        cecitLogo: string;
+        recurso6: string;
+        recurso8: string;
+    }> {
+        const [cecitLogo, recurso6, recurso8] = await Promise.all([
+            this.urlToBase64(STATIC_IMAGES.cecitLogo, STATIC_IMAGE_TTL_MS),
+            this.urlToBase64(STATIC_IMAGES.recurso6, STATIC_IMAGE_TTL_MS),
+            this.urlToBase64(STATIC_IMAGES.recurso8, STATIC_IMAGE_TTL_MS),
+        ]);
+        return { cecitLogo, recurso6, recurso8 };
     }
 
     private buildInvoiceHtml(
@@ -600,51 +744,93 @@ export class PdfService {
         );
     }
 
-    private async urlToBase64(url: string): Promise<string> {
+    private async urlToBase64(
+        url: string,
+        ttlMs: number = DYNAMIC_IMAGE_TTL_MS,
+    ): Promise<string> {
+        const normalized = url?.trim();
+        if (!normalized) throw new Error('Empty image URL');
+
+        const cached = this.getFromCache(normalized);
+        if (cached) return cached;
+
+        /* Deduplica fetches concurrentes a la misma URL. */
+        const inflight = this.inflightFetches.get(normalized);
+        if (inflight) return inflight;
+
+        const task = this.fetchImageAsBase64(normalized).then((data) => {
+            this.setCache(normalized, data, ttlMs);
+            return data;
+        });
+
+        this.inflightFetches.set(normalized, task);
+        try {
+            return await task;
+        } finally {
+            this.inflightFetches.delete(normalized);
+        }
+    }
+
+    private async fetchImageAsBase64(url: string): Promise<string> {
         const res = await fetch(url, {
-            signal: AbortSignal.timeout(5000),
+            signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
         });
 
         if (!res.ok) {
+            throw new Error(`HTTP ${res.status} fetching ${url}`);
+        }
+
+        const mime = (res.headers.get('content-type') ?? '')
+            .split(';')[0]
+            .trim()
+            .toLowerCase();
+        if (!mime.startsWith('image/')) {
+            throw new Error(`Unexpected content-type "${mime}" for ${url}`);
+        }
+
+        /* Evita descargar archivos gigantes antes de tiempo. */
+        const declared = Number(res.headers.get('content-length'));
+        if (Number.isFinite(declared) && declared > MAX_IMAGE_BYTES) {
             throw new Error(
-                `HTTP ${res.status} fetching ${url}`,
+                `Image too large (${declared} bytes): ${url}`,
             );
         }
 
-        const mime = (
-            res.headers.get('content-type') ?? 'image/png'
-        ).split(';')[0];
+        const buf = Buffer.from(await res.arrayBuffer());
+        if (buf.length === 0) throw new Error(`Empty image: ${url}`);
+        if (buf.length > MAX_IMAGE_BYTES) {
+            throw new Error(
+                `Image too large (${buf.length} bytes): ${url}`,
+            );
+        }
 
-        const data = Buffer.from(
-            await res.arrayBuffer(),
-        );
-
-        return `data:${mime};base64,${data.toString('base64')}`;
+        return `data:${mime};base64,${buf.toString('base64')}`;
     }
 
     async generatePDF(html: string): Promise<Buffer> {
         this.logger.debug('Generating PDF');
 
-        const browser = await pup.launch({
-            headless: true,
-        });
+        const browser = await this.getBrowser();
+        const page = await browser.newPage();
 
         try {
-            const page = await browser.newPage();
-
             /*
-             * Cargamos las imágenes que forman parte del PDF.
+             * Imágenes fijas cacheadas: el primer request las descarga,
+             * el resto reutiliza el base64 en memoria.
              */
             const [cecitLogo, recurso6, recurso8] =
                 await Promise.all([
                     this.urlToBase64(
-                        'http://centrodecomercioag.com.ar/wp-content/uploads/2023/07/cecit2023.png',
+                        STATIC_IMAGES.cecitLogo,
+                        STATIC_IMAGE_TTL_MS,
                     ),
                     this.urlToBase64(
-                        'http://centrodecomercioag.com.ar/wp-content/uploads/2025/04/Recurso-6.png',
+                        STATIC_IMAGES.recurso6,
+                        STATIC_IMAGE_TTL_MS,
                     ),
                     this.urlToBase64(
-                        'http://centrodecomercioag.com.ar/wp-content/uploads/2025/04/Recurso-8.png',
+                        STATIC_IMAGES.recurso8,
+                        STATIC_IMAGE_TTL_MS,
                     ),
                 ]);
 
@@ -873,7 +1059,8 @@ export class PdfService {
 
             return Buffer.from(pdf);
         } finally {
-            await browser.close();
+            /* Solo se cierra la página: el browser singleton se reutiliza. */
+            await page.close().catch(() => undefined);
         }
     }
 }
