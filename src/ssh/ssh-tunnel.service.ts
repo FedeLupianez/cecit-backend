@@ -26,6 +26,13 @@ export class SshTunnelService {
                 this.logger.log('SSH connection ready');
                 this.server = net
                     .createServer((socket) => {
+                        // Keepalive en cada socket aceptado: las conexiones
+                        // idle del pool no mueren por timeouts intermedios.
+                        socket.setKeepAlive(true, 60000);
+                        socket.on('error', (err) => {
+                            this.logger.debug(`Tunnel socket error: ${err.message}`);
+                            socket.destroy();
+                        });
                         this.connection!.forwardOut(
                             socket.remoteAddress || '127.0.0.1',
                             socket.remotePort || 0,
@@ -36,6 +43,10 @@ export class SshTunnelService {
                                     socket.destroy();
                                     return;
                                 }
+                                stream.on('error', (streamErr) => {
+                                    this.logger.debug(`Tunnel stream error: ${streamErr.message}`);
+                                    socket.destroy();
+                                });
                                 socket.pipe(stream);
                                 stream.pipe(socket);
                             },
@@ -62,6 +73,11 @@ export class SshTunnelService {
                     port: 22,
                     username: process.env.SSH_USER,
                     password: process.env.SSH_PASS,
+                    // Keepalive a nivel SSH: mantiene viva la conexión de
+                    // control frente a NAT/firewalls con timeouts agresivos.
+                    keepaliveInterval: 10000,
+                    keepaliveCountMax: 3,
+                    readyTimeout: 20000,
                 });
         });
     }

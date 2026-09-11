@@ -43,6 +43,19 @@ import { SshTunnelService } from './ssh/ssh-tunnel.service';
                     database: process.env.DB_NAME,
                     autoLoadEntities: true,
                     synchronize: false,
+                    // Pool persistente: reutiliza conexiones y evita el costo
+                    // de handshake (peor a través del túnel SSH).
+                    poolSize: Number(process.env.DB_POOL_SIZE) || 10,
+                    connectTimeout: 10000,
+                    extra: {
+                        waitForConnections: true,
+                        queueLimit: 0,
+                        connectTimeout: 10000,
+                        // TCP keepalive: evita que NAT/firewalls o el propio
+                        // túnel cierren conexiones idle del pool.
+                        enableKeepAlive: true,
+                        keepAliveInitialDelay: 10000,
+                    },
                 };
             },
         }),
