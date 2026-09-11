@@ -17,7 +17,7 @@ import {
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { BenefitsEntity, BenefitStatus } from './benefits.entity';
-import { FindManyOptions, FindOneOptions, In, Repository } from 'typeorm';
+import { FindManyOptions, FindOneOptions, In, MoreThan, Repository } from 'typeorm';
 import { PartnersService } from '../partners/partners.service';
 import { PartnersCategoriesReturn } from '../partners_categories/partners_categories.dto';
 import { AccountsService } from '../accounts/accounts.service';
@@ -51,6 +51,7 @@ export class BenefitsService {
     ];
 
     private async findActives(options?: FindManyOptions<BenefitsEntity>) {
+        const today = new Date();
         const benefits = await this.benefitsRepository.find({
             relations: this.defaultRelations,
             ...options,
@@ -58,12 +59,15 @@ export class BenefitsService {
                 ...(options?.where as object),
                 status: BenefitStatus.ACTIVE,
                 partner: { categories: { category: { active: true } } },
+                start_date: LessThan(today),
+                end_date: MoreThan(today)
             },
         });
         return benefits;
     }
 
     async findOneActive(options?: FindOneOptions<BenefitsEntity>): Promise<BenefitsEntity> {
+        const today = new Date();
         const benefit = await this.benefitsRepository.findOne({
             relations: this.defaultRelations,
             ...options,
@@ -71,6 +75,8 @@ export class BenefitsService {
                 ...(options?.where as object),
                 status: BenefitStatus.ACTIVE,
                 partner: { categories: { category: { active: true } } },
+                start_date: LessThan(today),
+                end_date: MoreThan(today)
             },
         });
         if (!benefit)
@@ -115,6 +121,11 @@ export class BenefitsService {
             throw new NotFoundException('El tipo de beneficio no existe');
         }
 
+        const today = new Date();
+        if (benefit.end_date < today)
+            throw new BadRequestException('Invalid end date');
+        const status: BenefitStatus = (benefit.start_date > today) ? BenefitStatus.INACTIVE : BenefitStatus.ACTIVE;
+
         const newId = await generateUniqueId(this.benefitsRepository, 'id_benefit');
         const newBenefit = this.benefitsRepository.create({
             ...benefit,
@@ -122,6 +133,7 @@ export class BenefitsService {
             admin: admin,
             partner: partner,
             type: type,
+            status: status
         });
 
 

@@ -136,12 +136,10 @@ export class AuthService {
     }
 
     async refresh(token: string): Promise<TokensInterface> {
-        this.logger.debug(`Refreshing token ${token}`);
         const actualToken = await this.getRefreshToken(this.hashToken(token));
 
         if (!(await this.validateRefreshToken(actualToken))) {
             await this.refreshTokenRepo.delete({ id_token: actualToken.id_token });
-            this.logger.debug('Invalid Refresh Token');
             throw new UnauthorizedException('Invalid token');
         }
 
