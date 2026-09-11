@@ -16,6 +16,7 @@ import {
     Logger,
     Patch,
     BadRequestException,
+    Req,
 } from '@nestjs/common';
 import { VouchersService } from './vouchers.service';
 import { VoucherStatus } from './vouchers.entity';
@@ -98,11 +99,12 @@ export class VouchersController {
 
     @Patch('')
     @UseGuards(AuthGuard('jwt'), AdminGuard)
-    async updateVoucher(@Query('action') action: string, @Query('token') token: string) {
+    async updateVoucher(@Query('action') action: string, @Query('token') token: string, @Req() request) {
+        const user = request.user;
         if (action == 'redeem') {
-            return await this.voucherService.redeem_voucher(token);
+            return await this.voucherService.redeem_voucher(token, user.user_id);
         } else if (action == 'reject') {
-            return await this.voucherService.reject_voucher(token);
+            return await this.voucherService.reject_voucher(token, user.user_id);
         }
         throw new BadRequestException('Bad Action')
     }

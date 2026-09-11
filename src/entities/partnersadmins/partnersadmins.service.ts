@@ -4,6 +4,7 @@ import {
     Injectable,
     InternalServerErrorException,
     NotFoundException,
+    UnauthorizedException,
     forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,6 +13,7 @@ import { Repository } from 'typeorm';
 import { type PartnersAdminsCreateDTO } from './partnersadmins.dto';
 import { PartnersService } from '../partners/partners.service';
 import { generateUniqueId } from 'src/common/utils/id-generator';
+import { AccountRole } from '../accounts/accounts.dto';
 
 @Injectable()
 export class PartnersAdminsService {
@@ -57,5 +59,23 @@ export class PartnersAdminsService {
         });
         if (!admin) throw new NotFoundException('Admin does not exists');
         return admin;
+    }
+
+    async verify_admin(id_admin: string, id_partner: string): Promise<PartnersAdminsEntity> {
+        const relation = await this.adminsRepo.findOne({
+            where: {
+                id_account: id_admin,
+                id_partner: id_partner
+            },
+            relations: [
+                'partner',
+                'account'
+            ]
+        });
+        if (!relation)
+            throw new UnauthorizedException('User is not admin');
+        if (relation.account.role == AccountRole.USER)
+            throw new UnauthorizedException('User is not admin');
+        return relation;
     }
 }

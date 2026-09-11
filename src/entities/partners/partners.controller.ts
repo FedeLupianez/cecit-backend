@@ -7,6 +7,7 @@ import {
     Patch,
     Post,
     Query,
+    Req,
     UseGuards,
 } from '@nestjs/common';
 import { PartnersService } from './partners.service';
@@ -18,6 +19,7 @@ import {
     PartnersUpdateNameDTO,
 } from './partners.dto';
 import { AdminGuard } from 'src/auth/admin.guard';
+import { CecitAdminGuard } from 'src/auth/cecitadmin.guard';
 import { AuthGuard } from '@nestjs/passport';
 
 @Controller('partners')
@@ -43,6 +45,7 @@ export class PartnersController {
         return partner;
     }
 
+    @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
     @Delete(':id')
     async remove(@Param('id') id: string) {
         return this.partnersService.remove(id);
@@ -50,14 +53,14 @@ export class PartnersController {
 
     @UseGuards(AuthGuard('jwt'), AdminGuard)
     @Patch('logo')
-    async updateLogo(@Body() body: PartnersUpdateLogoDTO) {
-        return this.partnersService.updateLogo(body);
+    async updateLogo(@Body() body: PartnersUpdateLogoDTO, @Req() req) {
+        return this.partnersService.updateLogo(body, req.user?.user_id);
     }
 
     @UseGuards(AuthGuard('jwt'), AdminGuard)
     @Patch('name')
-    async updateName(@Body() body: PartnersUpdateNameDTO) {
-        return this.partnersService.updateName(body);
+    async updateName(@Body() body: PartnersUpdateNameDTO, @Req() req) {
+        return this.partnersService.updateName(body, req.user?.user_id);
     }
 
     @UseGuards(AuthGuard('jwt'), AdminGuard)
@@ -68,7 +71,7 @@ export class PartnersController {
 
     @UseGuards(AuthGuard('jwt'), AdminGuard)
     @Post('locations')
-    async addLocation(@Body() body: AddLocationDTO) {
-        return this.partnersService.addLocation(body);
+    async addLocation(@Body() body: AddLocationDTO, @Req() req) {
+        return this.partnersService.addLocation(body, req.user?.user_id);
     }
 }

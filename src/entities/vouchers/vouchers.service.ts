@@ -26,6 +26,7 @@ import { Repository } from 'typeorm';
 import { BenefitsService } from '../benefits/benefits.service';
 import { PdfService } from 'src/pdf/pdf.service';
 import { generateUniqueToken } from 'src/common/utils/id-generator';
+import { PartnersAdminsService } from '../partnersadmins/partnersadmins.service';
 
 @Injectable()
 export class VouchersService {
@@ -35,6 +36,7 @@ export class VouchersService {
         private readonly vouchersRepository: Repository<VouchersEntity>,
         private readonly benefitsService: BenefitsService,
         private readonly pdfService: PdfService,
+        private readonly partnersAdminsService: PartnersAdminsService
     ) { }
 
     async get_all(): Promise<VouchersDTO[]> {
@@ -112,12 +114,18 @@ export class VouchersService {
         }
     }
 
-    async redeem_voucher(token: string): Promise<boolean> {
-        const voucher = await this.vouchersRepository.findOneBy({ token: token });
+    async redeem_voucher(token: string, id_admin: string): Promise<boolean> {
+        const voucher = await this.vouchersRepository.findOne({
+            where: {
+                token: token
+            },
+            relations: ['benefit', 'benefit.partner']
+        });
         if (!voucher)
             throw new BadRequestException('Invalid Token');
         if (voucher.status == VoucherStatus.EXPIRED || voucher.status == VoucherStatus.DELIVERED || voucher.status == VoucherStatus.REJECTED)
             throw new BadRequestException('Invalid Voucher to redeem');
+        await this.partnersAdminsService.verify_admin(id_admin, voucher.benefit.id_partner);
         voucher.status = VoucherStatus.DELIVERED;
         voucher.delivery_date = new Date();
         await this.vouchersRepository.save(voucher);
@@ -125,12 +133,19 @@ export class VouchersService {
         return true;
     }
 
-    async reject_voucher(token: string): Promise<boolean> {
-        const voucher = await this.vouchersRepository.findOneBy({ token: token });
+    async reject_voucher(token: string, id_admin: string): Promise<boolean> {
+        const voucher = await this.vouchersRepository.findOne({
+            where: { token: token }, relations: [
+                'benefit',
+                'benefit.partner'
+            ]
+        });
         if (!voucher)
             throw new BadRequestException('Invalid Token');
         if (voucher.status == VoucherStatus.EXPIRED || voucher.status == VoucherStatus.DELIVERED)
             throw new BadRequestException('Invalid Voucher to reject');
+        await this.partnersAdminsService.verify_admin(id_admin, voucher.benefit.id_partner);
+
         voucher.status = VoucherStatus.REJECTED;
         await this.vouchersRepository.save(voucher);
         this.logger.debug(`Voucher ${token} rejected`);

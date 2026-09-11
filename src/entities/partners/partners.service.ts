@@ -1,8 +1,10 @@
 import {
     BadRequestException,
+    Inject,
     Injectable,
     InternalServerErrorException,
     NotFoundException,
+    forwardRef,
 } from '@nestjs/common';
 import type {
     AddLocationDTO,
@@ -18,6 +20,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DirectionsService } from './directions.service';
 import { generateUniqueId } from 'src/common/utils/id-generator';
+import { AccountsService } from '../accounts/accounts.service';
+import { AccountRole } from '../accounts/accounts.dto';
+import { PartnersAdminsService } from '../partnersadmins/partnersadmins.service';
 
 @Injectable()
 export class PartnersService {
@@ -25,7 +30,18 @@ export class PartnersService {
         @InjectRepository(PartnersEntity)
         private readonly partnersRepo: Repository<PartnersEntity>,
         private readonly directionsService: DirectionsService,
+        private readonly accountsService: AccountsService,
+        @Inject(forwardRef(() => PartnersAdminsService))
+        private readonly partnersAdminsService: PartnersAdminsService,
     ) { }
+
+    private async assertPartnerAccess(callerId: string, id_partner: string): Promise<void> {
+        if (!callerId) throw new BadRequestException('Caller id is required');
+        if (!id_partner) throw new BadRequestException('id is empty');
+        const caller = await this.accountsService.get_by_id(callerId);
+        if (caller?.role === AccountRole.CECIT_ADMIN) return;
+        await this.partnersAdminsService.verify_admin(callerId, id_partner);
+    }
 
     async get_all(): Promise<PartnersDTO[]> {
         const partners = await this.partnersRepo.find({
@@ -84,15 +100,17 @@ export class PartnersService {
         return PartnersMapper.entityToDto(stored);
     }
 
-    async updateLogo(data: PartnersUpdateLogoDTO): Promise<PartnersDTO> {
+    async updateLogo(data: PartnersUpdateLogoDTO, callerId: string): Promise<PartnersDTO> {
+        await this.assertPartnerAccess(callerId, data.id_partner);
         const partner = await this.partnersRepo.findOneBy({ id_partner: data.id_partner });
         if (!partner) throw new BadRequestException('Partner not exists');
         partner.logo = data.new_logo;
-        this.partnersRepo.save(partner);
+        await this.partnersRepo.save(partner);
         return PartnersMapper.entityToDto(partner);
     }
 
-    async updateName(data: PartnersUpdateNameDTO): Promise<PartnersDTO> {
+    async updateName(data: PartnersUpdateNameDTO, callerId: string): Promise<PartnersDTO> {
+        await this.assertPartnerAccess(callerId, data.id_partner);
         const partner = await this.partnersRepo.findOneBy({
             id_partner: data.id_partner,
         });
@@ -110,10 +128,11 @@ export class PartnersService {
         });
     }
 
-    async addLocation({ id_partner, direction }: AddLocationDTO): Promise<boolean> {
+    async addLocation({ id_partner, direction }: AddLocationDTO, callerId: string): Promise<boolean> {
+        await this.assertPartnerAccess(callerId, id_partner);
         const partner = await this.partnersRepo.findOneBy({ id_partner });
         if (!partner) throw new NotFoundException('Partner not found');
-        await this.directionsService.create({ id_partner, direction });
+        await this.directionsService.create({ id_partner, direction }, callerId);
         return true;
     }
 

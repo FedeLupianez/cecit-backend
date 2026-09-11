@@ -48,7 +48,7 @@ export class BenefitsEntity {
     @Column({ type: 'date' })
     end_date!: Date;
 
-    @Column({ type: 'varchar', length: 500 })
+    @Column({ type: 'varchar', length: 2048 })
     image!: string;
 
     @Column({ type: 'varchar', length: 100 })
