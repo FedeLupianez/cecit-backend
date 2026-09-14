@@ -31,4 +31,17 @@ export class PartnersAdminsController {
             ),
         };
     }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Get('me/all')
+    async get_all_my_partners(@Req() request) {
+        const user = request.user;
+        if (!user)
+            throw new UnauthorizedException('User is not logged in');
+        const relations = await this.adminsService.get_all_by_account(user.user_id);
+        return relations.map((r) => ({
+            ...r.partner,
+            directions: r.partner.directions?.map((d) => d.direction),
+        }));
+    }
 }

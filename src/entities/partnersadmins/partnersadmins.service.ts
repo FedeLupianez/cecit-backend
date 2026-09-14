@@ -64,6 +64,14 @@ export class PartnersAdminsService {
         return admin;
     }
 
+    async get_all_by_account(id_account: string): Promise<PartnersAdminsEntity[]> {
+        if (!id_account) throw new BadRequestException('id_account is required');
+        return this.adminsRepo.find({
+            where: { id_account },
+            relations: ['partner', 'partner.directions'],
+        });
+    }
+
     async verify_admin(id_admin: string, id_partner: string): Promise<PartnersAdminsEntity> {
         const cached = await this.cache.get<PartnersAdminsEntity>(`admin-partner:${id_admin}_${id_partner}`);
         if (cached)
