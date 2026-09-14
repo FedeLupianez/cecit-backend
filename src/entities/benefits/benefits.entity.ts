@@ -41,11 +41,11 @@ export class BenefitsEntity {
     date_entered!: Date;
 
     @Index()
-    @Column({ type: 'date' })
+    @Column({ type: 'datetime' })
     start_date!: Date;
 
     @Index()
-    @Column({ type: 'date' })
+    @Column({ type: 'datetime' })
     end_date!: Date;
 
     @Column({ type: 'varchar', length: 2048 })
