@@ -5,6 +5,7 @@ import {
     OnModuleDestroy,
     OnModuleInit,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { VouchersEntity } from '../entities/vouchers/vouchers.entity';
@@ -57,15 +58,13 @@ const STATUS_STYLES: Record<string, string> = {
 /*
  * Imágenes fijas del layout (header/footer). Antes se descargaban
  * en cada request; ahora se cachean en memoria con TTL largo.
- * Se usa https para evitar el redirect http->https en cada fetch.
+ * La base URL se toma de FRONT_URL del .env para compatibilidad
+ * dev (localhost:5173) y prod (dominio real).
  */
-const STATIC_IMAGES = {
-    cecitLogo:
-        'https://centrodecomercioag.com.ar/wp-content/uploads/2023/07/cecit2023.png',
-    recurso6:
-        'https://centrodecomercioag.com.ar/wp-content/uploads/2025/04/Recurso-6.png',
-    recurso8:
-        'https://centrodecomercioag.com.ar/wp-content/uploads/2025/04/Recurso-8.png',
+const STATIC_IMAGE_PATHS = {
+    cecitLogo: '/logo_sin_texto.png',
+    recurso6: '/empresas.png',
+    recurso8: '/Paseos.png',
 } as const;
 
 const FETCH_TIMEOUT_MS = 5000;
@@ -99,6 +98,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     constructor(
         @InjectRepository(VouchersEntity)
         private readonly vouchersRepository: Repository<VouchersEntity>,
+        private readonly configService: ConfigService,
     ) { }
 
     onModuleInit() {
@@ -235,15 +235,25 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
         });
     }
 
+    private getStaticImagesUrls(): { cecitLogo: string; recurso6: string; recurso8: string } {
+        const frontUrl = this.configService.get<string>('FRONT_URL', 'https://centrodecomercioag.com.ar');
+        return {
+            cecitLogo: `${frontUrl}${STATIC_IMAGE_PATHS.cecitLogo}`,
+            recurso6: `${frontUrl}${STATIC_IMAGE_PATHS.recurso6}`,
+            recurso8: `${frontUrl}${STATIC_IMAGE_PATHS.recurso8}`,
+        };
+    }
+
     private async getStaticImages(): Promise<{
         cecitLogo: string;
         recurso6: string;
         recurso8: string;
     }> {
+        const urls = this.getStaticImagesUrls();
         const [cecitLogo, recurso6, recurso8] = await Promise.all([
-            this.urlToBase64(STATIC_IMAGES.cecitLogo, STATIC_IMAGE_TTL_MS),
-            this.urlToBase64(STATIC_IMAGES.recurso6, STATIC_IMAGE_TTL_MS),
-            this.urlToBase64(STATIC_IMAGES.recurso8, STATIC_IMAGE_TTL_MS),
+            this.urlToBase64(urls.cecitLogo, STATIC_IMAGE_TTL_MS),
+            this.urlToBase64(urls.recurso6, STATIC_IMAGE_TTL_MS),
+            this.urlToBase64(urls.recurso8, STATIC_IMAGE_TTL_MS),
         ]);
         return { cecitLogo, recurso6, recurso8 };
     }
@@ -818,18 +828,19 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
              * Imágenes fijas cacheadas: el primer request las descarga,
              * el resto reutiliza el base64 en memoria.
              */
+            const staticUrls = this.getStaticImagesUrls();
             const [cecitLogo, recurso6, recurso8] =
                 await Promise.all([
                     this.urlToBase64(
-                        STATIC_IMAGES.cecitLogo,
+                        staticUrls.cecitLogo,
                         STATIC_IMAGE_TTL_MS,
                     ),
                     this.urlToBase64(
-                        STATIC_IMAGES.recurso6,
+                        staticUrls.recurso6,
                         STATIC_IMAGE_TTL_MS,
                     ),
                     this.urlToBase64(
-                        STATIC_IMAGES.recurso8,
+                        staticUrls.recurso8,
                         STATIC_IMAGE_TTL_MS,
                     ),
                 ]);
