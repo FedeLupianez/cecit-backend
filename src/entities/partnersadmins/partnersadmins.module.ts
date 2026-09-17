@@ -3,13 +3,14 @@ import { PartnersAdminsController } from './partnersadmins.controller';
 import { PartnersAdminsService } from './partnersadmins.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PartnersAdminsEntity } from './partnersadmins.entity';
+import { AccountsEntity } from '../accounts/accounts.entity';
 import { PartnersModule } from '../partners/partners.module';
 import { AccountsModule } from '../accounts/accounts.module';
 import { AdminGuard } from 'src/auth/admin.guard';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([PartnersAdminsEntity]),
+        TypeOrmModule.forFeature([PartnersAdminsEntity, AccountsEntity]),
         forwardRef(() => PartnersModule),
         AccountsModule,
     ],

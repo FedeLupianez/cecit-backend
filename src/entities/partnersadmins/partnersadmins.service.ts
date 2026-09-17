@@ -14,6 +14,7 @@ import { type PartnersAdminsCreateDTO } from './partnersadmins.dto';
 import { PartnersService } from '../partners/partners.service';
 import { generateUniqueId } from 'src/common/utils/id-generator';
 import { AccountRole } from '../accounts/accounts.dto';
+import { AccountsEntity } from '../accounts/accounts.entity';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 
@@ -22,6 +23,8 @@ export class PartnersAdminsService {
     constructor(
         @InjectRepository(PartnersAdminsEntity)
         private readonly adminsRepo: Repository<PartnersAdminsEntity>,
+        @InjectRepository(AccountsEntity)
+        private readonly accountsRepo: Repository<AccountsEntity>,
         @Inject(forwardRef(() => PartnersService))
         private readonly partnersService: PartnersService,
         @Inject(CACHE_MANAGER) private cache: Cache,
@@ -72,25 +75,30 @@ export class PartnersAdminsService {
         });
     }
 
-    async verify_admin(id_admin: string, id_partner: string): Promise<PartnersAdminsEntity> {
-        const cached = await this.cache.get<PartnersAdminsEntity>(`admin-partner:${id_admin}_${id_partner}`);
-        if (cached)
+    async verify_admin(id_admin: string, id_partner: string): Promise<boolean> {
+        const cacheKey = `admin-partner:${id_admin}_${id_partner}`;
+        const cached = await this.cache.get<boolean>(cacheKey);
+        if (cached !== undefined && cached !== null)
             return cached;
+
+        const account = await this.accountsRepo.findOneBy({ id_user: id_admin });
+        if (!account)
+            throw new UnauthorizedException('User is not admin');
+        if (account.role == AccountRole.USER)
+            throw new UnauthorizedException('User is not admin');
+        if (account.role === AccountRole.CECIT_ADMIN) {
+            await this.cache.set(cacheKey, true);
+            return true;
+        }
         const relation = await this.adminsRepo.findOne({
             where: {
                 id_account: id_admin,
                 id_partner: id_partner
             },
-            relations: [
-                'partner',
-                'account'
-            ]
         });
         if (!relation)
-            throw new UnauthorizedException('User is not admin');
-        if (relation.account.role == AccountRole.USER)
-            throw new UnauthorizedException('User is not admin');
-        await this.cache.set(`admin-partner:${id_admin}_${id_partner}`, relation);
-        return relation;
+            throw new UnauthorizedException('User is not admin of this partner');
+        await this.cache.set(cacheKey, true);
+        return true;
     }
 }
