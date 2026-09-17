@@ -19,12 +19,13 @@ import {
 } from './vouchers.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { VouchersEntity, VoucherStatus } from './vouchers.entity';
-import { LessThan, Repository } from 'typeorm';
+import { DataSource, LessThan, Not, Repository } from 'typeorm';
 import { BenefitsService } from '../benefits/benefits.service';
 import { PdfService } from 'src/pdf/pdf.service';
 import { generateUniqueToken } from 'src/common/utils/id-generator';
 import { PartnersAdminsService } from '../partnersadmins/partnersadmins.service';
 import { Cron } from '@nestjs/schedule';
+import { BenefitsEntity } from '../benefits/benefits.entity';
 
 @Injectable()
 export class VouchersService {
@@ -34,7 +35,8 @@ export class VouchersService {
         private readonly vouchersRepository: Repository<VouchersEntity>,
         private readonly benefitsService: BenefitsService,
         private readonly pdfService: PdfService,
-        private readonly partnersAdminsService: PartnersAdminsService
+        private readonly partnersAdminsService: PartnersAdminsService,
+        private readonly dataSource: DataSource
     ) { }
 
     async get_all(): Promise<VouchersDTO[]> {
@@ -167,6 +169,7 @@ export class VouchersService {
 
         voucher.status = VoucherStatus.REJECTED;
         await this.vouchersRepository.save(voucher);
+        await this.benefitsService.decrementCoupons(voucher.id_benefit);
         this.logger.debug(`Voucher ${token} rejected`);
         return true;
     }
@@ -268,8 +271,28 @@ export class VouchersService {
     @Cron('0 0 * * *')
     async update_expiration_status() {
         const today = new Date();
-        await this.vouchersRepository.update({
-            limit_date: LessThan(today)
-        }, { status: VoucherStatus.EXPIRED });
+        await this.dataSource.transaction(async (manager) => {
+            const vouchers = await this.vouchersRepository.find({
+                where: {
+                    limit_date: LessThan(today),
+                    status: Not(VoucherStatus.EXPIRED)
+                }
+            });
+
+            for (const voucher of vouchers) {
+                await manager.update(
+                    VouchersEntity,
+                    { token: voucher.token },
+                    { status: VoucherStatus.EXPIRED }
+                )
+
+                await manager.decrement(
+                    BenefitsEntity,
+                    { id_benefit: voucher.id_benefit },
+                    'coupons',
+                    1
+                );
+            }
+        })
     }
 }

@@ -196,6 +196,15 @@ export class BenefitsService {
         return (result.affected ?? 0) > 0;
     }
 
+    async decrementCoupons(id_benefit: string): Promise<boolean> {
+        const result = await this.benefitsRepository.decrement(
+            { id_benefit },
+            'coupons',
+            1,
+        );
+        return (result.affected ?? 0) > 0;
+    }
+
     async get_carousel(): Promise<BenefitsDTO[]> {
         const today = new Date();
 
