@@ -41,7 +41,7 @@ export class VouchersService {
 
     async get_all(): Promise<VouchersDTO[]> {
         const vouchers = await this.vouchersRepository.find({
-            order: { application_date: 'ASC' }
+            order: { application_date: 'DESC' }
         });
         if (!vouchers) throw new InternalServerErrorException('Vouchers is empty');
 
