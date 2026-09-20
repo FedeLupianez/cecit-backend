@@ -48,8 +48,9 @@ export class VouchersController {
 
     @Get('bytoken')
     @UseGuards(AuthGuard('jwt'), AdminGuard)
-    async get_by_token(@Query('token') token: string) {
-        return await this.voucherService.get_by_token(token);
+    async get_by_token(@Query('token') token: string, @Req() req) {
+        const id_admin = req.user.user_id;
+        return await this.voucherService.get_by_token(token, id_admin);
     }
 
     @Get('userbenefit')

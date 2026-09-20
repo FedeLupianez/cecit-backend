@@ -6,6 +6,7 @@ import {
     InternalServerErrorException,
     Logger,
     NotFoundException,
+    UnauthorizedException,
 } from '@nestjs/common';
 import {
     VouchersDTO,
@@ -101,9 +102,11 @@ export class VouchersService {
         return vouchersList;
     }
 
-    async get_by_token(token: string): Promise<VoucherPartnerView> {
+    async get_by_token(token: string, id_admin: string): Promise<VoucherPartnerView> {
         if (!token)
             throw new BadRequestException('Token is empty');
+        if (!id_admin)
+            throw new UnauthorizedException('User is not logged');
         const voucher = await this.vouchersRepository.findOne({
             where: {
                 token: token
@@ -117,6 +120,12 @@ export class VouchersService {
         });
         if (!voucher)
             throw new NotFoundException('Voucher not found');
+        try {
+            await this.partnersAdminsService.verify_admin(id_admin, voucher.benefit.id_partner);
+        } catch {
+            throw new ConflictException('Voucher belongs to other business');
+        }
+
         const methods = await this.benefitsService.getPaymentMethodNames(
             voucher.benefit.id_benefit,
         );
