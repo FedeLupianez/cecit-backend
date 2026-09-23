@@ -78,6 +78,9 @@ export class BenefitsEntity {
     @Column({ type: 'int', name: 'max_per_user', default: 3 })
     max_per_user: number = 3;
 
+    @Column(({ type: 'float', name: 'refund_limit', nullable: true }))
+    refund_limit: number;
+
     @BeforeInsert()
     checkImage() {
         if (!this.image)

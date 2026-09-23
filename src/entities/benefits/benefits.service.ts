@@ -1,6 +1,4 @@
 import {
-    BenefitsMapper,
-    BenefitsDTO,
     BenefitsCreateDTO,
     BenefitIDTO,
     BenefitsUpdateDTO,
@@ -23,7 +21,7 @@ import { PartnersCategoriesReturn } from '../partners_categories/partners_catego
 import { AccountsService } from '../accounts/accounts.service';
 import { generateUniqueId } from 'src/common/utils/id-generator';
 
-import { LessThan, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
+import { LessThan } from 'typeorm';
 import { PaymentBenefitEntity } from '../payment_benefit/payment_benefit.entity';
 import { BenefitTypeService } from '../benefit-types/benefit-types.service';
 import { PartnersCategoriesService } from '../partners_categories/partners_categories.service';
@@ -36,7 +34,6 @@ export class BenefitsService {
     constructor(
         @InjectRepository(BenefitsEntity)
         private readonly benefitsRepository: Repository<BenefitsEntity>,
-
         private readonly accountService: AccountsService,
         private readonly partnersService: PartnersService,
         private readonly benefitTypeService: BenefitTypeService,
@@ -153,6 +150,15 @@ export class BenefitsService {
         return storedBenefit;
     }
 
+    async activate(benefit: BenefitIDTO): Promise<boolean> {
+        const result = await this.benefitsRepository.update(benefit.id_benefit, {
+            status: BenefitStatus.ACTIVE
+        });
+        if (!result)
+            throw new NotFoundException('Benefit not found');
+        return true;
+    }
+
     async delete(benefit: BenefitIDTO): Promise<boolean> {
         const result = await this.benefitsRepository.update(benefit.id_benefit, { status: BenefitStatus.INACTIVE });
         if (!result) {
@@ -205,24 +211,6 @@ export class BenefitsService {
         return (result.affected ?? 0) > 0;
     }
 
-    async get_carousel(): Promise<BenefitsDTO[]> {
-        const today = new Date();
-
-        const benefits = await this.findActives({
-            where: {
-                start_date: LessThanOrEqual(today),
-                end_date: MoreThanOrEqual(today),
-            },
-            order: {
-                date_entered: 'DESC',
-            },
-        });
-        if (!benefits)
-            throw new NotFoundException('Benefits not found');
-
-        return benefits.map((benefit) => BenefitsMapper.toDTO(benefit));
-    }
-
     private async mapBenefit(benefit: BenefitsEntity): Promise<BenefitsReturn> {
         if (!benefit)
             throw new BadRequestException('Invalid benefit')
@@ -248,6 +236,7 @@ export class BenefitsService {
             categories: categories || [],
             max_per_user: benefit.max_per_user,
             status: benefit.status,
+            refund_limit: benefit.refund_limit
         };
         return benefitMapped;
     }
@@ -288,7 +277,8 @@ export class BenefitsService {
                     logo: b.partner.logo,
                     categories: categories || [],
                     max_per_user: b.max_per_user,
-                    status: b.status
+                    status: b.status,
+                    refund_limit: b.refund_limit
                 };
             },
         );
@@ -304,6 +294,9 @@ export class BenefitsService {
                 'partner.categories.category',
                 'type',
             ],
+            order: {
+                date_entered: 'DESC'
+            }
         });
         if (!benefits)
             throw new InternalServerErrorException('There is no benefits yet');

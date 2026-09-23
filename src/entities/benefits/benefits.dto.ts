@@ -95,6 +95,7 @@ export interface BenefitsReturn {
     max_coupons: number;
     max_per_user: number;
     status: string;
+    refund_limit: number | null;
 }
 
 export interface CouponsReturn {

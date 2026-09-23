@@ -58,10 +58,15 @@ export class BenefitsController {
     }
 
     @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
-    @Delete()
-    async delete(@Body() benefit: BenefitIDTO) {
-        const result = await this.benefitsService.delete(benefit);
-        return result;
+    @Patch('activate')
+    async activate(@Body() benefit: BenefitIDTO) {
+        return await this.benefitsService.activate(benefit);
+    }
+
+    @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
+    @Patch('deactivate')
+    async deactivate(@Body() benefit: BenefitIDTO) {
+        return await this.benefitsService.delete(benefit);
     }
 
     @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
@@ -73,11 +78,6 @@ export class BenefitsController {
     @Get('search')
     async search(@Query() query: BenefitsSearchDTO) {
         return await this.benefitsService.search(query.text);
-    }
-
-    @Get('carousel')
-    async get_carousel() {
-        return await this.benefitsService.get_carousel();
     }
 
     @Get('benefit')
