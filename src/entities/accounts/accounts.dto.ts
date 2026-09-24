@@ -1,6 +1,7 @@
 import {
     IsBoolean,
     IsEmail,
+    IsEnum,
     IsNotEmpty,
     IsOptional,
     IsString,
@@ -47,6 +48,20 @@ export interface AccountsDTO {
     name: string;
     lastname: string;
     dni: string;
+}
+
+export class UpdateRoleDTO {
+    @IsNotEmpty()
+    @IsString()
+    id_account: string;
+
+    @IsNotEmpty()
+    @IsEnum(AccountRole)
+    newRole: AccountRole;
+
+    @IsOptional()
+    @IsString()
+    id_partner?: string;
 }
 
 export class AccountsUpdateDTO {

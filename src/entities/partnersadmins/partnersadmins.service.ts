@@ -50,6 +50,11 @@ export class PartnersAdminsService {
     ): Promise<PartnersAdminsEntity> {
         if (!id_account || !id_partner)
             throw new BadRequestException('id_account and id_partner are required');
+        const exists = await this.adminsRepo.exists({ where: { id_account, id_partner } });
+        if (exists) {
+            const existing = await this.adminsRepo.findOneBy({ id_account, id_partner });
+            return existing!;
+        }
         const newAdmin = this.adminsRepo.create({ id_account: id_account, id_partner });
         const stored = await this.adminsRepo.save(newAdmin);
         if (!stored)

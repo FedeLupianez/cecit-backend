@@ -6,14 +6,10 @@ import {
 } from '@nestjs/common';
 import { AccountRole } from 'src/entities/accounts/accounts.dto';
 import { AccountsService } from 'src/entities/accounts/accounts.service';
-import { PartnersAdminsService } from 'src/entities/partnersadmins/partnersadmins.service';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
-    constructor(
-        private readonly relationService: PartnersAdminsService,
-        private readonly accountService: AccountsService,
-    ) { }
+    constructor(private readonly accountService: AccountsService) { }
 
     private extractPartnerId(request: any): string | undefined {
         // id_partner puede venir por params, query o body según el endpoint:
@@ -44,7 +40,7 @@ export class AdminGuard implements CanActivate {
         if (jwtRole === AccountRole.CECIT_ADMIN) return true;
         if (jwtRole === AccountRole.PARTNER_ADMIN) {
             if (partnerId) {
-                await this.relationService.verify_admin(userId, partnerId);
+                await this.accountService.verify_admin(userId, partnerId);
             }
             return true;
         }
@@ -60,11 +56,11 @@ export class AdminGuard implements CanActivate {
             throw new UnauthorizedException('Admin access required');
 
         if (partnerId) {
-            await this.relationService.verify_admin(userId, partnerId);
+            await this.accountService.verify_admin(userId, partnerId);
         } else {
             // Sin partner objetivo solo validamos que exista al menos una
             // relación partner-admin (evita JWT spoofeado sin DB).
-            const relations = await this.relationService.get_all_by_account(userId);
+            const relations = await this.accountService.get_all_by_account(userId);
             if (!relations.length)
                 throw new UnauthorizedException('User is not Admin of any partner');
         }

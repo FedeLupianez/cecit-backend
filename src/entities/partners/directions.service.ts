@@ -1,8 +1,10 @@
 import {
     BadRequestException,
+    Inject,
     Injectable,
     InternalServerErrorException,
     NotFoundException,
+    forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -21,7 +23,9 @@ export class DirectionsService {
     constructor(
         @InjectRepository(Directions)
         private readonly repo: Repository<Directions>,
+        @Inject(forwardRef(() => AccountsService))
         private readonly accountsService: AccountsService,
+        @Inject(forwardRef(() => PartnersAdminsService))
         private readonly partnersAdminsService: PartnersAdminsService,
     ) { }
 

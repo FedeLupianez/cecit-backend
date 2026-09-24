@@ -12,6 +12,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PartnersModule } from 'src/entities/partners/partners.module';
 import { PartnersAdminsModule } from 'src/entities/partnersadmins/partnersadmins.module';
 import { CecitAdminGuard } from './cecitadmin.guard';
+import { AdminGuard } from './admin.guard';
 
 @Global()
 @Module({
@@ -35,7 +36,7 @@ import { CecitAdminGuard } from './cecitadmin.guard';
         forwardRef(() => PartnersAdminsModule),
     ],
     controllers: [AuthController],
-    providers: [AuthService, JwtStrategy, CecitAdminGuard],
-    exports: [PassportModule, JwtStrategy, CecitAdminGuard],
+    providers: [AuthService, JwtStrategy, CecitAdminGuard, AdminGuard],
+    exports: [PassportModule, JwtStrategy, CecitAdminGuard, AdminGuard],
 })
 export class AuthModule { }
