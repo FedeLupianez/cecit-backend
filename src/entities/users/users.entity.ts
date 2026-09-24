@@ -20,9 +20,6 @@ export class UsersEntity {
     @Column({ length: 11, type: 'varchar', name: 'dni' })
     dni: string;
 
-    @Column({ type: 'boolean', default: true })
-    active: boolean;
-
     @ManyToMany(() => PartnersEntity, (p) => p.employees)
     partners: PartnersEntity[];
 }

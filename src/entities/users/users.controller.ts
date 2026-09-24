@@ -17,7 +17,7 @@
  * y retornamos.
  * */
 
-import { Body, Controller, Delete, Get, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import type { UsersDeleteDTO } from './users.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -29,13 +29,12 @@ export class UsersController {
 
     @Get('all')
     @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
-    get_all() {
-        // Se llama al service para obtener los registrost
-        return this.userService.get_all();
+    async get_all() {
+        return await this.userService.get_all();
     }
 
-    @Delete()
     @UseGuards(AuthGuard('jwt'))
+    @Delete()
     async delete(@Body() user: UsersDeleteDTO) {
         const result = await this.userService.delete(user);
         if (!result) return { result: 'error' };

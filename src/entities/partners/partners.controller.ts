@@ -21,6 +21,7 @@ import {
 import { AdminGuard } from 'src/auth/admin.guard';
 import { CecitAdminGuard } from 'src/auth/cecitadmin.guard';
 import { AuthGuard } from '@nestjs/passport';
+import { UsersCreateNew } from '../users/users.dto';
 
 @Controller('partners')
 export class PartnersController {
@@ -45,28 +46,22 @@ export class PartnersController {
         return partner;
     }
 
-    @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
-    @Delete(':id')
-    async remove(@Param('id') id: string) {
-        return this.partnersService.remove(id);
-    }
-
     @UseGuards(AuthGuard('jwt'), AdminGuard)
     @Patch('logo')
     async updateLogo(@Body() body: PartnersUpdateLogoDTO, @Req() req) {
-        return this.partnersService.updateLogo(body, req.user?.user_id);
+        return await this.partnersService.updateLogo(body, req.user?.user_id);
     }
 
     @UseGuards(AuthGuard('jwt'), AdminGuard)
     @Patch('name')
     async updateName(@Body() body: PartnersUpdateNameDTO, @Req() req) {
-        return this.partnersService.updateName(body, req.user?.user_id);
+        return await this.partnersService.updateName(body, req.user?.user_id);
     }
 
     @UseGuards(AuthGuard('jwt'), AdminGuard)
     @Get('locations')
     async getLocations(@Query('id_partner') id_partner: string) {
-        return this.partnersService.getLocations(id_partner);
+        return await this.partnersService.getLocations(id_partner);
     }
 
     @UseGuards(AuthGuard('jwt'), AdminGuard)
@@ -74,4 +69,29 @@ export class PartnersController {
     async addLocation(@Body() body: AddLocationDTO, @Req() req) {
         return this.partnersService.addLocation(body, req.user?.user_id);
     }
+
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    @Get('employees')
+    async getEmployees(@Query('id_partner') id_partner: string) {
+        return await this.partnersService.getEmployees(id_partner);
+    }
+
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    @Post('employees')
+    async addEmployee(@Query('id_partner') id_partner: string, @Req() req, @Body() dto: UsersCreateNew) {
+        return await this.partnersService.addEmployee(id_partner, req.user.user_id, dto);
+    }
+
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    @Delete('employees')
+    async removeEmployee(@Query('id_partner') id_partner: string, @Query('dni') dni: string, @Req() req) {
+        return await this.partnersService.removeEmployee(id_partner, req.user.user_id, dni);
+    }
+
+    @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
+    @Delete('id/:id')
+    async remove(@Param('id') id: string) {
+        return await this.partnersService.remove(id);
+    }
+
 }

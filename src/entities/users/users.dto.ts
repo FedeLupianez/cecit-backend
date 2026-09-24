@@ -14,6 +14,21 @@ export interface UsersDTO {
     last_name: string;
 }
 
+
+export class UsersCreateNew {
+    @IsNotEmpty()
+    @IsString()
+    name: string;
+
+    @IsNotEmpty()
+    @IsString()
+    lastname: string;
+
+    @IsNotEmpty()
+    @IsString()
+    dni: string;
+}
+
 export class UsersCreateDTO {
     @IsNotEmpty()
     id_user: string;

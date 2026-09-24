@@ -23,14 +23,20 @@ import { generateUniqueId } from 'src/common/utils/id-generator';
 import { AccountsService } from '../accounts/accounts.service';
 import { AccountRole } from '../accounts/accounts.dto';
 import { PartnersAdminsService } from '../partnersadmins/partnersadmins.service';
+import { UsersEntity } from '../users/users.entity';
+import { UsersCreateNew } from '../users/users.dto';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class PartnersService {
     constructor(
         @InjectRepository(PartnersEntity)
         private readonly partnersRepo: Repository<PartnersEntity>,
+        @InjectRepository(UsersEntity)
+        private readonly usersRepo: Repository<UsersEntity>,
         private readonly directionsService: DirectionsService,
         private readonly accountsService: AccountsService,
+        private readonly usersService: UsersService,
         @Inject(forwardRef(() => PartnersAdminsService))
         private readonly partnersAdminsService: PartnersAdminsService,
     ) { }
@@ -155,5 +161,61 @@ export class PartnersService {
                 direction: d.direction
             }
         })
+    }
+
+    async getEmployees(id_partner: string): Promise<UsersEntity[]> {
+        const partner = await this.partnersRepo.findOne({ where: { id_partner: id_partner }, relations: ['employees'] });
+        if (!partner)
+            throw new NotFoundException('Partner not found');
+        return partner.employees;
+    }
+
+    async addEmployee(id_partner: string, callerId: string, employee: UsersCreateNew): Promise<UsersEntity[]> {
+        if (!id_partner) throw new BadRequestException('id_partner is empty');
+        if (!employee?.dni) throw new BadRequestException('dni is required');
+        await this.assertPartnerAccess(callerId, id_partner);
+
+        const partner = await this.partnersRepo.findOne({ where: { id_partner }, relations: ['employees'] });
+        if (!partner) throw new NotFoundException('Partner not found');
+
+        // Trabaja 100% con Users: crea si no existe (por dni), sino lo reutiliza
+        const user = await this.usersService.create(employee);
+
+        if (partner.employees.some((e) => e.id_user === user.id_user)) {
+            throw new BadRequestException('User is already an employee of this partner');
+        }
+
+        await this.partnersRepo
+            .createQueryBuilder()
+            .relation(PartnersEntity, 'employees')
+            .of(id_partner)
+            .add(user.id_user);
+
+        return this.getEmployees(id_partner);
+    }
+
+    async removeEmployee(id_partner: string, callerId: string, dni: string): Promise<UsersEntity[]> {
+        if (!id_partner) throw new BadRequestException('id_partner is empty');
+        if (!dni) throw new BadRequestException('dni is required');
+        await this.assertPartnerAccess(callerId, id_partner);
+
+        const partner = await this.partnersRepo.findOne({ where: { id_partner }, relations: ['employees'] });
+        if (!partner) throw new NotFoundException('Partner not found');
+
+        // Busca directo en Users por dni (no toca Accounts)
+        const user = await this.usersRepo.findOneBy({ dni });
+        if (!user) throw new NotFoundException('User not found for dni');
+
+        if (!partner.employees.some((e) => e.id_user === user.id_user)) {
+            throw new NotFoundException('User is not an employee of this partner');
+        }
+
+        await this.partnersRepo
+            .createQueryBuilder()
+            .relation(PartnersEntity, 'employees')
+            .of(id_partner)
+            .remove(user.id_user);
+
+        return this.getEmployees(id_partner);
     }
 }

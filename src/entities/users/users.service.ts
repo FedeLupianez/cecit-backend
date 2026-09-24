@@ -9,10 +9,11 @@ import {
     InternalServerErrorException,
     NotFoundException,
 } from '@nestjs/common';
-import { UsersDeleteDTO, UsersDTO, UsersMapper } from './users.dto';
+import { UsersCreateNew, UsersDeleteDTO, UsersDTO, UsersMapper } from './users.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersEntity } from './users.entity';
 import { Repository } from 'typeorm';
+import { generateUniqueId } from 'src/common/utils/id-generator';
 
 @Injectable()
 export class UsersService {
@@ -20,6 +21,22 @@ export class UsersService {
         @InjectRepository(UsersEntity)
         private readonly userRepository: Repository<UsersEntity>,
     ) { }
+
+    async create(user: UsersCreateNew): Promise<UsersEntity> {
+        const alreadyExists = await this.userRepository.findOneBy({ dni: user.dni });
+        if (alreadyExists)
+            return alreadyExists;
+        const newUser = this.userRepository.create({
+            id_user: await generateUniqueId(this.userRepository, 'id_user'),
+            dni: user.dni,
+            lastname: user.lastname,
+            name: user.name
+        })
+        const storedUser = await this.userRepository.save(newUser);
+        if (!storedUser)
+            throw new InternalServerErrorException('Error creating User');
+        return storedUser;
+    }
 
     async get_by_user_id(partner_id: string): Promise<UsersEntity> {
         const user = await this.userRepository.findOneBy({ id_user: partner_id });
@@ -44,4 +61,5 @@ export class UsersService {
         }
         return true;
     }
+
 }
