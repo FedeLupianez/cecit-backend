@@ -6,7 +6,7 @@ import { VouchersEntity, VoucherStatus } from './vouchers.entity';
 
 export interface VouchersDTO {
     token: string;
-    id_user: string;
+    id_account: string;
     id_benefit: string;
     application_date: Date;
     delivery_date: Date;
@@ -27,13 +27,13 @@ export interface VoucherReturn {
 }
 
 export interface VouchersCreateDTO {
-    id_user: string;
+    id_account: string;
     id_benefit: string;
 }
 
 export interface VouchersDeleteDTO {
     token: string;
-    id_user: string;
+    id_account: string;
 }
 
 export interface VoucherFileDTO {
@@ -58,7 +58,7 @@ export interface VoucherPartnerView extends VoucherReturn {
 export class VouchersMapper {
     static toDTO(voucher: VouchersEntity): VouchersDTO {
         return {
-            id_user: voucher.id_user,
+            id_account: voucher.id_account,
             id_benefit: voucher.id_benefit,
             token: voucher.token,
             application_date: voucher.application_date,

@@ -7,7 +7,7 @@ import {
     BeforeInsert,
     Index,
 } from 'typeorm';
-import { UsersEntity } from '../users/users.entity';
+import { AccountsEntity } from '../accounts/accounts.entity';
 import { BenefitsEntity } from '../benefits/benefits.entity';
 
 export enum VoucherStatus {
@@ -23,12 +23,12 @@ export class VouchersEntity {
     token!: string;
 
     @Index()
-    @Column({ type: 'varchar', length: 4 })
-    id_user!: string;
+    @Column({ type: 'varchar', length: 4, name: 'id_account' })
+    id_account!: string;
 
-    @ManyToOne(() => UsersEntity, { nullable: false })
-    @JoinColumn({ name: 'id_user', referencedColumnName: 'id_user' })
-    user!: UsersEntity;
+    @ManyToOne(() => AccountsEntity, { nullable: false })
+    @JoinColumn({ name: 'id_account', referencedColumnName: 'id_account' })
+    account!: AccountsEntity;
 
     @Index()
     @Column({ type: 'varchar', length: 4 })

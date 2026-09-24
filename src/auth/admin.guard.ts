@@ -40,7 +40,7 @@ export class AdminGuard implements CanActivate {
             throw new UnauthorizedException('Admin access required');
         if (relation.id_partner != partner.id_partner)
             throw new UnauthorizedException(
-                `PartnerAdmin with id ${account.id_user} has not access to partner ${partner.name}`,
+                `PartnerAdmin with id ${account.id_account} has not access to partner ${partner.name}`,
             );
         return true;
     }

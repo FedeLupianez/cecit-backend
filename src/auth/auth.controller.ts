@@ -98,11 +98,11 @@ export class AuthController {
             case 'PASSWD':
                 if (!body.new_password)
                     throw new BadRequestException('Current Password is empty');
-                return await this.authService.updatePasswd(validUser.id_user, body.new_password);
+                return await this.authService.updatePasswd(validUser.id_account, body.new_password);
             case 'EMAIL':
                 if (!body.new_email)
                     throw new BadRequestException('New email is empty');
-                return await this.authService.updateEmail(validUser.id_user, validUser.email, body.new_email);
+                return await this.authService.updateEmail(validUser.id_account, validUser.email, body.new_email);
         }
     }
 }

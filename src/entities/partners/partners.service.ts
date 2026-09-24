@@ -90,6 +90,16 @@ export class PartnersService {
         return partner;
     }
 
+    async get_by_id_with_categories(id_partner: string): Promise<PartnersEntity> {
+        if (!id_partner) throw new BadRequestException('id is empty');
+        const partner = await this.partnersRepo.findOne({
+            where: { id_partner },
+            relations: ['categories'],
+        });
+        if (!partner) throw new NotFoundException('Partner not found');
+        return partner;
+    }
+
     async get_by_name(name: string): Promise<PartnersDTO> {
         if (!name) throw new BadRequestException('partner name is empty');
         const stored = await this.partnersRepo.findOne({

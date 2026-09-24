@@ -15,6 +15,6 @@ export class PartnersAdminsEntity {
     partner: PartnersEntity;
 
     @ManyToOne(() => AccountsEntity, { nullable: false })
-    @JoinColumn({ name: 'id_account', referencedColumnName: 'id_user' })
+    @JoinColumn({ name: 'id_account', referencedColumnName: 'id_account' })
     account: AccountsEntity;
 }

@@ -13,11 +13,11 @@ import { UsersEntity } from '../users/users.entity';
 
 @Entity('Accounts')
 export class AccountsEntity {
-    @PrimaryColumn({ length: 4, type: 'varchar', name: 'id_user' })
-    id_user: string;
+    @PrimaryColumn({ length: 4, type: 'varchar', name: 'id_account' })
+    id_account: string;
 
     @OneToOne(() => UsersEntity)
-    @JoinColumn({ name: 'id_user', referencedColumnName: 'id_user' })
+    @JoinColumn({ name: 'id_account', referencedColumnName: 'id_user' })
     user: UsersEntity;
 
     @Index()
@@ -41,13 +41,6 @@ export class AccountsEntity {
         nullable: false,
     })
     role: AccountRole;
-
-    @Column({
-        type: 'timestamp',
-        name: 'last_activity',
-        default: () => 'CURRENT_TIMESTAMP',
-    })
-    last_activity: Date;
 
     @Column({ type: 'boolean', name: 'active', default: true })
     active: boolean;

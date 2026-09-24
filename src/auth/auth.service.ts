@@ -98,13 +98,13 @@ export class AuthService {
     }
     async register(account: AccountCreateDTO): Promise<TokensInterface> {
         this.logger.log(`Registering new account: ${account.email}`);
-        const partner = await this.userService.get_by_user_id(account.id_user);
+        const partner = await this.userService.get_by_user_id(account.id_account);
         if (!partner) throw new NotFoundException('User is not cecit partner');
         if (await this.accountService.has_account(account.email))
             throw new BadRequestException('User alredy has an account');
 
         const ownedPartner = await this.partnersService.getByOwnerId(
-            account.id_user,
+            account.id_account,
         );
         const newUser = await this.accountService.create({
             ...account,
@@ -113,14 +113,14 @@ export class AuthService {
 
         if (ownedPartner) {
             await this.partnersAdminsService.createByOwner(
-                newUser.id_user,
+                newUser.id_account,
                 ownedPartner.id_partner,
             );
         }
         const newToken = this.generateRefreshToken();
         await this.saveRefreshToken({ token: newToken, email: newUser.email });
         const payload = {
-            sub: newUser.id_user,
+            sub: newUser.id_account,
             email: newUser.email,
             role: newUser.role,
             jti: randomUUID(),
@@ -138,7 +138,7 @@ export class AuthService {
         const newToken = this.generateRefreshToken();
         await this.saveRefreshToken({ token: newToken, email: user.email });
         const payload = {
-            sub: user.id_user,
+            sub: user.id_account,
             email: user.email,
             role: user.role,
             jti: randomUUID(),
@@ -182,7 +182,7 @@ export class AuthService {
         if (!account) throw new UnauthorizedException('Invalid token');
 
         const payload: jwt_payload = {
-            sub: account.id_user,
+            sub: account.id_account,
             email: actualToken.email,
             role: account.role,
             jti: randomUUID(),
@@ -196,7 +196,7 @@ export class AuthService {
             refresh_token: newToken,
             // Mismo shape que GET /auth/profile (JwtStrategy.validate).
             profile: {
-                user_id: account.id_user,
+                user_id: account.id_account,
                 email: account.email,
                 role: account.role,
             },
@@ -235,9 +235,9 @@ export class AuthService {
         return payload.email;
     }
 
-    async updatePasswd(id_user: string, new_password: string): Promise<boolean> {
+    async updatePasswd(id_account: string, new_password: string): Promise<boolean> {
         const result = await this.accountService.update({
-            id_user: id_user,
+            id_account: id_account,
             password: new_password
         });
         if (!result)
@@ -245,14 +245,14 @@ export class AuthService {
         return true;
     }
 
-    async updateEmail(id_user: string, actual_email: string, new_email: string): Promise<boolean> {
+    async updateEmail(id_account: string, actual_email: string, new_email: string): Promise<boolean> {
         // Borrar los refresh tokens asociados
         await this.refreshTokenRepo.delete({
             email: actual_email
         });
 
         const result = await this.accountService.update({
-            id_user: id_user,
+            id_account: id_account,
             email: new_email
         });
         if (!result)

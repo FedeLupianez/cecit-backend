@@ -37,8 +37,13 @@ export class VouchersController {
     }
 
     @Get('byuser')
-    async get_by_user(@Query('id_user') id_user: string) {
-        return await this.voucherService.get_by_user(id_user);
+    async get_by_user(@Query('id_account') id_account: string, @Query('id_user') id_user: string) {
+        return await this.voucherService.get_by_account(id_account ?? id_user);
+    }
+
+    @Get('byaccount')
+    async get_by_account(@Query('id_account') id_account: string) {
+        return await this.voucherService.get_by_account(id_account);
     }
 
     @Get('bybenefit')
@@ -71,7 +76,7 @@ export class VouchersController {
     @Post('create')
     async create(@Body() voucher: VouchersCreateDTO) {
         this.logger.log(
-            `Creating voucher for user ${voucher.id_user}, benefit ${voucher.id_benefit}`,
+            `Creating voucher for account ${voucher.id_account}, benefit ${voucher.id_benefit}`,
         );
         const newVoucher = await this.voucherService.create(voucher);
         return VouchersMapper.toDTO(newVoucher);

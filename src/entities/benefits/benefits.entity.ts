@@ -6,10 +6,13 @@ import {
     PrimaryColumn,
     BeforeInsert,
     Index,
+    ManyToMany,
+    JoinTable,
 } from 'typeorm';
 import { BenefitTypeEntity } from '../benefit-types/benefit-types.entity';
 import { PartnersEntity } from '../partners/partners.entity';
 import { AccountsEntity } from '../accounts/accounts.entity';
+import { PaymentMethodsEntity } from '../payment-methods/payment-methods.entity';
 
 export enum BenefitStatus {
     ACTIVE = 'ACTIVE',
@@ -26,7 +29,7 @@ export class BenefitsEntity {
     id_admin!: string;
 
     @ManyToOne(() => AccountsEntity, { nullable: false })
-    @JoinColumn({ name: 'id_admin', referencedColumnName: 'id_user' })
+    @JoinColumn({ name: 'id_admin', referencedColumnName: 'id_account' })
     admin!: AccountsEntity;
 
     @Column({ type: 'varchar', length: 4 })
@@ -80,6 +83,14 @@ export class BenefitsEntity {
 
     @Column(({ type: 'float', name: 'refund_limit', nullable: true }))
     refund_limit: number;
+
+    @ManyToMany(() => PaymentMethodsEntity, (pm) => pm.benefits)
+    @JoinTable({
+        name: 'PaymentMethods_Benefits',
+        joinColumn: { name: 'id_benefit', referencedColumnName: 'id_benefit' },
+        inverseJoinColumn: { name: 'id_payment_method', referencedColumnName: 'id_payment_method' },
+    })
+    payment_methods: PaymentMethodsEntity[];
 
     @BeforeInsert()
     checkImage() {

@@ -1,5 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
-import { PartnersCategoriesEntity } from '../partners_categories/partners_categories.entity';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToMany } from 'typeorm';
+import { PartnersEntity } from '../partners/partners.entity';
 
 @Entity('Categories')
 export class CategoriesEntity {
@@ -15,6 +15,6 @@ export class CategoriesEntity {
     @Column({ default: true })
     active: boolean;
 
-    @OneToMany(() => PartnersCategoriesEntity, (pc) => pc.category)
-    partners: PartnersCategoriesEntity[];
+    @ManyToMany(() => PartnersEntity, (p) => p.categories)
+    partners: PartnersEntity[];
 }

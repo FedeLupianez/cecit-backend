@@ -2,7 +2,8 @@
  * En los archivos .entity.ts se define la
  * estructura de la tabla
  * */
-import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
+import { Entity, Column, PrimaryColumn, Index, ManyToMany } from 'typeorm';
+import { PartnersEntity } from '../partners/partners.entity';
 
 @Entity('Users')
 export class UsersEntity {
@@ -16,6 +17,12 @@ export class UsersEntity {
     lastname: string;
 
     @Index()
-    @Column({ length: 8, type: 'varchar', name: 'dni' })
+    @Column({ length: 11, type: 'varchar', name: 'dni' })
     dni: string;
+
+    @Column({ type: 'boolean', default: true })
+    active: boolean;
+
+    @ManyToMany(() => PartnersEntity, (p) => p.employees)
+    partners: PartnersEntity[];
 }

@@ -14,7 +14,7 @@ export enum AccountRole {
 
 export class AccountCreateDTO {
     @IsNotEmpty()
-    id_user: string;
+    id_account: string;
     @IsNotEmpty()
     @IsEmail()
     email: string;
@@ -32,7 +32,7 @@ export class LoginDTO {
 }
 
 export interface Account {
-    id_user: string;
+    id_account: string;
     email: string;
     password: string;
     last_activity: string;
@@ -40,11 +40,10 @@ export interface Account {
 }
 
 export interface AccountsDTO {
-    id_user: string;
+    id_account: string;
     email: string | null;
     role: AccountRole;
     active: boolean;
-    last_activity: Date;
     name: string;
     lastname: string;
     dni: string;
@@ -52,7 +51,7 @@ export interface AccountsDTO {
 
 export class AccountsUpdateDTO {
     @IsNotEmpty()
-    id_user: string;
+    id_account: string;
 
     @IsOptional()
     @IsEmail()

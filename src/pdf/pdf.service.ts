@@ -700,7 +700,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
          */
         const voucher = await this.vouchersRepository.findOne({
             where: { token },
-            relations: { user: true, benefit: { partner: { directions: true } } },
+            relations: { account: { user: true } as any, benefit: { partner: { directions: true } } },
         });
 
         if (!voucher) throw new BadRequestException('Voucher does not exists');
@@ -711,10 +711,10 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
             deliveryDate: voucher.delivery_date,
             status: voucher.status,
             customer: {
-                id: voucher.user.id_user,
-                name: voucher.user.name,
-                lastname: voucher.user.lastname,
-                dni: voucher.user.dni,
+                id: voucher.account.id_account,
+                name: voucher.account.user.name,
+                lastname: voucher.account.user.lastname,
+                dni: voucher.account.user.dni,
             },
             provider: {
                 name: voucher.benefit.partner.name,

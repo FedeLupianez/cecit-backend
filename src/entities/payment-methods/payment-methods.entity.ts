@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, ManyToMany } from 'typeorm';
+import { BenefitsEntity } from '../benefits/benefits.entity';
 
 @Entity('PaymentMethods')
 export class PaymentMethodsEntity {
@@ -10,4 +11,7 @@ export class PaymentMethodsEntity {
 
     @Column({ type: 'boolean', default: true })
     active: boolean;
+
+    @ManyToMany(() => BenefitsEntity, (b) => b.payment_methods)
+    benefits: BenefitsEntity[];
 }

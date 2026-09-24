@@ -23,7 +23,7 @@ export class AccountsService {
 
     async create(account: AccountCreateDTO): Promise<AccountsEntity> {
         const newAccount = this.accountsRepo.create({
-            id_user: account.id_user,
+            id_account: account.id_account,
             email: account.email,
             password: account.password,
         });
@@ -42,10 +42,10 @@ export class AccountsService {
         return account;
     }
 
-    async get_by_id(id_user: string): Promise<AccountsEntity> {
-        if (!id_user) throw new BadRequestException('Id is empty');
+    async get_by_id(id_account: string): Promise<AccountsEntity> {
+        if (!id_account) throw new BadRequestException('Id is empty');
         const account = await this.accountsRepo.findOneBy({
-            id_user: id_user,
+            id_account: id_account,
         });
         if (!account) throw new NotFoundException('Account not found');
         return account;
@@ -63,11 +63,10 @@ export class AccountsService {
 
     private toDTO(account: AccountsEntity): AccountsDTO {
         return {
-            id_user: account.id_user,
+            id_account: account.id_account,
             email: account.email,
             role: account.role,
             active: account.active,
-            last_activity: account.last_activity,
             name: account.user?.name ?? '',
             lastname: account.user?.lastname ?? '',
             dni: account.user?.dni ?? '',
@@ -77,7 +76,7 @@ export class AccountsService {
     async get_all(): Promise<AccountsDTO[]> {
         const accounts = await this.accountsRepo.find({
             relations: ['user'],
-            order: { id_user: 'ASC' },
+            order: { id_account: 'ASC' },
         });
         if (!accounts)
             throw new InternalServerErrorException('Accounts are empty');
@@ -85,8 +84,8 @@ export class AccountsService {
     }
 
     async update(dto: AccountsUpdateDTO): Promise<AccountsDTO> {
-        if (!dto.id_user) throw new BadRequestException('Id is empty');
-        const account = await this.get_by_id(dto.id_user);
+        if (!dto.id_account) throw new BadRequestException('Id is empty');
+        const account = await this.get_by_id(dto.id_account);
 
         if (dto.email !== undefined) {
             const newEmail = dto.email.trim().toLowerCase();
@@ -108,7 +107,7 @@ export class AccountsService {
 
         await this.accountsRepo.save(account);
         const updated = await this.accountsRepo.findOne({
-            where: { id_user: account.id_user },
+            where: { id_account: account.id_account },
             relations: ['user'],
         });
         if (!updated) throw new NotFoundException('Account not found');

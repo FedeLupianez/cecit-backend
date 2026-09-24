@@ -67,9 +67,9 @@ export class VouchersService {
         }
     }
 
-    async get_by_user(id_user: string): Promise<VoucherReturn[]> {
+    async get_by_account(id_account: string): Promise<VoucherReturn[]> {
         const vouchers = await this.vouchersRepository.findBy({
-            id_user,
+            id_account,
         });
         if (!vouchers || vouchers.length === 0) return [];
         const benefitsMap = await this.benefitsService.getMappedByIds(
@@ -91,6 +91,11 @@ export class VouchersService {
                     status: v.status,
                 };
             });
+    }
+
+    /** @deprecated use get_by_account */
+    async get_by_user(id_account: string): Promise<VoucherReturn[]> {
+        return this.get_by_account(id_account);
     }
 
     async get_by_benefit(id_benefit: string): Promise<VouchersDTO[]> {
@@ -115,7 +120,8 @@ export class VouchersService {
                 'benefit',
                 'benefit.partner',
                 'benefit.partner.directions',
-                'user'
+                'account',
+                'account.user'
             ]
         });
         if (!voucher)
@@ -137,8 +143,8 @@ export class VouchersService {
             endDate: voucher.limit_date,
             directions: (voucher.benefit.partner.directions ?? []).map((d) => d.direction),
             logo: voucher.benefit.partner.logo,
-            user_name: `${voucher.user.name} ${voucher.user.lastname}`,
-            user_dni: voucher.user.dni,
+            user_name: `${voucher.account.user.name} ${voucher.account.user.lastname}`,
+            user_dni: voucher.account.user.dni,
             methods,
             status: voucher.status
         }
@@ -196,7 +202,7 @@ export class VouchersService {
         const total = await this.vouchersRepository.count({
             where: {
                 id_benefit: vouchers.id_benefit,
-                id_user: vouchers.id_account,
+                id_account: vouchers.id_account,
             },
         })
         this.logger.debug(`Result of ${vouchers.id_benefit} | ${vouchers.id_account} = ${total}`)
@@ -221,7 +227,7 @@ export class VouchersService {
 
         const newVoucher = this.vouchersRepository.create({
             id_benefit: benefit.id_benefit,
-            id_user: voucher.id_user,
+            id_account: voucher.id_account,
         });
 
         newVoucher.token = await generateUniqueToken(this.vouchersRepository, 'token');
@@ -245,7 +251,7 @@ export class VouchersService {
         if (!token) throw new BadRequestException('Token does not exists');
         const voucher = await this.vouchersRepository.findOne({
             where: { token },
-            relations: { user: true, benefit: { partner: { directions: true } } },
+            relations: { account: { user: true } as any, benefit: { partner: { directions: true } } },
         });
         if (!voucher) throw new BadRequestException('Voucher does not exists');
 
@@ -255,10 +261,10 @@ export class VouchersService {
             deliveryDate: voucher.delivery_date,
             status: voucher.status,
             customer: {
-                id: voucher.user.id_user,
-                name: voucher.user.name,
-                lastname: voucher.user.lastname,
-                dni: voucher.user.dni,
+                id: voucher.account.id_account,
+                name: voucher.account.user.name,
+                lastname: voucher.account.user.lastname,
+                dni: voucher.account.user.dni,
             },
             provider: {
                 name: voucher.benefit.partner.name,

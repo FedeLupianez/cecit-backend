@@ -81,7 +81,7 @@ export class PartnersAdminsService {
         if (cached !== undefined && cached !== null)
             return cached;
 
-        const account = await this.accountsRepo.findOneBy({ id_user: id_admin });
+        const account = await this.accountsRepo.findOneBy({ id_account: id_admin });
         if (!account)
             throw new UnauthorizedException('User is not admin');
         if (account.role == AccountRole.USER)
