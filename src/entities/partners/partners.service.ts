@@ -221,6 +221,9 @@ export class PartnersService {
         if (!partner.employees.some((e) => e.id_user === user.id_user)) {
             throw new NotFoundException('User is not an employee of this partner');
         }
+        // Si el usuario es owner no se puede borrar
+        if (partner.id_owner === user.id_user)
+            throw new BadRequestException('User is owner, can not delete him');
 
         await this.partnersRepo
             .createQueryBuilder()

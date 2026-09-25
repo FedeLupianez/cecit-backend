@@ -17,6 +17,7 @@ import {
     UpdateRoleDTO,
 } from './accounts.dto';
 import { isEmail } from 'class-validator';
+import { PartnersEntity } from '../partners/partners.entity';
 
 @Injectable()
 export class AccountsService {
@@ -130,20 +131,18 @@ export class AccountsService {
         if (!newRole) throw new BadRequestException('newRole (or role) is required');
         if (!Object.values(AccountRole).includes(newRole as AccountRole))
             throw new BadRequestException(`Invalid role: ${newRole}`);
-
-        const result = await this.accountsRepo.update({ id_account }, { role: newRole });
-        if (!result.affected) return false;
+        const account = await this.accountsRepo.findOneBy({ id_account });
+        if (!account)
+            throw new NotFoundException('User has not account');
 
         if (newRole === AccountRole.USER) {
-            const relations = await this.partnersAdminsRepo.find({ where: { id_account: id_account }, relations: ['account'] });
-            if (!relations)
-                return false;
-            const account = relations[0].account;
+            const relations = await this.partnersAdminsRepo.find({ where: { id_account: id_account }, relations: ['account', 'partner'] });
+            const partner: PartnersEntity | undefined = relations.find(p => p.id_partner === id_partner)?.partner;
+            if (account.id_account == partner?.id_owner)
+                throw new BadRequestException('User is the owner');
             // Si es PARTNER_ADMIN de un solo negocio, cambiar el role
-            if (account.role === AccountRole.PARTNER_ADMIN && relations.length <= 1) {
-                account.role = AccountRole.USER;
-                await this.accountsRepo.save(account);
-            }
+            if (account.role === AccountRole.PARTNER_ADMIN && relations.length <= 1 || !relations)
+                await this.accountsRepo.update({ id_account: account.id_account }, { role: newRole });
         }
 
         if (newRole === AccountRole.PARTNER_ADMIN) {
@@ -162,6 +161,7 @@ export class AccountsService {
                 if (!stored)
                     throw new InternalServerErrorException('Error creating Partners_Admins record');
             }
+            await this.accountsRepo.update({ id_account: account.id_account }, { role: newRole });
         }
 
         return true;
