@@ -19,7 +19,8 @@ export class CecitAdminGuard implements CanActivate {
     // token). Si falta o no es admin, se verifica contra la DB, que es la
     // fuente de verdad (cubre tokens viejos sin rol o cambios de rol).
     if (request.user.role === AccountRole.CECIT_ADMIN) return true;
-    if (request.user.role) throw new UnauthorizedException('Admin access required');
+    if (request.user.role)
+      throw new UnauthorizedException('Admin access required');
     const user = await this.accountService.get_by_email(request.user.email);
     if (!user) throw new NotFoundException('Admin not found');
     if (user.role != AccountRole.CECIT_ADMIN)

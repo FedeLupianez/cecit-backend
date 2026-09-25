@@ -8,13 +8,13 @@ import { AccountsModule } from '../accounts/accounts.module';
 import { AdminGuard } from 'src/auth/admin.guard';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([Directions]),
-        forwardRef(() => PartnersAdminsModule),
-        AccountsModule,
-    ],
-    controllers: [DirectionsController],
-    providers: [DirectionsService, AdminGuard],
-    exports: [DirectionsService],
+  imports: [
+    TypeOrmModule.forFeature([Directions]),
+    forwardRef(() => PartnersAdminsModule),
+    AccountsModule,
+  ],
+  controllers: [DirectionsController],
+  providers: [DirectionsService, AdminGuard],
+  exports: [DirectionsService],
 })
 export class DirectionsModule {}

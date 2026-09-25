@@ -4,17 +4,17 @@ import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
 @Entity('Partners_Admins')
 export class PartnersAdminsEntity {
-    @PrimaryColumn({ type: 'varchar', length: 4, name: 'id_account' })
-    id_account: string;
+  @PrimaryColumn({ type: 'varchar', length: 4, name: 'id_account' })
+  id_account: string;
 
-    @PrimaryColumn({ type: 'varchar', length: 4, name: 'id_partner' })
-    id_partner: string;
+  @PrimaryColumn({ type: 'varchar', length: 4, name: 'id_partner' })
+  id_partner: string;
 
-    @ManyToOne(() => PartnersEntity, { nullable: false })
-    @JoinColumn({ name: 'id_partner', referencedColumnName: 'id_partner' })
-    partner: PartnersEntity;
+  @ManyToOne(() => PartnersEntity, { nullable: false })
+  @JoinColumn({ name: 'id_partner', referencedColumnName: 'id_partner' })
+  partner: PartnersEntity;
 
-    @ManyToOne(() => AccountsEntity, { nullable: false })
-    @JoinColumn({ name: 'id_account', referencedColumnName: 'id_account' })
-    account: AccountsEntity;
+  @ManyToOne(() => AccountsEntity, { nullable: false })
+  @JoinColumn({ name: 'id_account', referencedColumnName: 'id_account' })
+  account: AccountsEntity;
 }

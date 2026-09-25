@@ -1,9 +1,9 @@
 import {
-    BadRequestException,
-    Inject,
-    Injectable,
-    InternalServerErrorException,
-    NotFoundException,
+  BadRequestException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -14,64 +14,67 @@ import type { Cache } from 'cache-manager';
 
 @Injectable()
 export class CategoriesService {
-    constructor(
-        @InjectRepository(CategoriesEntity)
-        private repo: Repository<CategoriesEntity>,
-        @Inject(CACHE_MANAGER) private cache: Cache,
-    ) { }
+  constructor(
+    @InjectRepository(CategoriesEntity)
+    private repo: Repository<CategoriesEntity>,
+    @Inject(CACHE_MANAGER) private cache: Cache,
+  ) {}
 
-    async create(data: CategoriesDTO) {
-        const category = this.repo.create(data);
-        const stored = await this.repo.save(category);
-        if (!stored)
-            throw new InternalServerErrorException('Error creating category');
-        await this.cache.del('categories:all');
-        return stored;
-    }
+  async create(data: CategoriesDTO) {
+    const category = this.repo.create(data);
+    const stored = await this.repo.save(category);
+    if (!stored)
+      throw new InternalServerErrorException('Error creating category');
+    await this.cache.del('categories:all');
+    return stored;
+  }
 
-    async findAll() {
-        const cached = await this.cache.get<CategoriesDTO[]>('categories:all');
-        if (cached) return cached;
+  async findAll() {
+    const cached = await this.cache.get<CategoriesDTO[]>('categories:all');
+    if (cached) return cached;
 
-        const categories = await this.repo.find({
-            order: { name: 'ASC' }
-        });
-        if (!categories) throw new NotFoundException('Categories is Empty');
-        const mapped = categories.map((c) => CategoriesMapper.toDTO(c));
-        await this.cache.set('categories:all', mapped);
-        return mapped;
-    }
+    const categories = await this.repo.find({
+      order: { name: 'ASC' },
+    });
+    if (!categories) throw new NotFoundException('Categories is Empty');
+    const mapped = categories.map((c) => CategoriesMapper.toDTO(c));
+    await this.cache.set('categories:all', mapped);
+    return mapped;
+  }
 
-    async findActives() {
-        const cached = await this.cache.get<CategoriesDTO[]>('categories:actives');
-        if (cached) return cached;
+  async findActives() {
+    const cached = await this.cache.get<CategoriesDTO[]>('categories:actives');
+    if (cached) return cached;
 
-        const categories = await this.repo.find({
-            where: {
-                active: true
-            },
-            order: { name: 'ASC' }
-        });
-        if (!categories) throw new NotFoundException('Categories is Empty');
-        const mapped = categories.map((c) => CategoriesMapper.toDTO(c));
-        await this.cache.set('categories:active', mapped);
-        return mapped;
-    }
+    const categories = await this.repo.find({
+      where: {
+        active: true,
+      },
+      order: { name: 'ASC' },
+    });
+    if (!categories) throw new NotFoundException('Categories is Empty');
+    const mapped = categories.map((c) => CategoriesMapper.toDTO(c));
+    await this.cache.set('categories:active', mapped);
+    return mapped;
+  }
 
-    async get_by_id(id_category: number): Promise<CategoriesEntity> {
-        if (!id_category) throw new BadRequestException('Id is required');
-        const category = await this.repo.findOneBy({ id_category: id_category });
-        if (!category) throw new NotFoundException('Category not found');
-        return category;
-    }
+  async get_by_id(id_category: number): Promise<CategoriesEntity> {
+    if (!id_category) throw new BadRequestException('Id is required');
+    const category = await this.repo.findOneBy({ id_category: id_category });
+    if (!category) throw new NotFoundException('Category not found');
+    return category;
+  }
 
-    async toggleActive(id_category: number, active: boolean): Promise<CategoriesEntity> {
-        const category = await this.get_by_id(id_category);
-        category.active = active;
-        const stored = await this.repo.save(category);
-        await this.cache.del('categories:all');
-        await this.cache.del('categories:actives');
-        await this.cache.del('categories:active');
-        return stored;
-    }
+  async toggleActive(
+    id_category: number,
+    active: boolean,
+  ): Promise<CategoriesEntity> {
+    const category = await this.get_by_id(id_category);
+    category.active = active;
+    const stored = await this.repo.save(category);
+    await this.cache.del('categories:all');
+    await this.cache.del('categories:actives');
+    await this.cache.del('categories:active');
+    return stored;
+  }
 }

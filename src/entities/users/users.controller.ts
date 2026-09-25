@@ -17,7 +17,15 @@
  * y retornamos.
  * */
 
-import { Body, Controller, Delete, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import type { UsersDeleteDTO } from './users.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -25,19 +33,19 @@ import { CecitAdminGuard } from 'src/auth/cecitadmin.guard';
 
 @Controller('users')
 export class UsersController {
-    constructor(private readonly userService: UsersService) { }
+  constructor(private readonly userService: UsersService) {}
 
-    @Get('all')
-    @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
-    async get_all() {
-        return await this.userService.get_all();
-    }
+  @Get('all')
+  @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
+  async get_all() {
+    return await this.userService.get_all();
+  }
 
-    @UseGuards(AuthGuard('jwt'))
-    @Delete()
-    async delete(@Body() user: UsersDeleteDTO) {
-        const result = await this.userService.delete(user);
-        if (!result) return { result: 'error' };
-        return { result: 'ok' };
-    }
+  @UseGuards(AuthGuard('jwt'))
+  @Delete()
+  async delete(@Body() user: UsersDeleteDTO) {
+    const result = await this.userService.delete(user);
+    if (!result) return { result: 'error' };
+    return { result: 'ok' };
+  }
 }

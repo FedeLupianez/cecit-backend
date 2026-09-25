@@ -6,9 +6,9 @@ import { BenefitTypeEntity } from './benefit-types.entity';
 import { AccountsModule } from '../accounts/accounts.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([BenefitTypeEntity]), AccountsModule],
-    controllers: [BenefitTypeController],
-    providers: [BenefitTypeService],
-    exports: [BenefitTypeService],
+  imports: [TypeOrmModule.forFeature([BenefitTypeEntity]), AccountsModule],
+  controllers: [BenefitTypeController],
+  providers: [BenefitTypeService],
+  exports: [BenefitTypeService],
 })
-export class BenefitTypeModule { }
+export class BenefitTypeModule {}

@@ -7,9 +7,9 @@ import { PartnersAdminsEntity } from '../partnersadmins/partnersadmins.entity';
 import { AdminGuard } from 'src/auth/admin.guard';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([AccountsEntity, PartnersAdminsEntity])],
-    controllers: [AccountsController],
-    providers: [AccountsService, AdminGuard],
-    exports: [AccountsService],
+  imports: [TypeOrmModule.forFeature([AccountsEntity, PartnersAdminsEntity])],
+  controllers: [AccountsController],
+  providers: [AccountsService, AdminGuard],
+  exports: [AccountsService],
 })
-export class AccountsModule { }
+export class AccountsModule {}

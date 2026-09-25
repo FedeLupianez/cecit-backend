@@ -10,14 +10,14 @@ import { AccountsModule } from '../accounts/accounts.module';
 import { AdminGuard } from 'src/auth/admin.guard';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([VouchersEntity]),
-        BenefitsModule,
-        PartnersAdminsModule,
-        AccountsModule,
-    ],
-    controllers: [VouchersController],
-    providers: [VouchersService, PdfService, AdminGuard],
-    exports: [VouchersService],
+  imports: [
+    TypeOrmModule.forFeature([VouchersEntity]),
+    BenefitsModule,
+    PartnersAdminsModule,
+    AccountsModule,
+  ],
+  controllers: [VouchersController],
+  providers: [VouchersService, PdfService, AdminGuard],
+  exports: [VouchersService],
 })
-export class VouchersModule { }
+export class VouchersModule {}

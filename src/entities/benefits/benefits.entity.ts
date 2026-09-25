@@ -1,13 +1,13 @@
 import {
-    Entity,
-    Column,
-    ManyToOne,
-    JoinColumn,
-    PrimaryColumn,
-    BeforeInsert,
-    Index,
-    ManyToMany,
-    JoinTable,
+  Entity,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  PrimaryColumn,
+  BeforeInsert,
+  Index,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { BenefitTypeEntity } from '../benefit-types/benefit-types.entity';
 import { PartnersEntity } from '../partners/partners.entity';
@@ -15,86 +15,89 @@ import { AccountsEntity } from '../accounts/accounts.entity';
 import { PaymentMethodsEntity } from '../payment-methods/payment-methods.entity';
 
 export enum BenefitStatus {
-    ACTIVE = 'ACTIVE',
-    INACTIVE = 'INACTIVE',
-    PENDING = 'PENDING',
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  PENDING = 'PENDING',
 }
 
 @Entity('Benefits')
 export class BenefitsEntity {
-    @PrimaryColumn({ type: 'varchar', length: 4 })
-    id_benefit!: string;
+  @PrimaryColumn({ type: 'varchar', length: 4 })
+  id_benefit!: string;
 
-    @Column({ type: 'varchar', length: 4 })
-    id_admin!: string;
+  @Column({ type: 'varchar', length: 4 })
+  id_admin!: string;
 
-    @ManyToOne(() => AccountsEntity, { nullable: false })
-    @JoinColumn({ name: 'id_admin', referencedColumnName: 'id_account' })
-    admin!: AccountsEntity;
+  @ManyToOne(() => AccountsEntity, { nullable: false })
+  @JoinColumn({ name: 'id_admin', referencedColumnName: 'id_account' })
+  admin!: AccountsEntity;
 
-    @Column({ type: 'varchar', length: 4 })
-    id_partner!: string;
+  @Column({ type: 'varchar', length: 4 })
+  id_partner!: string;
 
-    @ManyToOne(() => PartnersEntity, { nullable: false })
-    @JoinColumn({ name: 'id_partner', referencedColumnName: 'id_partner' })
-    partner!: PartnersEntity;
+  @ManyToOne(() => PartnersEntity, { nullable: false })
+  @JoinColumn({ name: 'id_partner', referencedColumnName: 'id_partner' })
+  partner!: PartnersEntity;
 
-    @Index()
-    @Column({ type: 'date', default: () => 'CURRENT_DATE' })
-    date_entered!: Date;
+  @Index()
+  @Column({ type: 'date', default: () => 'CURRENT_DATE' })
+  date_entered!: Date;
 
-    @Index()
-    @Column({ type: 'datetime' })
-    start_date!: Date;
+  @Index()
+  @Column({ type: 'datetime' })
+  start_date!: Date;
 
-    @Index()
-    @Column({ type: 'datetime' })
-    end_date!: Date;
+  @Index()
+  @Column({ type: 'datetime' })
+  end_date!: Date;
 
-    @Column({ type: 'varchar', length: 2048 })
-    image!: string;
+  @Column({ type: 'varchar', length: 2048 })
+  image!: string;
 
-    @Column({ type: 'varchar', length: 100 })
-    title!: string;
+  @Column({ type: 'varchar', length: 100 })
+  title!: string;
 
-    @Column({ type: 'varchar', length: 500 })
-    description!: string;
+  @Column({ type: 'varchar', length: 500 })
+  description!: string;
 
-    @Index()
-    @Column({ type: 'enum', enum: BenefitStatus, default: BenefitStatus.ACTIVE })
-    status!: BenefitStatus;
+  @Index()
+  @Column({ type: 'enum', enum: BenefitStatus, default: BenefitStatus.ACTIVE })
+  status!: BenefitStatus;
 
-    @Column({ type: 'int' })
-    id_type!: number;
+  @Column({ type: 'int' })
+  id_type!: number;
 
-    @ManyToOne(() => BenefitTypeEntity, { nullable: false })
-    @JoinColumn({ name: 'id_type', referencedColumnName: 'id_type' })
-    type!: BenefitTypeEntity;
+  @ManyToOne(() => BenefitTypeEntity, { nullable: false })
+  @JoinColumn({ name: 'id_type', referencedColumnName: 'id_type' })
+  type!: BenefitTypeEntity;
 
-    @Column({ type: 'int', name: 'max_coupons' })
-    max_coupons!: number;
+  @Column({ type: 'int', name: 'max_coupons' })
+  max_coupons!: number;
 
-    @Index()
-    @Column({ type: 'int' })
-    coupons!: number;
+  @Index()
+  @Column({ type: 'int' })
+  coupons!: number;
 
-    @Column({ type: 'int', name: 'max_per_user', default: 3 })
-    max_per_user: number = 3;
+  @Column({ type: 'int', name: 'max_per_user', default: 3 })
+  max_per_user: number = 3;
 
-    @Column(({ type: 'float', name: 'refund_limit', nullable: true }))
-    refund_limit: number;
+  @Column({ type: 'float', name: 'refund_limit', nullable: true })
+  refund_limit: number;
 
-    @ManyToMany(() => PaymentMethodsEntity, (pm) => pm.benefits)
-    @JoinTable({
-        name: 'PaymentMethods_Benefits',
-        joinColumn: { name: 'id_benefit', referencedColumnName: 'id_benefit' },
-        inverseJoinColumn: { name: 'id_payment_method', referencedColumnName: 'id_payment_method' },
-    })
-    payment_methods: PaymentMethodsEntity[];
+  @ManyToMany(() => PaymentMethodsEntity, (pm) => pm.benefits)
+  @JoinTable({
+    name: 'PaymentMethods_Benefits',
+    joinColumn: { name: 'id_benefit', referencedColumnName: 'id_benefit' },
+    inverseJoinColumn: {
+      name: 'id_payment_method',
+      referencedColumnName: 'id_payment_method',
+    },
+  })
+  payment_methods: PaymentMethodsEntity[];
 
-    @BeforeInsert()
-    checkImage() {
-        if (!this.image)
-            this.image = `https://placehold.co/600x400?text=${this.title}`;
-    }
+  @BeforeInsert()
+  checkImage() {
+    if (!this.image)
+      this.image = `https://placehold.co/600x400?text=${this.title}`;
+  }
 }

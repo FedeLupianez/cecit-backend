@@ -12,16 +12,16 @@ import { AdminGuard } from 'src/auth/admin.guard';
 import { PartnersAdminsModule } from '../partnersadmins/partnersadmins.module';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([BenefitsEntity, PaymentMethodsEntity]),
-        CategoriesModule,
-        PartnersModule,
-        AccountsModule,
-        BenefitTypeModule,
-        PartnersAdminsModule
-    ],
-    providers: [BenefitsService, AdminGuard],
-    controllers: [BenefitsController],
-    exports: [BenefitsService],
+  imports: [
+    TypeOrmModule.forFeature([BenefitsEntity, PaymentMethodsEntity]),
+    CategoriesModule,
+    PartnersModule,
+    AccountsModule,
+    BenefitTypeModule,
+    PartnersAdminsModule,
+  ],
+  providers: [BenefitsService, AdminGuard],
+  controllers: [BenefitsController],
+  exports: [BenefitsService],
 })
-export class BenefitsModule { }
+export class BenefitsModule {}

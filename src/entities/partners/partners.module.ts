@@ -12,15 +12,15 @@ import { UsersModule } from '../users/users.module';
 import { AdminGuard } from 'src/auth/admin.guard';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([PartnersEntity, UsersEntity, AccountsEntity]),
-        forwardRef(() => PartnersAdminsModule),
-        AccountsModule,
-        DirectionsModule,
-        UsersModule,
-    ],
-    providers: [PartnersService, AdminGuard],
-    controllers: [PartnersController],
-    exports: [PartnersService],
+  imports: [
+    TypeOrmModule.forFeature([PartnersEntity, UsersEntity, AccountsEntity]),
+    forwardRef(() => PartnersAdminsModule),
+    AccountsModule,
+    DirectionsModule,
+    UsersModule,
+  ],
+  providers: [PartnersService, AdminGuard],
+  controllers: [PartnersController],
+  exports: [PartnersService],
 })
-export class PartnersModule { }
+export class PartnersModule {}

@@ -16,27 +16,27 @@ import { AdminGuard } from './admin.guard';
 
 @Global()
 @Module({
-    imports: [
-        PassportModule.register({ defaultStrategy: 'jwt' }),
-        JwtModule.registerAsync({
-            imports: [ConfigModule],
-            inject: [ConfigService],
-            useFactory: (configService: ConfigService) => ({
-                secret: configService.get<string>('JWT_SECRET') || 'secret',
-                signOptions: {
-                    expiresIn: (configService.get<string>('JWT_ACCESS_EXPIRATION') ||
-                        '15m') as `${number}${'s' | 'm' | 'h' | 'd'}`,
-                },
-            }),
-        }),
-        TypeOrmModule.forFeature([RefreshTokenEntity]),
-        AccountsModule,
-        forwardRef(() => UsersModule),
-        forwardRef(() => PartnersModule),
-        forwardRef(() => PartnersAdminsModule),
-    ],
-    controllers: [AuthController],
-    providers: [AuthService, JwtStrategy, CecitAdminGuard, AdminGuard],
-    exports: [PassportModule, JwtStrategy, CecitAdminGuard, AdminGuard],
+  imports: [
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET') || 'secret',
+        signOptions: {
+          expiresIn: (configService.get<string>('JWT_ACCESS_EXPIRATION') ||
+            '15m') as `${number}${'s' | 'm' | 'h' | 'd'}`,
+        },
+      }),
+    }),
+    TypeOrmModule.forFeature([RefreshTokenEntity]),
+    AccountsModule,
+    forwardRef(() => UsersModule),
+    forwardRef(() => PartnersModule),
+    forwardRef(() => PartnersAdminsModule),
+  ],
+  controllers: [AuthController],
+  providers: [AuthService, JwtStrategy, CecitAdminGuard, AdminGuard],
+  exports: [PassportModule, JwtStrategy, CecitAdminGuard, AdminGuard],
 })
-export class AuthModule { }
+export class AuthModule {}

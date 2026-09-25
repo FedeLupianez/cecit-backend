@@ -2,24 +2,24 @@ import { PartnersDTO } from './partners.dto';
 import { PartnersEntity } from './partners.entity';
 
 export class PartnersMapper {
-    static dtoToEntity(dto: PartnersDTO): PartnersEntity {
-        const entity = new PartnersEntity();
+  static dtoToEntity(dto: PartnersDTO): PartnersEntity {
+    const entity = new PartnersEntity();
 
-        entity.id_partner = dto.id_partner;
-        entity.name = dto.name.toLowerCase();
-        entity.logo = dto.logo;
-        entity.active = dto.active;
+    entity.id_partner = dto.id_partner;
+    entity.name = dto.name.toLowerCase();
+    entity.logo = dto.logo;
+    entity.active = dto.active;
 
-        return entity;
-    }
+    return entity;
+  }
 
-    static entityToDto(entity: PartnersEntity): PartnersDTO {
-        return {
-            id_partner: entity.id_partner,
-            name: entity.name,
-            logo: entity.logo,
-            directions: (entity.directions ?? []).map((d) => d.direction),
-            active: entity.active,
-        };
-    }
+  static entityToDto(entity: PartnersEntity): PartnersDTO {
+    return {
+      id_partner: entity.id_partner,
+      name: entity.name,
+      logo: entity.logo,
+      directions: (entity.directions ?? []).map((d) => d.direction),
+      active: entity.active,
+    };
+  }
 }
