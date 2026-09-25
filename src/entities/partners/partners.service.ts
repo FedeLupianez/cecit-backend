@@ -7,6 +7,7 @@ import {
     forwardRef,
 } from '@nestjs/common';
 import type {
+    AddEmployeeDTO,
     AddLocationDTO,
     GetLocationsReturn,
     PartnersCreateDTO,
@@ -17,14 +18,14 @@ import type {
 import { PartnersEntity } from './partners.entity';
 import { PartnersMapper } from './partners.mapper';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { DirectionsService } from './directions.service';
 import { generateUniqueId } from 'src/common/utils/id-generator';
 import { AccountsService } from '../accounts/accounts.service';
+import { AccountsEntity } from '../accounts/accounts.entity';
 import { AccountRole } from '../accounts/accounts.dto';
 import { PartnersAdminsService } from '../partnersadmins/partnersadmins.service';
 import { UsersEntity } from '../users/users.entity';
-import { UsersCreateNew } from '../users/users.dto';
 import { UsersService } from '../users/users.service';
 
 @Injectable()
@@ -34,6 +35,8 @@ export class PartnersService {
         private readonly partnersRepo: Repository<PartnersEntity>,
         @InjectRepository(UsersEntity)
         private readonly usersRepo: Repository<UsersEntity>,
+        @InjectRepository(AccountsEntity)
+        private readonly accountsRepo: Repository<AccountsEntity>,
         private readonly directionsService: DirectionsService,
         private readonly accountsService: AccountsService,
         private readonly usersService: UsersService,
@@ -163,24 +166,33 @@ export class PartnersService {
         })
     }
 
-    async getEmployees(id_partner: string): Promise<UsersEntity[]> {
+    async getEmployees(id_partner: string): Promise<(UsersEntity & { email: string | null; role: AccountRole | null })[]> {
         const partner = await this.partnersRepo.findOne({ where: { id_partner: id_partner }, relations: ['employees'] });
         if (!partner)
             throw new NotFoundException('Partner not found');
-        return partner.employees;
+        if (!partner.employees?.length) return [];
+        const employeeIds = partner.employees.map((e) => e.id_user);
+        const accounts = await this.accountsRepo.find({
+            where: { id_account: In(employeeIds) },
+        });
+        const accountById = new Map(accounts.map((a) => [a.id_account, a]));
+        return partner.employees.map((employee) => {
+            const account = accountById.get(employee.id_user);
+            return {
+                ...employee,
+                email: account?.email ?? null,
+                role: account?.role ?? null,
+            };
+        });
     }
 
-    async addEmployee(id_partner: string, callerId: string, employee: UsersCreateNew): Promise<UsersEntity[]> {
-        if (!id_partner) throw new BadRequestException('id_partner is empty');
-        if (!employee?.dni) throw new BadRequestException('dni is required');
-        await this.assertPartnerAccess(callerId, id_partner);
+    async addEmployee(callerId: string, employee: AddEmployeeDTO): Promise<(UsersEntity & { email: string | null; role: AccountRole | null })[]> {
+        await this.assertPartnerAccess(callerId, employee.id_partner);
 
-        const partner = await this.partnersRepo.findOne({ where: { id_partner }, relations: ['employees'] });
+        const partner = await this.partnersRepo.findOne({ where: { id_partner: employee.id_partner }, relations: ['employees'] });
         if (!partner) throw new NotFoundException('Partner not found');
 
-        // Trabaja 100% con Users: crea si no existe (por dni), sino lo reutiliza
-        const user = await this.usersService.create(employee);
-
+        const user = await this.usersService.get_by_dni(employee.dni);
         if (partner.employees.some((e) => e.id_user === user.id_user)) {
             throw new BadRequestException('User is already an employee of this partner');
         }
@@ -188,13 +200,13 @@ export class PartnersService {
         await this.partnersRepo
             .createQueryBuilder()
             .relation(PartnersEntity, 'employees')
-            .of(id_partner)
+            .of(employee.id_partner)
             .add(user.id_user);
 
-        return this.getEmployees(id_partner);
+        return this.getEmployees(employee.id_partner);
     }
 
-    async removeEmployee(id_partner: string, callerId: string, dni: string): Promise<UsersEntity[]> {
+    async removeEmployee(id_partner: string, callerId: string, dni: string): Promise<(UsersEntity & { email: string | null; role: AccountRole | null })[]> {
         if (!id_partner) throw new BadRequestException('id_partner is empty');
         if (!dni) throw new BadRequestException('dni is required');
         await this.assertPartnerAccess(callerId, id_partner);
@@ -216,6 +228,7 @@ export class PartnersService {
             .of(id_partner)
             .remove(user.id_user);
 
+        await this.accountsService.changeRole({ id_partner: id_partner, id_account: user.id_user, newRole: AccountRole.USER });
         return this.getEmployees(id_partner);
     }
 }

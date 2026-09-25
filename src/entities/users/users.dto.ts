@@ -14,7 +14,6 @@ export interface UsersDTO {
     last_name: string;
 }
 
-
 export class UsersCreateNew {
     @IsNotEmpty()
     @IsString()
@@ -28,6 +27,7 @@ export class UsersCreateNew {
     @IsString()
     dni: string;
 }
+
 
 export class UsersCreateDTO {
     @IsNotEmpty()

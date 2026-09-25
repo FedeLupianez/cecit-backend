@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsString, IsUrl, IsEmail } from 'class-validator';
+import { AccountRole } from '../accounts/accounts.dto';
 
 export interface PartnersDTO {
     id_partner: string;
@@ -61,4 +62,23 @@ export interface GetLocationsReturn {
     id_partner: string;
     id_location: number;
     direction: string;
+}
+
+export interface Employee {
+    id_user: string;
+    email: string;
+    name: string;
+    lastname: string;
+    dni: string;
+    role: AccountRole;
+}
+
+export class AddEmployeeDTO {
+    @IsNotEmpty()
+    @IsString()
+    id_partner: string;
+
+    @IsNotEmpty()
+    @IsString()
+    dni: string;
 }

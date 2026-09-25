@@ -57,9 +57,16 @@ export class UsersService {
     async delete(user: UsersDeleteDTO): Promise<boolean> {
         const result = await this.userRepository.delete({ id_user: user.id_user });
         if (!result) {
-            throw new NotFoundException('User not exists');
+            throw new NotFoundException('User does not exists');
         }
         return true;
     }
 
+
+    async get_by_dni(dni: string): Promise<UsersEntity> {
+        const result = await this.userRepository.findOneBy({ dni: dni });
+        if (!result)
+            throw new NotFoundException('User does not exists');
+        return result;
+    }
 }

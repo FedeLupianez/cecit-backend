@@ -121,26 +121,37 @@ export class AccountsService {
     }
 
     async changeRole(user: UpdateRoleDTO & Record<string, any>): Promise<boolean> {
-        // Compatibilidad: frontend puede enviar `role` en lugar de `newRole` y `idPartner`/`id_partner`
         const id_account: string | undefined = user.id_account;
         const rawRole: string | undefined = user.newRole ?? user.role ?? user.new_role;
         const id_partner: string | undefined = user.id_partner ?? user.idPartner;
         const newRole = rawRole as AccountRole | undefined;
 
-        if (!id_account) throw new BadRequestException('id_account is required');
+        if (!id_account) return false;
         if (!newRole) throw new BadRequestException('newRole (or role) is required');
         if (!Object.values(AccountRole).includes(newRole as AccountRole))
             throw new BadRequestException(`Invalid role: ${newRole}`);
 
-        const account = await this.accountsRepo.update({ id_account }, { role: newRole });
-        if (!account.affected) throw new NotFoundException('Account not Found');
+        const result = await this.accountsRepo.update({ id_account }, { role: newRole });
+        if (!result.affected) return false;
+
+        if (newRole === AccountRole.USER) {
+            const relations = await this.partnersAdminsRepo.find({ where: { id_account: id_account }, relations: ['account'] });
+            if (!relations)
+                return false;
+            const account = relations[0].account;
+            // Si es PARTNER_ADMIN de un solo negocio, cambiar el role
+            if (account.role === AccountRole.PARTNER_ADMIN && relations.length <= 1) {
+                account.role = AccountRole.USER;
+                await this.accountsRepo.save(account);
+            }
+        }
 
         if (newRole === AccountRole.PARTNER_ADMIN) {
             if (!id_partner)
                 throw new BadRequestException('id_partner is required when newRole is PARTNER_ADMIN');
 
             const exists = await this.partnersAdminsRepo.exists({
-                where: { id_account, id_partner },
+                where: { id_account, id_partner }
             });
             if (!exists) {
                 const newAdmin = this.partnersAdminsRepo.create({

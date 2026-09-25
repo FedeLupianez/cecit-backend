@@ -13,6 +13,7 @@ import {
 import { PartnersService } from './partners.service';
 import { PartnersAdminsService } from '../partnersadmins/partnersadmins.service';
 import {
+    AddEmployeeDTO,
     AddLocationDTO,
     PartnersCreateDTO,
     PartnersUpdateLogoDTO,
@@ -78,8 +79,8 @@ export class PartnersController {
 
     @UseGuards(AuthGuard('jwt'), AdminGuard)
     @Post('employees')
-    async addEmployee(@Query('id_partner') id_partner: string, @Req() req, @Body() dto: UsersCreateNew) {
-        return await this.partnersService.addEmployee(id_partner, req.user.user_id, dto);
+    async addEmployee(@Req() req, @Body() dto: AddEmployeeDTO) {
+        return await this.partnersService.addEmployee(req.user.user_id, dto);
     }
 
     @UseGuards(AuthGuard('jwt'), AdminGuard)
