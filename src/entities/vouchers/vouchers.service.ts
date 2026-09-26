@@ -15,6 +15,7 @@ import {
   ReturnCouponsUser,
   VoucherReturn,
   VoucherPartnerView,
+  VoucherRedeemedDTO,
 } from './vouchers.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { VouchersEntity, VoucherStatus } from './vouchers.entity';
@@ -107,6 +108,46 @@ export class VouchersService {
     if (!vouchers) throw new NotFoundException('Vouchers not found');
     const vouchersList = vouchers.map((v) => VouchersMapper.toDTO(v));
     return vouchersList;
+  }
+
+  async get_redeemed_by_benefit(
+    id_benefit: string,
+    id_admin: string,
+    id_partner?: string,
+  ): Promise<VoucherRedeemedDTO[]> {
+    if (!id_benefit) throw new BadRequestException('Benefit id is empty');
+    if (!id_admin) throw new UnauthorizedException('User is not logged');
+
+    const vouchers = await this.vouchersRepository.find({
+      where: { id_benefit },
+      relations: ['benefit', 'account', 'account.user'],
+      order: { application_date: 'DESC' },
+    });
+    if (!vouchers || vouchers.length === 0) return [];
+
+    const benefitPartner = vouchers[0].benefit.id_partner;
+    if (id_partner && id_partner !== benefitPartner) {
+      throw new ConflictException('Benefit belongs to other business');
+    }
+    try {
+      await this.partnersAdminsService.verify_admin(id_admin, benefitPartner);
+    } catch {
+      throw new ConflictException('Benefit belongs to other business');
+    }
+
+    return vouchers.map((v) => ({
+      token: v.token,
+      id_account: v.id_account,
+      id_user: v.account?.user?.id_user ?? v.id_account,
+      user_name: v.account?.user?.name ?? '',
+      user_lastname: v.account?.user?.lastname ?? '',
+      user_dni: v.account?.user?.dni ?? '',
+      user_email: v.account?.email ?? null,
+      application_date: v.application_date,
+      delivery_date: v.delivery_date ?? null,
+      limit_date: v.limit_date,
+      status: v.status,
+    }));
   }
 
   async get_by_token(

@@ -2,57 +2,57 @@ import { randomUUID } from 'node:crypto';
 import { Params } from 'nestjs-pino';
 
 export function createLoggerConfig(): Params {
-    return {
-        pinoHttp: {
-            level: process.env.LOG_LEVEL ?? 'debug',
+  return {
+    pinoHttp: {
+      level: process.env.LOG_LEVEL ?? 'debug',
 
-            genReqId: (req) => {
-                return req.headers['x-request-id']?.toString() ?? randomUUID();
-            },
+      genReqId: (req) => {
+        return req.headers['x-request-id']?.toString() ?? randomUUID();
+      },
 
-            customProps: (req) => ({
-                request_id: req.id,
-            }),
+      quietReqLogger: true,
+      quietResLogger: true,
 
-            customAttributeKeys: {
-                responseTime: 'response_time',
-            },
+      customAttributeKeys: {
+        reqId: 'request_id',
+        responseTime: 'response_time',
+      },
 
-            customSuccessMessage: (req, res) => {
-                return `${req.method} ${req.url}`;
-            },
+      customSuccessMessage: (req, res) => {
+        return `${req.method} ${req.url}`;
+      },
 
-            customErrorMessage: (req, res, error) => {
-                return `${req.method} ${req.url} ${error.message}`;
-            },
+      customErrorMessage: (req, res, error) => {
+        return `${req.method} ${req.url} ${error.message}`;
+      },
 
-            redact: {
-                paths: [
-                    'req.headers.authorization',
-                    'req.headers.cookie',
-                    'req.body.password',
-                    'req.body.refreshToken',
-                    'req.body.accessToken',
-                    'password',
-                    'refreshToken',
-                    'accessToken',
-                ],
-                censor: '[REDACTED]',
-            },
+      redact: {
+        paths: [
+          'req.headers.authorization',
+          'req.headers.cookie',
+          'req.body.password',
+          'req.body.refreshToken',
+          'req.body.accessToken',
+          'password',
+          'refreshToken',
+          'accessToken',
+        ],
+        censor: '[REDACTED]',
+      },
 
-            transport: {
-                target: 'pino-pretty',
-                options: {
-                    colorize: true,
-                    singleLine: true,
-                    translateTime: 'yyyy-mm-dd HH:MM:ss.l',
+      transport: {
+        target: 'pino-pretty',
+        options: {
+          colorize: true,
+          singleLine: true,
+          translateTime: 'yyyy-mm-dd HH:MM:ss.l',
 
-                    messageFormat:
-                        '[ {context} ] {msg} request_id={request_id} response_time={responseTime}',
+          messageFormat:
+            '[ {context} ] {msg} request_id={request_id} response_time={response_time}',
 
-                    ignore: 'pid,hostname',
-                },
-            },
+          ignore: 'pid,hostname,res,request_id,response_time',
         },
-    };
+      },
+    },
+  };
 }

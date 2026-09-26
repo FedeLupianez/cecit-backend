@@ -52,6 +52,21 @@ export class VouchersController {
     return await this.voucherService.get_by_benefit(id_benefit);
   }
 
+  @Get('redeemed')
+  @UseGuards(AuthGuard('jwt'), AdminGuard)
+  async get_redeemed_by_benefit(
+    @Query('id_benefit') id_benefit: string,
+    @Query('id_partner') id_partner: string,
+    @Req() req,
+  ) {
+    if (!id_benefit) throw new BadRequestException('id_benefit is required');
+    return await this.voucherService.get_redeemed_by_benefit(
+      id_benefit,
+      req.user.user_id,
+      id_partner,
+    );
+  }
+
   @Get('bytoken')
   @UseGuards(AuthGuard('jwt'), AdminGuard)
   async get_by_token(@Query('token') token: string, @Req() req) {

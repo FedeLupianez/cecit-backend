@@ -55,6 +55,21 @@ export interface VoucherPartnerView extends VoucherReturn {
   user_dni: string;
 }
 
+/** Voucher junto con los datos del usuario que lo canjeo */
+export interface VoucherRedeemedDTO {
+  token: string;
+  id_account: string;
+  id_user: string;
+  user_name: string;
+  user_lastname: string;
+  user_dni: string;
+  user_email: string | null;
+  application_date: Date;
+  delivery_date: Date | null;
+  limit_date: Date;
+  status: VoucherStatus;
+}
+
 export class VouchersMapper {
   static toDTO(voucher: VouchersEntity): VouchersDTO {
     return {
