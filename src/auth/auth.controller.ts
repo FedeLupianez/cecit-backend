@@ -11,11 +11,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { TokensInterface, UpdateProfileDTO } from './auth.dto';
+import { TokensInterface, UpdateProfileAdminDTO, UpdateProfileDTO } from './auth.dto';
 import { Throttle } from '@nestjs/throttler';
 import { AccountCreateDTO, LoginDTO } from 'src/entities/accounts/accounts.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
+import { CecitAdminGuard } from './cecitadmin.guard';
 
 const REFRESH_COOKIE = 'refresh_token_cecit';
 const REFRESH_DAYS = 7;
@@ -113,5 +114,12 @@ export class AuthController {
           body.new_email,
         );
     }
+  }
+
+  // Controller para editar perfil siendo CECIT_ADMIN
+  @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
+  @Patch('update-profile-admin')
+  async updatProfileAdmin(@Body() body: UpdateProfileAdminDTO) {
+    return await this.authService.updateEmail(body.id_account, body.email, body.new_email);
   }
 }

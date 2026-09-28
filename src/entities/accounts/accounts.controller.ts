@@ -15,12 +15,6 @@ export class AccountsController {
     return this.accountsService.get_all();
   }
 
-  @Patch()
-  @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
-  update(@Body() dto: AccountsUpdateDTO) {
-    return this.accountsService.update(dto);
-  }
-
   @Patch('role')
   @UseGuards(AuthGuard('jwt'), AdminGuard)
   async changeRole(@Body() body: UpdateRoleDTO) {

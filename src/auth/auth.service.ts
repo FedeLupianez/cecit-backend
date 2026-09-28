@@ -22,6 +22,7 @@ import { AccountsEntity } from 'src/entities/accounts/accounts.entity';
 import {
     AccountCreateDTO,
     AccountRole,
+    AccountsDTO,
     LoginDTO,
 } from 'src/entities/accounts/accounts.dto';
 import { UsersService } from 'src/entities/users/users.service';
@@ -272,7 +273,7 @@ export class AuthService {
         id_account: string,
         actual_email: string,
         new_email: string,
-    ): Promise<boolean> {
+    ): Promise<AccountsDTO> {
         // Borrar los refresh tokens asociados
         await this.refreshTokenRepo.delete({
             email: actual_email,
@@ -283,6 +284,6 @@ export class AuthService {
             email: new_email,
         });
         if (!result) throw new InternalServerErrorException('Error changing email');
-        return true;
+        return result;
     }
 }

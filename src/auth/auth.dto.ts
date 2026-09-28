@@ -49,3 +49,14 @@ export class UpdateProfileDTO {
     current_password: string;
     new_password?: string;
 }
+
+export class UpdateProfileAdminDTO {
+    @IsNotEmpty()
+    id_account: string;
+    @IsEmail()
+    @IsNotEmpty()
+    email: string;
+    @IsEmail()
+    @IsNotEmpty()
+    new_email: string;
+}
