@@ -19,7 +19,7 @@ import {
 } from './vouchers.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { VouchersEntity, VoucherStatus } from './vouchers.entity';
-import { DataSource, LessThan, Not, Repository } from 'typeorm';
+import { DataSource, LessThan, Repository } from 'typeorm';
 import { BenefitsService } from '../benefits/benefits.service';
 import { PdfService } from 'src/pdf/pdf.service';
 import { generateUniqueToken } from 'src/common/utils/id-generator';
@@ -231,7 +231,8 @@ export class VouchersService {
     if (!voucher) throw new BadRequestException('Invalid Token');
     if (
       voucher.status == VoucherStatus.EXPIRED ||
-      voucher.status == VoucherStatus.DELIVERED
+      voucher.status == VoucherStatus.DELIVERED ||
+      voucher.status == VoucherStatus.REJECTED
     )
       throw new BadRequestException('Invalid Voucher to reject');
     await this.partnersAdminsService.verify_admin(
@@ -359,7 +360,7 @@ export class VouchersService {
       const vouchers = await this.vouchersRepository.find({
         where: {
           limit_date: LessThan(today),
-          status: Not(VoucherStatus.EXPIRED),
+          status: VoucherStatus.PENDING,
         },
       });
 
