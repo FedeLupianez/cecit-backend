@@ -152,15 +152,11 @@ flowchart TD
 1. **Los dos jobs de medianoche chocan exactamente** en `00:00:00.000`. No hay
    jitter ni `CronExpression` que los separe. Convendría escalonar (`'5 0 * * *'`
    y `'10 0 * * *'`).
-2. **No existe el job inverso** que reactive beneficios cuya `start_date` ya
-   llegó. Combinado con la regla de alta (`start_date > hoy → INACTIVE`), esos
-   beneficios quedan invisibles e incanjables hasta que alguien llame
-   manualmente a `PATCH /benefits/activate`.
-3. El job de vouchers filtra por `status = PENDING` y lee los candidatos con
+2. El job de vouchers filtra por `status = PENDING` y lee los candidatos con
    `vouchersRepository` fuera de la transacción, mientras que los `UPDATE` usan
    `manager`: un canje concurrente no queda protegido. Ver
    [`vouchers.md`](./vouchers.md).
-4. `purgeExpiredRefreshTokens` corre a las 3 AM, pero `logout` y `refresh`
+3. `purgeExpiredRefreshTokens` corre a las 3 AM, pero `logout` y `refresh`
    invalidan tokens por su cuenta. El job es solo limpieza de huérfanos.
 
 ---

@@ -64,10 +64,4 @@ flowchart TD
 Detallados en [`tecnical/future.md`](../tecnical/future.md). Los más
 relevantes a nivel funcional:
 
-1. `Accounts.id_account`, `Vouchers.id_account` y las tablas `Employees` y
-   `Benefits.refund_limit` **no tienen migración**: el esquema real no coincide
-   con las entidades.
-2. Borrar un voucher no devuelve el cupón al beneficio.
-3. `PATCH /benefits` solo puede editar beneficios `ACTIVE` y dentro de ventana.
-4. Un beneficio creado con `start_date` futura nace `INACTIVE` y nada lo vuelve
-   a activar automáticamente.
+1. `PATCH /benefits` solo puede editar beneficios `ACTIVE` y dentro de ventana.
