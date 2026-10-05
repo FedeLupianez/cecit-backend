@@ -276,6 +276,11 @@ export class VouchersService {
 
     async create(voucher: VouchersCreateDTO) {
         this.logger.info(`Creating voucher for benefit ${voucher.id_benefit}`);
+        if (!voucher.id_account)
+            throw new BadRequestException('id_account is required');
+        if (!voucher.id_benefit)
+            throw new BadRequestException('id_benefit is required');
+
         const benefit = await this.benefitsService.findOneActive({
             where: { id_benefit: voucher.id_benefit },
         });

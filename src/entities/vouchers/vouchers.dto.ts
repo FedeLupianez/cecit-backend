@@ -27,7 +27,7 @@ export interface VoucherReturn {
 }
 
 export interface VouchersCreateDTO {
-  id_account: string;
+  id_account?: string;
   id_benefit: string;
 }
 

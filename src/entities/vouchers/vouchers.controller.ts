@@ -92,8 +92,13 @@ export class VouchersController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('create')
-  async create(@Body() voucher: VouchersCreateDTO) {
-    const newVoucher = await this.voucherService.create(voucher);
+  async create(@Body() voucher: VouchersCreateDTO, @Req() req) {
+    const id_account = voucher.id_account ?? req.user?.user_id;
+    if (!id_account) throw new BadRequestException('id_account is required');
+    const newVoucher = await this.voucherService.create({
+      ...voucher,
+      id_account,
+    });
     return VouchersMapper.toDTO(newVoucher);
   }
 
