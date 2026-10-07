@@ -15,7 +15,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { BenefitsEntity, BenefitStatus } from './benefits.entity';
 import {
-    Equal,
     FindManyOptions,
     FindOneOptions,
     In,
@@ -72,6 +71,7 @@ export class BenefitsService {
         return benefits;
     }
 
+
     async findOneActive(
         options?: FindOneOptions<BenefitsEntity>,
     ): Promise<BenefitsEntity> {
@@ -111,7 +111,7 @@ export class BenefitsService {
         };
     }
 
-    async create(benefit: BenefitsCreateDTO): Promise<BenefitsEntity> {
+    async createEntity(benefit: BenefitsCreateDTO): Promise<BenefitsEntity> {
         const [admin, partner, type] = await Promise.all([
             this.accountService.get_by_id(benefit.id_admin),
             this.partnersService.get_by_id(benefit.id_partner),
@@ -160,15 +160,39 @@ export class BenefitsService {
         });
         if (!newBenefit)
             throw new InternalServerErrorException('Error creating new Benefit');
+        return newBenefit;
+    }
 
+    async getRequests(): Promise<BenefitsReturn[]> {
+        const benefits = await this.benefitsRepository.find({
+            relations: this.defaultRelations,
+            where: {
+                status: BenefitStatus.PENDING,
+                partner: { categories: { active: true } },
+            },
+        });
+        return this.mapBenefits(benefits);
+    }
+
+    async create(benefit: BenefitsCreateDTO): Promise<BenefitsEntity> {
+        const newBenefit = await this.createEntity(benefit);
         const storedBenefit = await this.benefitsRepository.save(newBenefit);
         if (!storedBenefit)
             throw new InternalServerErrorException('Error creating Benefit');
+        return storedBenefit;
+    }
 
+    async createRequest(benefit: BenefitsCreateDTO): Promise<BenefitsEntity> {
+        const newBenefit = await this.createEntity(benefit);
+        newBenefit.status = BenefitStatus.PENDING;
+        const storedBenefit = await this.benefitsRepository.save(newBenefit);
+        if (!storedBenefit)
+            throw new InternalServerErrorException('Error creating Benefit');
         return storedBenefit;
     }
 
     async activate(benefit: BenefitIDTO): Promise<boolean> {
+        this.logger.info(benefit);
         const result = await this.benefitsRepository.update(benefit.id_benefit, {
             status: BenefitStatus.ACTIVE,
         });
