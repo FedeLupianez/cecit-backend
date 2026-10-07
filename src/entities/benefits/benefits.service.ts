@@ -191,24 +191,12 @@ export class BenefitsService {
         return storedBenefit;
     }
 
-    async activate(benefit: BenefitIDTO): Promise<boolean> {
-        this.logger.info(benefit);
+
+    async updateStatus(benefit: BenefitIDTO, newStatus: BenefitStatus): Promise<boolean> {
         const result = await this.benefitsRepository.update(benefit.id_benefit, {
-            status: BenefitStatus.ACTIVE,
+            status: newStatus,
         });
         if (!result) throw new NotFoundException('Benefit not found');
-        return true;
-    }
-
-    async delete(benefit: BenefitIDTO): Promise<boolean> {
-        const result = await this.benefitsRepository.update(benefit.id_benefit, {
-            status: BenefitStatus.INACTIVE,
-        });
-        if (!result) {
-            throw new NotFoundException(
-                'El beneficio que se quiere borrar no fué encontrado',
-            );
-        }
         return true;
     }
 

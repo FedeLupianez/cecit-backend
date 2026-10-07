@@ -19,6 +19,7 @@ import {
 import { CecitAdminGuard } from 'src/auth/cecitadmin.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminGuard } from 'src/auth/admin.guard';
+import { BenefitStatus } from './benefits.entity';
 
 @Controller('benefits')
 export class BenefitsController {
@@ -73,13 +74,19 @@ export class BenefitsController {
     @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
     @Patch('activate')
     async activate(@Body() benefit: BenefitIDTO) {
-        return await this.benefitsService.activate(benefit);
+        return await this.benefitsService.updateStatus(benefit, BenefitStatus.ACTIVE);
+    }
+
+    @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
+    @Patch('reject')
+    async reject(@Body() benefit: BenefitIDTO) {
+        return await this.benefitsService.updateStatus(benefit, BenefitStatus.REJECTED);
     }
 
     @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
     @Patch('deactivate')
     async deactivate(@Body() benefit: BenefitIDTO) {
-        return await this.benefitsService.delete(benefit);
+        return await this.benefitsService.updateStatus(benefit, BenefitStatus.INACTIVE);
     }
 
     @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
