@@ -1,84 +1,118 @@
 import { IsNotEmpty, IsString, IsUrl, IsEmail } from 'class-validator';
 import { AccountRole } from '../accounts/accounts.dto';
+import { UsersEntity } from '../users/users.entity';
 
 export interface PartnersDTO {
-  id_partner: string;
-  name: string;
-  logo: string;
-  directions: string[];
-  active: boolean;
+    id_partner: string;
+    name: string;
+    logo: string;
+    directions: string[];
+    active: boolean;
 }
 export interface PartnerLogo {
-  name: string;
-  logo: string;
+    name: string;
+    logo: string;
 }
 
 export class PartnersUpdateLogoDTO {
-  @IsNotEmpty()
-  id_partner: string;
-  @IsNotEmpty()
-  @IsUrl()
-  new_logo: string;
+    @IsNotEmpty()
+    id_partner: string;
+    @IsNotEmpty()
+    @IsUrl()
+    new_logo: string;
 }
 
 export class PartnersUpdateNameDTO {
-  @IsNotEmpty()
-  id_partner: string;
-  @IsNotEmpty()
-  @IsString()
-  new_name: string;
+    @IsNotEmpty()
+    id_partner: string;
+    @IsNotEmpty()
+    @IsString()
+    new_name: string;
 }
 
 export class PartnersCreateDTO {
-  @IsNotEmpty()
-  partner_name: string;
+    @IsNotEmpty()
+    partner_name: string;
 
-  @IsNotEmpty()
-  @IsEmail()
-  email: string;
+    @IsNotEmpty()
+    @IsEmail()
+    email: string;
 
-  @IsNotEmpty()
-  @IsString()
-  password: string;
+    @IsNotEmpty()
+    @IsString()
+    password: string;
 
-  @IsNotEmpty()
-  @IsUrl()
-  logo: string;
+    @IsNotEmpty()
+    @IsUrl()
+    logo: string;
 
-  @IsString({ each: true })
-  directions: string[];
+    @IsString({ each: true })
+    directions: string[];
 }
 
 export class AddLocationDTO {
-  @IsNotEmpty()
-  id_partner: string;
+    @IsNotEmpty()
+    id_partner: string;
 
-  @IsNotEmpty()
-  @IsString()
-  direction: string;
+    @IsNotEmpty()
+    @IsString()
+    direction: string;
 }
 
 export interface GetLocationsReturn {
-  id_partner: string;
-  id_location: number;
-  direction: string;
+    id_partner: string;
+    id_location: number;
+    direction: string;
 }
 
 export interface Employee {
-  id_user: string;
-  email: string;
-  name: string;
-  lastname: string;
-  dni: string;
-  role: AccountRole;
+    id_user: string;
+    email: string;
+    name: string;
+    lastname: string;
+    dni: string;
+    role: AccountRole;
 }
 
 export class AddEmployeeDTO {
-  @IsNotEmpty()
-  @IsString()
-  id_partner: string;
+    @IsNotEmpty()
+    @IsString()
+    id_partner: string;
 
-  @IsNotEmpty()
-  @IsString()
-  dni: string;
+    @IsNotEmpty()
+    @IsString()
+    dni: string;
+}
+
+/**
+ * Empleado con los datos de su cuenta resueltos. `email`, `role` y `active`
+ * vienen en `null` cuando el socio todavía no tiene cuenta registrada.
+ */
+export type EmployeeWithAccount = UsersEntity & {
+    email: string | null;
+    role: AccountRole | null;
+    active: boolean | null;
+};
+
+/**
+ * Alta de un empleado nuevo: crea el User si el dni no existe y lo asocia al
+ * partner en la misma operación. addEmployee queda para asociar un User que ya
+ * existe.
+ */
+export class CreateEmployeeDTO {
+    @IsNotEmpty()
+    @IsString()
+    id_partner: string;
+
+    @IsNotEmpty()
+    @IsString()
+    name: string;
+
+    @IsNotEmpty()
+    @IsString()
+    lastname: string;
+
+    @IsNotEmpty()
+    @IsString()
+    dni: string;
 }

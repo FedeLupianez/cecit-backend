@@ -5,6 +5,7 @@
  * */
 
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -72,5 +73,26 @@ export class UsersService {
     const result = await this.userRepository.findOneBy({ dni: dni });
     if (!result) throw new NotFoundException('User does not exists');
     return result;
+  }
+
+  /**
+   * ¿El socio está vinculado como empleado a algún negocio distinto del
+   * indicado? Se usa al remover un empleado para decidir si su cuenta debe
+   * seguir activa.
+   */
+  async is_employee_of_other_partner(
+    id_user: string,
+    id_partner_excluded: string,
+  ): Promise<boolean> {
+    if (!id_user) throw new BadRequestException('id_user is required');
+    const relations = await this.userRepository
+      .createQueryBuilder('user')
+      .innerJoin('user.partners', 'partner')
+      .where('user.id_user = :id_user', { id_user })
+      .andWhere('partner.id_partner != :id_partner', {
+        id_partner: id_partner_excluded,
+      })
+      .getCount();
+    return relations > 0;
   }
 }

@@ -32,10 +32,6 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { PinoLogger } from 'nestjs-pino';
 
 const DEFAULT_REFRESH_DAYS = 7;
-
-// Ventana en la que el refresh token anterior sigue aceptándose después de
-// rotar. Cubre navegaciones concurrentes sin abrir una ventana útil a un
-// atacante (el token viejo no extiende su vigencia, solo se acorta a esto).
 const REFRESH_GRACE_MS = 60_000;
 
 export function getRefreshDays(): number {
@@ -194,9 +190,9 @@ export class AuthService {
             this.saveRefreshToken({ token: newToken, email: actualToken.email }),
             graceExpiresAt
                 ? this.refreshTokenRepo.update(
-                      { token_hash: actualToken.token_hash },
-                      { expires_at: graceExpiresAt },
-                  )
+                    { token_hash: actualToken.token_hash },
+                    { expires_at: graceExpiresAt },
+                )
                 : Promise.resolve(),
         ]);
 

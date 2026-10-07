@@ -90,6 +90,7 @@ Protegido con `@UseGuards(AuthGuard('jwt'))`. Elimina un usuario del sistema.
 | `delete(dto)` | Borrado duro. Devuelve `true` siempre; el `404` del controlador es inalcanzable. |
 | `create(user: UsersCreateNew)` | **Nuevo.** Alta idempotente por DNI. |
 | `get_by_dni(dni)` | **Nuevo.** `404 User does not exists`. |
+| `is_employee_of_other_partner(id_user, id_partner_excluded)` | **Nuevo.** `true` si el socio está en la tabla `Employees` de algún negocio distinto al excluido. |
 
 ### `create()` — alta idempotente por DNI
 

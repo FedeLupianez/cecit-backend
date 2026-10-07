@@ -17,15 +17,7 @@
  * y retornamos.
  * */
 
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import type { UsersDeleteDTO } from './users.dto';
 import { AuthGuard } from '@nestjs/passport';

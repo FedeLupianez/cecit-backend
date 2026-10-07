@@ -17,6 +17,7 @@ import { AccountRole } from '../accounts/accounts.dto';
 import { AccountsEntity } from '../accounts/accounts.entity';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
+import { adminPartnerCacheKey } from '../../common/utils/admin-cache';
 
 @Injectable()
 export class PartnersAdminsService {
@@ -91,7 +92,7 @@ export class PartnersAdminsService {
   }
 
   async verify_admin(id_admin: string, id_partner: string): Promise<boolean> {
-    const cacheKey = `admin-partner:${id_admin}_${id_partner}`;
+    const cacheKey = adminPartnerCacheKey(id_admin, id_partner);
     const cached = await this.cache.get<boolean>(cacheKey);
     if (cached !== undefined && cached !== null) return cached;
 

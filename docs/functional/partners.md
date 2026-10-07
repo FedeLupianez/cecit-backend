@@ -64,14 +64,16 @@ mediante la tabla `Employees`. **No son un rol**: su cuenta sigue en `USER`.
 
 | Endpoint | Auth | Descripción |
 |----------|------|-------------|
-| `GET /partners/employees?id_partner=` | JWT + `AdminGuard` | Lista empleados con `email` y `role` |
+| `GET /partners/employees?id_partner=` | JWT + `AdminGuard` | Lista empleados con `email`, `role` y `active` |
 | `POST /partners/employees` | JWT + `AdminGuard` | Vincula un socio existente por `{ id_partner, dni }` |
-| `DELETE /partners/employees?id_partner=&dni=` | JWT + `AdminGuard` | Desvincula y degrada a `USER` |
+| `DELETE /partners/employees?id_partner=&dni=` | JWT + `AdminGuard` | Desvincula, degrada a `USER` y da de baja la cuenta si no trabaja en ningún otro negocio |
 
 - `POST` **no crea usuarios**: busca el socio por DNI y falla con
   `404 User does not exists` si no está registrado. `400` si ya era empleado.
 - `DELETE` **no puede quitar al dueño** del negocio
   (`400 User is owner, can not delete him`) y baja el rol de la cuenta a `USER`.
+- `DELETE` **no falla si el empleado no tiene cuenta**: en ese caso se omite la
+  degradación de rol y la baja de cuenta.
 - Para promover un empleado a `PARTNER_ADMIN`: `PATCH /accounts/role`.
 
 ---

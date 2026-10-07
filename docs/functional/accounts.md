@@ -119,6 +119,7 @@ Cambios recientes:
 | `has_account(email)` | `true` si ya existe una cuenta con ese email. |
 | `get_all()` | Todas las cuentas, ordenadas por `id_account`, con el join a `Users`. |
 | `update(dto)` | Actualiza email (normalizado a minúsculas, con validación de unicidad), password o `active`. |
+| `deactivate(id_account)` | Baja lógica: `Accounts.active = false`. Devuelve `false` si la cuenta no existe, `true` si quedó (o ya estaba) inactiva. No borra la fila. |
 | `changeRole(user)` | Lógica del `PATCH /accounts/role` (ver arriba). |
 | `verify_admin(id_admin, id_partner)` | Verificación de admin de partner **sin cache** (usada por `AdminGuard` para evitar dependencia circular con `PartnersAdminsService`). |
 | `get_all_by_account(id_account)` | Relaciones `Partners_Admins` de la cuenta. |

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -18,6 +19,9 @@ import {
 } from './accounts.dto';
 import { isEmail } from 'class-validator';
 import { PartnersEntity } from '../partners/partners.entity';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
+import { adminPartnerCacheKey } from '../../common/utils/admin-cache';
 
 @Injectable()
 export class AccountsService {
@@ -26,6 +30,7 @@ export class AccountsService {
     private readonly accountsRepo: Repository<AccountsEntity>,
     @InjectRepository(PartnersAdminsEntity)
     private readonly partnersAdminsRepo: Repository<PartnersAdminsEntity>,
+    @Inject(CACHE_MANAGER) private cache: Cache,
   ) {}
 
   async create(account: AccountCreateDTO): Promise<AccountsEntity> {
@@ -120,6 +125,20 @@ export class AccountsService {
     return this.toDTO(updated);
   }
 
+  /**
+   * Da de baja la cuenta (login) sin borrar la fila: puede tener vouchers,
+   * beneficios o pagos históricos asociados.
+   */
+  async deactivate(id_account: string): Promise<boolean> {
+    if (!id_account) throw new BadRequestException('id_account is required');
+    const account = await this.accountsRepo.findOneBy({ id_account });
+    if (!account) return false;
+    if (!account.active) return true;
+    account.active = false;
+    await this.accountsRepo.save(account);
+    return true;
+  }
+
   async changeRole(
     user: UpdateRoleDTO & Record<string, any>,
   ): Promise<boolean> {
@@ -156,6 +175,11 @@ export class AccountsService {
           { id_account: account.id_account },
           { role: newRole },
         );
+
+      // El rol pasó a USER, así que cualquier acierto cacheado queda viejo y
+      // dejaría acceso hasta que expire el TTL. Se limpian todas las
+      // relaciones porque el cambio de rol es global, no por partner.
+      await this.invalidateAdminCache(id_account, relations);
     }
 
     if (newRole === AccountRole.PARTNER_ADMIN) {
@@ -184,21 +208,54 @@ export class AccountsService {
       );
     }
 
+    // El alta como PARTNER_ADMIN no necesita invalidar: los rechazos nunca se
+    // cachean, así que el permiso nuevo ya aplica en la petición siguiente.
     return true;
+  }
+
+  /**
+   * Borra los aciertos cacheados de verify_admin para un account. Sin esto, un
+   * admin degradado a USER conservaría acceso a los endpoints de su partner
+   * hasta que expirara el TTL.
+   */
+  private async invalidateAdminCache(
+    id_account: string,
+    relations: PartnersAdminsEntity[],
+  ): Promise<void> {
+    const keys = relations.map((r) =>
+      adminPartnerCacheKey(id_account, r.id_partner),
+    );
+    if (!keys.length) return;
+    await this.cache.mdel(keys);
   }
 
   // Helpers used by AdminGuard para evitar dependencia circular con PartnersAdminsService
   async verify_admin(id_admin: string, id_partner: string): Promise<boolean> {
+    if (!id_admin || !id_partner)
+      throw new BadRequestException('id_admin and id_partner are required');
+
+    // AdminGuard corre esto en cada request a endpoint de partner, así que
+    // el acierto se cachea para evitar las dos queries por request. Solo se
+    // cachean aciertos: un rechazo siempre vuelve a DB, así un alta de
+    // permisos aplica en la petición siguiente sin esperar el TTL.
+    const cacheKey = adminPartnerCacheKey(id_admin, id_partner);
+    const cached = await this.cache.get<boolean>(cacheKey);
+    if (cached) return true;
+
     const account = await this.accountsRepo.findOneBy({ id_account: id_admin });
     if (!account) throw new UnauthorizedException('User is not admin');
     if (account.role === AccountRole.USER)
       throw new UnauthorizedException('User is not admin');
-    if (account.role === AccountRole.CECIT_ADMIN) return true;
+    if (account.role === AccountRole.CECIT_ADMIN) {
+      await this.cache.set(cacheKey, true);
+      return true;
+    }
     const relation = await this.partnersAdminsRepo.findOne({
       where: { id_account: id_admin, id_partner },
     });
     if (!relation)
       throw new UnauthorizedException('User is not admin of this partner');
+    await this.cache.set(cacheKey, true);
     return true;
   }
 

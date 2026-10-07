@@ -331,9 +331,14 @@ Protegido con `@UseGuards(AuthGuard('jwt'), AdminGuard)`.
 **Lógica:**
 1. `findOne({ where: { id_partner }, relations: ['employees'] })`. Si no existe, `404 Partner not found`.
 2. Si no hay empleados, devuelve `[]`.
-3. **Una sola consulta batch** resuelve las cuentas: `accountsRepo.find({ where: { id_account: In(employeeIds) } })`, y se le pegan `email` y `role` (`?? null`).
+3. **Una sola consulta batch** resuelve las cuentas: `accountsRepo.find({ where: { user: { id_user: In(employeeIds) } } })`, y se le pegan `email`, `role` y `active` (`?? null`).
 
 Esto evita el N+1 de consultar `Accounts` una vez por empleado.
+
+> El lookup va por la **relación** `Accounts.user` y no por la columna
+> `id_account`: en la base la columna se llama `id_user`, así que filtrar por
+> `id_account` no encontraba nada y todos los empleados salían con
+> `email: null` ("Sin cuenta") aunque tuvieran cuenta registrada.
 
 **Respuesta:**
 
@@ -345,7 +350,8 @@ Esto evita el N+1 de consultar `Accounts` una vez por empleado.
     "lastname": "Gómez",
     "dni": "33445566",
     "email": "ana@example.com",
-    "role": "USER"
+    "role": "USER",
+    "active": true
   }
 ]
 ```
@@ -431,6 +437,19 @@ AccountRole.USER })`.
 > `changeRole` solo degrada el rol si la cuenta administra **a lo sumo un**
 > negocio. Si el empleado era admin de varios, conserva `PARTNER_ADMIN` en los
 > que le quedan.
+
+**Baja de la cuenta**: después de desvincular se consulta
+`usersService.is_employee_of_other_partner(user.id_user, id_partner)`. Si el
+socio **no** sigue vinculado a ningún otro negocio, se llama
+`accountsService.deactivate(user.id_user)`, que pone `Accounts.active = false`
+(baja lógica: la fila se conserva por los vouchers y beneficios históricos).
+
+Si el empleado es empleado de otro negocio, la cuenta **sigue activa**: puede
+seguir iniciando sesión por ese otro vínculo.
+
+**Sin cuenta**: un empleado puede no tener fila en `Accounts`. En ese caso se
+omite tanto `changeRole` como `deactivate`, porque `changeRole` lanzaba
+`404 User has not account` y hacía fallar la baja de un empleado válido.
 
 **Respuesta:** el mismo array enriquecido de `GET /partners/employees`.
 
