@@ -1,5 +1,11 @@
-import { BenefitsEntity } from "./benefits.entity";
-
+import {
+    IsNotEmpty,
+    IsNumber,
+    IsOptional,
+    IsString,
+    IsUrl,
+} from 'class-validator';
+import { BenefitsEntity } from './benefits.entity';
 
 export interface BenefitsDTO {
     id_benefit: string;
@@ -28,10 +34,52 @@ export interface BenefitsCreateDTO {
     description: string;
     coupons: number;
     max_coupons: number;
+    max_per_user: number;
+    payment_methods: string[];
 }
 
-export interface BenefitsDeleteDTO {
+export class BenefitIDTO {
+    @IsNotEmpty()
     id_benefit: string;
+}
+
+export class BenefitsUpdateDTO {
+    @IsNotEmpty()
+    id_benefit: string;
+
+    @IsOptional()
+    @IsString()
+    title?: string;
+
+    @IsOptional()
+    @IsString()
+    description?: string;
+
+    @IsOptional()
+    @IsUrl()
+    image?: string;
+
+    @IsOptional()
+    start_date?: Date;
+
+    @IsOptional()
+    end_date?: Date;
+
+    @IsOptional()
+    @IsNumber()
+    coupons?: number;
+
+    @IsOptional()
+    @IsNumber()
+    max_coupons?: number;
+
+    @IsOptional()
+    @IsNumber()
+    max_per_user?: number;
+
+    @IsOptional()
+    @IsString()
+    status?: string;
 }
 
 export interface BenefitsReturn {
@@ -43,7 +91,7 @@ export interface BenefitsReturn {
     categories: string[];
     payment_methods: string[];
     logo: string;
-    direction: string;
+    directions: string[];
     start_date: Date;
     end_date: Date;
     image: string;
@@ -51,6 +99,21 @@ export interface BenefitsReturn {
     description: string;
     coupons: number;
     max_coupons: number;
+    max_per_user: number;
+    status: string;
+    refund_limit: number | null;
+}
+
+export interface CouponsReturn {
+    coupons: number;
+    max_coupons: number;
+    max_per_user: number;
+}
+
+export class BenefitsSearchDTO {
+    @IsNotEmpty()
+    @IsString()
+    text: string;
 }
 
 export class BenefitsMapper {
@@ -68,7 +131,7 @@ export class BenefitsMapper {
             id_type: benefit.id_type,
             status: benefit.status,
             coupons: benefit.coupons,
-            max_coupons: benefit.max_coupons
-        }
+            max_coupons: benefit.max_coupons,
+        };
     }
 }

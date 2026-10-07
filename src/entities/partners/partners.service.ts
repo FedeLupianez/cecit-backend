@@ -1,53 +1,94 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import type { PartnerLogo, PartnersCreateDTO, PartnersDTO, PartnersUpdateLogoDTO, PartnersUpdateNameDTO } from './partners.dto';
+import {
+    BadRequestException,
+    Inject,
+    Injectable,
+    InternalServerErrorException,
+    NotFoundException,
+    forwardRef,
+} from '@nestjs/common';
+import type {
+    AddEmployeeDTO,
+    AddLocationDTO,
+    CreateEmployeeDTO,
+    EmployeeWithAccount,
+    GetLocationsReturn,
+    PartnersCreateDTO,
+    PartnersDTO,
+    PartnersUpdateLogoDTO,
+    PartnersUpdateNameDTO,
+} from './partners.dto';
 import { PartnersEntity } from './partners.entity';
 import { PartnersMapper } from './partners.mapper';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { DbService } from 'src/common/database/db.service';
+import { In, Repository } from 'typeorm';
+import { DirectionsService } from './directions.service';
+import { generateUniqueId } from 'src/common/utils/id-generator';
+import { AccountsService } from '../accounts/accounts.service';
+import { AccountsEntity } from '../accounts/accounts.entity';
+import { AccountRole } from '../accounts/accounts.dto';
+import { PartnersAdminsService } from '../partnersadmins/partnersadmins.service';
+import { UsersEntity } from '../users/users.entity';
+import { UsersService } from '../users/users.service';
+import { PinoLogger } from 'nestjs-pino';
 
 @Injectable()
 export class PartnersService {
     constructor(
-        @InjectRepository(PartnersEntity) private readonly partnersRepo: Repository<PartnersEntity>,
-        private readonly dbService: DbService
+        @InjectRepository(PartnersEntity)
+        private readonly partnersRepo: Repository<PartnersEntity>,
+        @InjectRepository(UsersEntity)
+        private readonly usersRepo: Repository<UsersEntity>,
+        @InjectRepository(AccountsEntity)
+        private readonly accountsRepo: Repository<AccountsEntity>,
+        private readonly directionsService: DirectionsService,
+        private readonly accountsService: AccountsService,
+        private readonly usersService: UsersService,
+        @Inject(forwardRef(() => PartnersAdminsService))
+        private readonly partnersAdminsService: PartnersAdminsService,
+        private readonly logger: PinoLogger,
     ) { }
 
-    async get_all(): Promise<PartnerLogo[]> {
-        const partners = await this.partnersRepo.find(
-            {
-                select: {
-                    name: true,
-                    logo: true,
-                },
-            }
-        );
-        if (!partners)
-            throw new NotFoundException('Partners are empty');
-        return partners;
+    private async assertPartnerAccess(
+        callerId: string,
+        id_partner: string,
+    ): Promise<void> {
+        if (!callerId) throw new BadRequestException('Caller id is required');
+        if (!id_partner) throw new BadRequestException('id is empty');
+        const caller = await this.accountsService.get_by_id(callerId);
+        if (caller?.role === AccountRole.CECIT_ADMIN) return;
+        await this.partnersAdminsService.verify_admin(callerId, id_partner);
+    }
+
+    async get_all(): Promise<PartnersDTO[]> {
+        const partners = await this.partnersRepo.find({
+            relations: { directions: true },
+            order: { name: 'ASC' },
+        });
+        if (!partners) throw new NotFoundException('Partners are empty');
+        return partners.map((partner) => PartnersMapper.entityToDto(partner));
     }
 
     async create(partner: PartnersCreateDTO): Promise<PartnersEntity> {
-        const newId = await this.dbService.getNewId('Partners', 'id_partner');
+        const newId = await generateUniqueId(this.partnersRepo, 'id_partner');
         const newPartner = this.partnersRepo.create({
             id_partner: newId,
             name: partner.partner_name.toLowerCase(),
-            direction: partner.direction,
-            logo: partner.logo
-        })
+            logo: partner.logo,
+        });
         const storedPartner = await this.partnersRepo.save(newPartner);
         if (!storedPartner) {
             throw new InternalServerErrorException('Partner was not created');
+        }
+        if (partner.directions?.length) {
+            await this.directionsService.createMany(newId, partner.directions);
         }
         return storedPartner;
     }
 
     async remove(id: string): Promise<boolean> {
-        if (!id)
-            throw new BadRequestException('id is empty');
+        if (!id) throw new BadRequestException('id is empty');
         const partner = await this.partnersRepo.findOneBy({ id_partner: id });
-        if (!partner)
-            throw new NotFoundException('Partner not found');
+        if (!partner) throw new NotFoundException('Partner not found');
         const result = await this.partnersRepo.delete(partner);
         if (!result)
             throw new InternalServerErrorException('Error deleting partner');
@@ -55,40 +96,261 @@ export class PartnersService {
     }
 
     async get_by_id(id_partner: string): Promise<PartnersEntity> {
-        if (!id_partner)
-            throw new BadRequestException('id is empty');
-        const partner = await this.partnersRepo.findOneBy({ id_partner: id_partner });
-        if (!partner)
-            throw new NotFoundException('Partner not found');
+        if (!id_partner) throw new BadRequestException('id is empty');
+        const partner = await this.partnersRepo.findOneBy({
+            id_partner: id_partner,
+        });
+        if (!partner) throw new NotFoundException('Partner not found');
+        return partner;
+    }
+
+    async get_by_id_with_categories(id_partner: string): Promise<PartnersEntity> {
+        if (!id_partner) throw new BadRequestException('id is empty');
+        const partner = await this.partnersRepo.findOne({
+            where: { id_partner },
+            relations: ['categories'],
+        });
+        if (!partner) throw new NotFoundException('Partner not found');
         return partner;
     }
 
     async get_by_name(name: string): Promise<PartnersDTO> {
-        if (!name)
-            throw new BadRequestException('partner name is empty');
-        const stored = await this.partnersRepo.findOneBy({ name: name });
-        if (!stored)
-            throw new NotFoundException('Partner not exists');
+        if (!name) throw new BadRequestException('partner name is empty');
+        const stored = await this.partnersRepo.findOne({
+            where: { name: name },
+            relations: { directions: true },
+        });
+        if (!stored) throw new NotFoundException('Partner not exists');
         return PartnersMapper.entityToDto(stored);
     }
 
-    async updateLogo(data: PartnersUpdateLogoDTO): Promise<PartnersDTO> {
-        const partner = await this.partnersRepo.findOneBy({ id_partner: data.id_partner });
-        if (!partner)
-            throw new BadRequestException('Partner not exists');
+    async updateLogo(
+        data: PartnersUpdateLogoDTO,
+        callerId: string,
+    ): Promise<PartnersDTO> {
+        await this.assertPartnerAccess(callerId, data.id_partner);
+        const partner = await this.partnersRepo.findOneBy({
+            id_partner: data.id_partner,
+        });
+        if (!partner) throw new BadRequestException('Partner not exists');
         partner.logo = data.new_logo;
-        this.partnersRepo.save(partner);
+        await this.partnersRepo.save(partner);
         return PartnersMapper.entityToDto(partner);
     }
 
-
-    async updateName(data: PartnersUpdateNameDTO): Promise<PartnersDTO> {
-        const partner = await this.partnersRepo.findOneBy({ id_partner: data.id_partner });
-        if (!partner)
-            throw new BadRequestException('Partner not exists');
+    async updateName(
+        data: PartnersUpdateNameDTO,
+        callerId: string,
+    ): Promise<PartnersDTO> {
+        await this.assertPartnerAccess(callerId, data.id_partner);
+        const partner = await this.partnersRepo.findOneBy({
+            id_partner: data.id_partner,
+        });
+        if (!partner) throw new BadRequestException('Partner not exists');
         partner.name = data.new_name.toLowerCase();
-        this.partnersRepo.save(partner);
+        await this.partnersRepo.save(partner);
         return PartnersMapper.entityToDto(partner);
     }
 
+    async getByOwnerId(id_owner: string): Promise<PartnersEntity | null> {
+        return await this.partnersRepo.findOne({
+            where: {
+                id_owner,
+            },
+        });
+    }
+
+    async addLocation(
+        { id_partner, direction }: AddLocationDTO,
+        callerId: string,
+    ): Promise<boolean> {
+        await this.assertPartnerAccess(callerId, id_partner);
+        const partner = await this.partnersRepo.findOneBy({ id_partner });
+        if (!partner) throw new NotFoundException('Partner not found');
+        await this.directionsService.create({ id_partner, direction }, callerId);
+        return true;
+    }
+
+    async getLocations(id_partner: string): Promise<GetLocationsReturn[]> {
+        const directions = await this.directionsService.findByPartner(id_partner);
+        return directions.map((d) => {
+            return {
+                id_partner: d.id_partner,
+                id_location: d.id_direction,
+                direction: d.direction,
+            };
+        });
+    }
+
+    async getEmployees(id_partner: string): Promise<EmployeeWithAccount[]> {
+        const partner = await this.partnersRepo.findOne({
+            where: { id_partner },
+            relations: ['employees'],
+        });
+
+        if (!partner) {
+            throw new NotFoundException('Partner not found');
+        }
+
+        if (!partner.employees?.length) {
+            return [];
+        }
+
+        const employeeIds = partner.employees.map((e) => e.id_user);
+
+        const accounts = await this.accountsRepo.find({
+            where: {
+                user: {
+                    id_user: In(employeeIds),
+                },
+            },
+            relations: ['user'],
+        });
+
+        const accountByUserId = new Map(
+            accounts
+                .filter((account) => account.user?.id_user)
+                .map((account) => [account.user.id_user, account]),
+        );
+
+        return partner.employees.map((employee) => {
+            const account = accountByUserId.get(employee.id_user);
+
+            return {
+                ...employee,
+                email: account?.email ?? null,
+                role: account?.role ?? null,
+                active: account?.active ?? null,
+            };
+        });
+    }
+
+    async addEmployee(
+        callerId: string,
+        employee: AddEmployeeDTO,
+    ): Promise<EmployeeWithAccount[]> {
+        await this.assertPartnerAccess(callerId, employee.id_partner);
+
+        const partner = await this.partnersRepo.findOne({
+            where: { id_partner: employee.id_partner },
+            relations: ['employees'],
+        });
+        if (!partner) throw new NotFoundException('Partner not found');
+
+        const user = await this.usersService.get_by_dni(employee.dni);
+        return await this.attachEmployee(partner, user);
+    }
+
+    /**
+     * Alta de empleado: crea el User si el dni no existe y lo asocia al partner.
+     *Separado de addEmployee para no cambiar el contrato de ese endpoint, que
+     * sigue exigiendo que el User ya exista.
+     */
+    async createEmployee(
+        callerId: string,
+        employee: CreateEmployeeDTO,
+    ): Promise<EmployeeWithAccount[]> {
+        if (!employee?.dni) throw new BadRequestException('dni is required');
+        await this.assertPartnerAccess(callerId, employee.id_partner);
+
+        const partner = await this.partnersRepo.findOne({
+            where: { id_partner: employee.id_partner },
+            relations: ['employees'],
+        });
+        if (!partner) throw new NotFoundException('Partner not found');
+
+        // usersService.create devuelve el existente si el dni ya está registrado,
+        // así que este endpoint es idempotente respecto del alta del User.
+        const user = await this.usersService.create({
+            name: employee.name,
+            lastname: employee.lastname,
+            dni: employee.dni,
+        });
+
+        return await this.attachEmployee(partner, user);
+    }
+
+    /**
+     * Asocia un User al partner, rechazando el duplicado. Envuelve la escritura de
+     * la relación para que addEmployee y createEmployee no diverjan.
+     */
+    private async attachEmployee(
+        partner: PartnersEntity,
+        user: UsersEntity,
+    ): Promise<EmployeeWithAccount[]> {
+        if (partner.employees.some((e) => e.id_user === user.id_user)) {
+            throw new BadRequestException(
+                'User is already an employee of this partner',
+            );
+        }
+
+        await this.partnersRepo
+            .createQueryBuilder()
+            .relation(PartnersEntity, 'employees')
+            .of(partner.id_partner)
+            .add(user.id_user);
+
+        return this.getEmployees(partner.id_partner);
+    }
+
+    async removeEmployee(
+        id_partner: string,
+        callerId: string,
+        dni: string,
+    ): Promise<EmployeeWithAccount[]> {
+        if (!id_partner) throw new BadRequestException('id_partner is empty');
+        if (!dni) throw new BadRequestException('dni is required');
+        await this.assertPartnerAccess(callerId, id_partner);
+
+        const partner = await this.partnersRepo.findOne({
+            where: { id_partner },
+            relations: ['employees'],
+        });
+        if (!partner) throw new NotFoundException('Partner not found');
+
+        // Busca directo en Users por dni (no toca Accounts)
+        const user = await this.usersRepo.findOneBy({ dni });
+        if (!user) throw new NotFoundException('User not found for dni');
+
+        if (!partner.employees.some((e) => e.id_user === user.id_user)) {
+            throw new NotFoundException('User is not an employee of this partner');
+        }
+        // Si el usuario es owner no se puede borrar
+        if (partner.id_owner === user.id_user)
+            throw new BadRequestException('User is owner, can not delete him');
+
+        await this.partnersRepo
+            .createQueryBuilder()
+            .relation(PartnersEntity, 'employees')
+            .of(id_partner)
+            .remove(user.id_user);
+
+        // Un empleado puede no tener cuenta (así lo muestra el listado), y en
+        // ese caso ni `changeRole` ni `deactivate` tienen nada que hacer.
+        const hasAccount = await this.accountsRepo.exists({
+            where: { user: { id_user: user.id_user } },
+        });
+
+        if (hasAccount) {
+            await this.accountsService.changeRole({
+                id_partner: id_partner,
+                id_account: user.id_user,
+                newRole: AccountRole.USER,
+            });
+
+            // Si ya no trabaja en ningún otro negocio, la cuenta queda inactiva
+            // para que no pueda iniciar sesión. `changeRole` degrada el rol pero
+            // no toca `active`, así que la baja va aparte.
+            const worksElsewhere =
+                await this.usersService.is_employee_of_other_partner(
+                    user.id_user,
+                    id_partner,
+                );
+            if (!worksElsewhere) {
+                await this.accountsService.deactivate(user.id_user);
+            }
+        }
+
+        return this.getEmployees(id_partner);
+    }
 }
