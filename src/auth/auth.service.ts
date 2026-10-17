@@ -30,6 +30,7 @@ import { PartnersService } from 'src/entities/partners/partners.service';
 import { PartnersAdminsService } from 'src/entities/partnersadmins/partnersadmins.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PinoLogger } from 'nestjs-pino';
+import { ConfigService } from '@nestjs/config';
 
 const DEFAULT_REFRESH_DAYS = 7;
 const REFRESH_GRACE_MS = 60_000;
@@ -44,6 +45,7 @@ export class AuthService {
         private readonly logger: PinoLogger,
         private readonly partnersService: PartnersService,
         private readonly jwtService: JwtService,
+        private readonly configService: ConfigService,
         @InjectRepository(RefreshTokenEntity)
         private readonly refreshTokenRepo: Repository<RefreshTokenEntity>,
         private readonly accountService: AccountsService,
@@ -125,36 +127,14 @@ export class AuthService {
                 ownedPartner.id_partner,
             );
         }
-        const newToken = this.generateRefreshToken();
-        await this.saveRefreshToken({ token: newToken, email: newUser.email });
-        const payload = {
-            sub: newUser.id_account,
-            email: newUser.email,
-            role: newUser.role,
-            jti: randomUUID(),
-        };
-        return {
-            access_token: this.jwtService.sign(payload),
-            refresh_token: newToken,
-        };
+        return this.generateTokens(newUser);
     }
 
     async login(userLogin: LoginDTO): Promise<TokensInterface> {
         this.logger.info(`Login attempt: ${userLogin.email}`);
         const user = await this.validateUser(userLogin.email, userLogin.password);
         if (!user) throw new UnauthorizedException('Invalid credentials');
-        const newToken = this.generateRefreshToken();
-        await this.saveRefreshToken({ token: newToken, email: user.email });
-        const payload = {
-            sub: user.id_account,
-            email: user.email,
-            role: user.role,
-            jti: randomUUID(),
-        };
-        return {
-            access_token: this.jwtService.sign(payload),
-            refresh_token: newToken,
-        };
+        return this.generateTokens(user);
     }
 
     async refresh(token: string): Promise<RefreshResult> {
@@ -203,11 +183,8 @@ export class AuthService {
             jti: randomUUID(),
         };
 
-        this.logger.info(
-            `Refresh token ${payload.jti} generated to ${actualToken.email}`,
-        );
         return {
-            access_token: this.jwtService.sign(payload, { secret: process.env.JWT_SECRET }),
+            access_token: this.signAccessToken(payload),
             refresh_token: newToken,
             profile: {
                 user_id: account.id_account,
@@ -236,6 +213,43 @@ export class AuthService {
         return randomUUID() + '-' + randomUUID();
     }
 
+    /**
+     * Firma el access token con el JWT_SECRET de .env.development. Se pasa el
+     * secret de forma explícita para que firma y verificación usen siempre la
+     * misma clave, independientemente de la configuración global.
+     */
+    private signAccessToken(payload: jwt_payload): string {
+        return this.jwtService.sign(payload, {
+            secret: this.configService.get<string>('JWT_SECRET') || 'secret',
+        });
+    }
+
+    /**
+     * Genera, persiste y devuelve un par de tokens (access + refresh) para la
+     * cuenta indicada. Centraliza la lógica que antes repetían register y login.
+     */
+    private async generateTokens(account: {
+        id_account: string;
+        email: string;
+        role: string;
+    }): Promise<TokensInterface> {
+        const refresh_token = this.generateRefreshToken();
+        await this.saveRefreshToken({
+            token: refresh_token,
+            email: account.email,
+        });
+        const payload: jwt_payload = {
+            sub: account.id_account,
+            email: account.email,
+            role: account.role,
+            jti: randomUUID(),
+        };
+        return {
+            access_token: this.signAccessToken(payload),
+            refresh_token,
+        };
+    }
+
     async saveRefreshToken(
         token: RefreshTokenSaveDTO,
     ): Promise<RefreshTokenEntity> {
@@ -249,7 +263,9 @@ export class AuthService {
     }
 
     getEmail(token: string) {
-        const payload: jwt_payload = this.jwtService.verify(token);
+        const payload: jwt_payload = this.jwtService.verify(token, {
+            secret: this.configService.get<string>('JWT_SECRET') || 'secret',
+        });
         return payload.email;
     }
 
