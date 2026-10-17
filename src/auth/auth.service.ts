@@ -207,7 +207,7 @@ export class AuthService {
             `Refresh token ${payload.jti} generated to ${actualToken.email}`,
         );
         return {
-            access_token: this.jwtService.sign(payload),
+            access_token: this.jwtService.sign(payload, { secret: process.env.JWT_SECRET }),
             refresh_token: newToken,
             profile: {
                 user_id: account.id_account,
