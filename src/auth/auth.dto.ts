@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty } from "class-validator";
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
 export interface jwt_payload {
     sub: string;
@@ -9,12 +9,24 @@ export interface jwt_payload {
 
 export interface RefreshTokenDTO {
     refresh_token: string;
-    id_user: string;
+    id_account: string;
 }
 
 export interface TokensInterface {
     access_token: string;
     refresh_token: string;
+}
+
+export interface ProfilePayload {
+    user_id: string;
+    email: string;
+    role: string;
+}
+
+// Respuesta del refresh: incluye el perfil para que el cliente no necesite
+// un segundo request a GET /auth/profile.
+export interface RefreshResult extends TokensInterface {
+    profile: ProfilePayload;
 }
 
 export class RefreshTokenSaveDTO {
@@ -23,4 +35,28 @@ export class RefreshTokenSaveDTO {
     email: string;
     @IsNotEmpty()
     token: string;
+}
+
+export class UpdateProfileDTO {
+    process: 'PASSWD' | 'EMAIL';
+    @IsEmail()
+    @IsNotEmpty()
+    email: string;
+    @IsEmail()
+    new_email?: string;
+    @IsString()
+    @IsNotEmpty()
+    current_password: string;
+    new_password?: string;
+}
+
+export class UpdateProfileAdminDTO {
+    @IsNotEmpty()
+    id_account: string;
+    @IsEmail()
+    @IsNotEmpty()
+    email: string;
+    @IsEmail()
+    @IsNotEmpty()
+    new_email: string;
 }

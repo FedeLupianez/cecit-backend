@@ -4,42 +4,95 @@
  * que se ajusten a estos.
  * */
 
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { UsersDeleteDTO, UsersDTO, UsersMapper } from './users.dto';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  UsersCreateNew,
+  UsersDeleteDTO,
+  UsersDTO,
+  UsersMapper,
+} from './users.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersEntity } from './users.entity';
 import { Repository } from 'typeorm';
+import { generateUniqueId } from 'src/common/utils/id-generator';
 
 @Injectable()
 export class UsersService {
-    constructor(
-        @InjectRepository(UsersEntity)
-        private readonly userRepository: Repository<UsersEntity>,
-    ) { };
+  constructor(
+    @InjectRepository(UsersEntity)
+    private readonly userRepository: Repository<UsersEntity>,
+  ) {}
 
-    async get_by_user_id(partner_id: string): Promise<UsersEntity> {
-        const user = await this.userRepository.findOneBy({ id_user: partner_id })
-        if (!user) {
-            throw new NotFoundException(`User does not exists`);
-        }
-        return user;
+  async create(user: UsersCreateNew): Promise<UsersEntity> {
+    const alreadyExists = await this.userRepository.findOneBy({
+      dni: user.dni,
+    });
+    if (alreadyExists) return alreadyExists;
+    const newUser = this.userRepository.create({
+      id_user: await generateUniqueId(this.userRepository, 'id_user'),
+      dni: user.dni,
+      lastname: user.lastname,
+      name: user.name,
+    });
+    const storedUser = await this.userRepository.save(newUser);
+    if (!storedUser)
+      throw new InternalServerErrorException('Error creating User');
+    return storedUser;
+  }
+
+  async get_by_user_id(partner_id: string): Promise<UsersEntity> {
+    const user = await this.userRepository.findOneBy({ id_user: partner_id });
+    if (!user) {
+      throw new NotFoundException(`User does not exists`);
     }
+    return user;
+  }
 
-    async get_all(): Promise<UsersDTO[]> {
-        const users = await this.userRepository.find();
-        if (!users)
-            throw new InternalServerErrorException('Users is empty');
-        // Cambio los usuarios al DTO
-        let users_list = users.map((u) => UsersMapper.toDTO(u));
-        return users_list;
+  async get_all(): Promise<UsersDTO[]> {
+    const users = await this.userRepository.find();
+    if (!users) throw new InternalServerErrorException('Users is empty');
+    // Cambio los usuarios al DTO
+    const users_list = users.map((u) => UsersMapper.toDTO(u));
+    return users_list;
+  }
+
+  async delete(user: UsersDeleteDTO): Promise<boolean> {
+    const result = await this.userRepository.delete({ id_user: user.id_user });
+    if (!result) {
+      throw new NotFoundException('User does not exists');
     }
+    return true;
+  }
 
+  async get_by_dni(dni: string): Promise<UsersEntity> {
+    const result = await this.userRepository.findOneBy({ dni: dni });
+    if (!result) throw new NotFoundException('User does not exists');
+    return result;
+  }
 
-    async delete(user: UsersDeleteDTO): Promise<boolean> {
-        const result = await this.userRepository.delete({ id_user: user.id_user })
-        if (!result) {
-            throw new NotFoundException('User not exists')
-        }
-        return true;
-    }
+  /**
+   * ¿El socio está vinculado como empleado a algún negocio distinto del
+   * indicado? Se usa al remover un empleado para decidir si su cuenta debe
+   * seguir activa.
+   */
+  async is_employee_of_other_partner(
+    id_user: string,
+    id_partner_excluded: string,
+  ): Promise<boolean> {
+    if (!id_user) throw new BadRequestException('id_user is required');
+    const relations = await this.userRepository
+      .createQueryBuilder('user')
+      .innerJoin('user.partners', 'partner')
+      .where('user.id_user = :id_user', { id_user })
+      .andWhere('partner.id_partner != :id_partner', {
+        id_partner: id_partner_excluded,
+      })
+      .getCount();
+    return relations > 0;
+  }
 }

@@ -1,52 +1,94 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+    BadRequestException,
+    Injectable,
+    InternalServerErrorException,
+    NotFoundException,
+    UnauthorizedException,
+} from '@nestjs/common';
 import { verify } from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RefreshTokenEntity } from '../entities/refresh-token.entity';
-import { Repository } from 'typeorm';
-import { type jwt_payload, RefreshTokenSaveDTO } from './auth.dto';
+import { LessThan, Repository } from 'typeorm';
+import {
+    type jwt_payload,
+    RefreshResult,
+    RefreshTokenSaveDTO,
+} from './auth.dto';
 import { TokensInterface } from './auth.dto';
 import { AccountsService } from 'src/entities/accounts/accounts.service';
 import { AccountsEntity } from 'src/entities/accounts/accounts.entity';
-import { AccountCreateDTO, LoginDTO } from 'src/entities/accounts/accounts.dto';
+import {
+    AccountCreateDTO,
+    AccountRole,
+    AccountsDTO,
+    LoginDTO,
+} from 'src/entities/accounts/accounts.dto';
 import { UsersService } from 'src/entities/users/users.service';
+import { PartnersService } from 'src/entities/partners/partners.service';
+import { PartnersAdminsService } from 'src/entities/partnersadmins/partnersadmins.service';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { PinoLogger } from 'nestjs-pino';
+import { ConfigService } from '@nestjs/config';
 
+const DEFAULT_REFRESH_DAYS = 7;
+const REFRESH_GRACE_MS = 60_000;
+
+export function getRefreshDays(): number {
+    return Number(process.env.REFRESH_TOKEN_EXPIRES) || DEFAULT_REFRESH_DAYS;
+}
 
 @Injectable()
 export class AuthService {
-    private readonly logger = new Logger(AuthService.name);
     constructor(
+        private readonly logger: PinoLogger,
+        private readonly partnersService: PartnersService,
         private readonly jwtService: JwtService,
+        private readonly configService: ConfigService,
         @InjectRepository(RefreshTokenEntity)
         private readonly refreshTokenRepo: Repository<RefreshTokenEntity>,
         private readonly accountService: AccountsService,
-        private readonly userService: UsersService
+        private readonly userService: UsersService,
+        private readonly partnersAdminsService: PartnersAdminsService,
     ) { }
 
     async validateUser(email: string, passwd: string): Promise<AccountsEntity> {
         this.logger.debug(`Validating user: ${email}`);
         const user = await this.accountService.get_by_email(email);
 
+        if (!user?.password) throw new UnauthorizedException('Invalid credentials');
+
         const passwordValid = await verify(user.password, passwd);
 
-        if (!passwordValid)
-            throw new BadRequestException('Password does not match')
+        if (!passwordValid) throw new UnauthorizedException('Invalid credentials');
         return user;
     }
 
-    private hashToken(token: string): string {
-        if (!token)
-            return ""
-        return createHash('sha256').update(token).digest('hex');
+    private hashToken(token: string): Buffer {
+        if (!token) throw new Error('Token is empty');
+        return createHash('sha256').update(token).digest();
     }
 
-    private async getRefreshToken(tokenHashed: string): Promise<RefreshTokenEntity> {
+    private async getRefreshToken(
+        tokenHashed: Buffer,
+    ): Promise<RefreshTokenEntity> {
         if (!tokenHashed) {
-            this.logger.debug('Token empty');
             throw new BadRequestException('Token is empty');
         }
-        const storedToken = await this.refreshTokenRepo.findOneBy({ token_hash: tokenHashed });
+        // Solo se traen las columnas que el refresh usa: la fila de
+        // Accounts arrastra el hash de argon2 y no se necesita.
+        const storedToken = await this.refreshTokenRepo.findOne({
+            where: { token_hash: tokenHashed },
+            relations: ['account'],
+            select: {
+                token_hash: true,
+                email: true,
+                expires_at: true,
+                revoked: true,
+                account: { id_account: true, email: true, role: true },
+            },
+        });
         if (!storedToken) {
             this.logger.debug(`Token ${tokenHashed} does not exists`);
             throw new NotFoundException('Token not found');
@@ -64,98 +106,196 @@ export class AuthService {
         }
         return true;
     }
-
     async register(account: AccountCreateDTO): Promise<TokensInterface> {
-        this.logger.log(`Registering new account: ${account.email}`);
-        const partner = this.userService.get_by_user_id(account.id_user);
-        if (!partner)
-            throw new NotFoundException('User is not cecit partner');
+        this.logger.info(`Registering new account: ${account.email}`);
+        const partner = await this.userService.get_by_user_id(account.id_account);
+        if (!partner) throw new NotFoundException('User is not cecit partner');
         if (await this.accountService.has_account(account.email))
             throw new BadRequestException('User alredy has an account');
-        const newUser = await this.accountService.create(account);
-        const newToken = this.generateRefreshToken();
-        await this.saveRefreshToken({ token: newToken, email: newUser.email });
-        const payload = {
-            sub: newUser.id_user,
-            email: newUser.email,
-            jti: randomUUID()
-        };
-        return {
-            access_token: this.jwtService.sign(payload),
-            refresh_token: newToken,
-        };
+
+        const ownedPartner = await this.partnersService.getByOwnerId(
+            account.id_account,
+        );
+        const newUser = await this.accountService.create({
+            ...account,
+            role: ownedPartner ? AccountRole.PARTNER_ADMIN : AccountRole.USER,
+        });
+
+        if (ownedPartner) {
+            await this.partnersAdminsService.createByOwner(
+                newUser.id_account,
+                ownedPartner.id_partner,
+            );
+        }
+        return this.generateTokens(newUser);
     }
 
     async login(userLogin: LoginDTO): Promise<TokensInterface> {
-        this.logger.log(`Login attempt: ${userLogin.email}`);
+        this.logger.info(`Login attempt: ${userLogin.email}`);
         const user = await this.validateUser(userLogin.email, userLogin.password);
-        if (!user)
-            throw new UnauthorizedException('Invalid Credentials');
-        const newToken = this.generateRefreshToken();
-        await this.saveRefreshToken({ token: newToken, email: user.email });
-        const payload = {
-            sub: user.id_user,
-            email: user.email,
-            jti: randomUUID()
-        }
-        return {
-            access_token: this.jwtService.sign(payload),
-            refresh_token: newToken,
-        }
+        if (!user) throw new UnauthorizedException('Invalid credentials');
+        return this.generateTokens(user);
     }
 
-    async refresh(token: string): Promise<TokensInterface> {
-        this.logger.debug(`Refreshing token ${token}`);
+    async refresh(token: string): Promise<RefreshResult> {
         const actualToken = await this.getRefreshToken(this.hashToken(token));
+        const account = actualToken.account;
+        if (!account) throw new UnauthorizedException('Invalid token');
 
-        if (!(await this.validateRefreshToken(actualToken))) {
-            await this.refreshTokenRepo.delete({ id_token: actualToken.id_token });
-            this.logger.debug('Invalid Refresh Token')
+        try {
+            await this.validateRefreshToken(actualToken);
+        } catch {
+            // Token vencido o revocado: se elimina y se rechaza.
+            await this.refreshTokenRepo.delete({ token_hash: actualToken.token_hash });
             throw new UnauthorizedException('Invalid token');
         }
 
         const newToken = this.generateRefreshToken();
-        await actualToken.change_token(newToken);
-        await this.refreshTokenRepo.save(actualToken);
-        const account = await this.accountService.get_by_email(actualToken.email);
+
+        // Retiro con gracia: el token anterior sigue válido por
+        // REFRESH_GRACE_MS para que los refresh concurrentes (el layout del
+        // frontend refresca en cada navegación) no fallen con "Token not
+        // found". Solo se acorta la vigencia, nunca se extiende.
+        const remaining = new Date(actualToken.expires_at).getTime() - Date.now();
+        const graceExpiresAt =
+            remaining > REFRESH_GRACE_MS
+                ? new Date(Date.now() + REFRESH_GRACE_MS)
+                : null;
+
+        // El insert del nuevo y el acortamiento del viejo tocan filas
+        // distintas, así que van en paralelo: una sola ida y vuelta en vez
+        // de dos. Si el update falla, el token nuevo queda huérfano y el cron
+        // lo purga; no se emite nada inconsistente.
+        await Promise.all([
+            this.saveRefreshToken({ token: newToken, email: actualToken.email }),
+            graceExpiresAt
+                ? this.refreshTokenRepo.update(
+                    { token_hash: actualToken.token_hash },
+                    { expires_at: graceExpiresAt },
+                )
+                : Promise.resolve(),
+        ]);
 
         const payload: jwt_payload = {
-            sub: account.id_user,
+            sub: account.id_account,
             email: actualToken.email,
             role: account.role,
-            jti: randomUUID()
+            jti: randomUUID(),
         };
 
-        this.logger.log(`Refresh token ${payload.jti} generated to ${actualToken.email}`)
         return {
-            access_token: this.jwtService.sign(payload),
-            refresh_token: newToken
+            access_token: this.signAccessToken(payload),
+            refresh_token: newToken,
+            profile: {
+                user_id: account.id_account,
+                email: account.email,
+                role: account.role,
+            },
         };
     }
 
     async logout(refreshToken: string): Promise<void> {
-        this.logger.log('Logging out user');
-        const token = await this.getRefreshToken(this.hashToken(refreshToken));
-        await this.refreshTokenRepo.delete({ id_token: token.id_token });
+        // Logout idempotente: si no hay token o ya no existe, igual se
+        // considera éxito para no romper el flujo del cliente.
+        if (!refreshToken) return;
+        this.logger.info('Logging out user');
+        await this.refreshTokenRepo.delete({
+            token_hash: this.hashToken(refreshToken),
+        });
+    }
+
+    @Cron(CronExpression.EVERY_DAY_AT_3AM)
+    async purgeExpiredRefreshTokens(): Promise<void> {
+        await this.refreshTokenRepo.delete({ expires_at: LessThan(new Date()) });
     }
 
     private generateRefreshToken(): string {
-        return randomUUID() + randomUUID();
+        return randomUUID() + '-' + randomUUID();
     }
 
-    async saveRefreshToken(token: RefreshTokenSaveDTO): Promise<RefreshTokenEntity> {
+    /**
+     * Firma el access token con el JWT_SECRET de .env.development. Se pasa el
+     * secret de forma explícita para que firma y verificación usen siempre la
+     * misma clave, independientemente de la configuración global.
+     */
+    private signAccessToken(payload: jwt_payload): string {
+        return this.jwtService.sign(payload, {
+            secret: this.configService.get<string>('JWT_SECRET') || 'secret',
+        });
+    }
+
+    /**
+     * Genera, persiste y devuelve un par de tokens (access + refresh) para la
+     * cuenta indicada. Centraliza la lógica que antes repetían register y login.
+     */
+    private async generateTokens(account: {
+        id_account: string;
+        email: string;
+        role: string;
+    }): Promise<TokensInterface> {
+        const refresh_token = this.generateRefreshToken();
+        await this.saveRefreshToken({
+            token: refresh_token,
+            email: account.email,
+        });
+        const payload: jwt_payload = {
+            sub: account.id_account,
+            email: account.email,
+            role: account.role,
+            jti: randomUUID(),
+        };
+        return {
+            access_token: this.signAccessToken(payload),
+            refresh_token,
+        };
+    }
+
+    async saveRefreshToken(
+        token: RefreshTokenSaveDTO,
+    ): Promise<RefreshTokenEntity> {
         const newRegister = this.refreshTokenRepo.create({
             email: token.email,
-            token_hash: token.token
+            token_hash: this.hashToken(token.token)
         });
         const stored = await this.refreshTokenRepo.save(newRegister);
-        if (!stored)
-            throw new InternalServerErrorException('Error saving token');
+        if (!stored) throw new InternalServerErrorException('Error saving token');
         return stored;
     }
 
     getEmail(token: string) {
-        const payload: jwt_payload = this.jwtService.verify(token);
+        const payload: jwt_payload = this.jwtService.verify(token, {
+            secret: this.configService.get<string>('JWT_SECRET') || 'secret',
+        });
         return payload.email;
+    }
+
+    async updatePasswd(
+        id_account: string,
+        new_password: string,
+    ): Promise<boolean> {
+        const result = await this.accountService.update({
+            id_account: id_account,
+            password: new_password,
+        });
+        if (!result) throw new InternalServerErrorException('Error changing email');
+        return true;
+    }
+
+    async updateEmail(
+        id_account: string,
+        actual_email: string,
+        new_email: string,
+    ): Promise<AccountsDTO> {
+        // Borrar los refresh tokens asociados
+        await this.refreshTokenRepo.delete({
+            email: actual_email,
+        });
+
+        const result = await this.accountService.update({
+            id_account: id_account,
+            email: new_email,
+        });
+        if (!result) throw new InternalServerErrorException('Error changing email');
+        return result;
     }
 }

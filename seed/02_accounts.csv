@@ -1,0 +1,11 @@
+id_user,email,password,role,active
+U001,juan.perez@cecit.edu.ar,$argon2id$v=19$m=65536,t=3,p=4$Y9G8LOlZMvjJm2mhqUzoRQ$GTRc2VNGpjSpdWHa+X/wRUfgq5b0Mn1wKXxpEDICJ5U,USER,1
+U002,maria.gonzalez@cecit.edu.ar,$argon2id$v=19$m=65536,t=3,p=4$Y9G8LOlZMvjJm2mhqUzoRQ$GTRc2VNGpjSpdWHa+X/wRUfgq5b0Mn1wKXxpEDICJ5U,USER,1
+U003,carlos.rodriguez@cecit.edu.ar,$argon2id$v=19$m=65536,t=3,p=4$Y9G8LOlZMvjJm2mhqUzoRQ$GTRc2VNGpjSpdWHa+X/wRUfgq5b0Mn1wKXxpEDICJ5U,USER,1
+U004,ana.lopez@cecit.edu.ar,$argon2id$v=19$m=65536,t=3,p=4$Y9G8LOlZMvjJm2mhqUzoRQ$GTRc2VNGpjSpdWHa+X/wRUfgq5b0Mn1wKXxpEDICJ5U,USER,1
+U005,admin@cecit.edu.ar,$argon2id$v=19$m=65536,t=3,p=4$Y9G8LOlZMvjJm2mhqUzoRQ$GTRc2VNGpjSpdWHa+X/wRUfgq5b0Mn1wKXxpEDICJ5U,CECIT_ADMIN,1
+U006,laura.martinez@cecit.edu.ar,$argon2id$v=19$m=65536,t=3,p=4$Y9G8LOlZMvjJm2mhqUzoRQ$GTRc2VNGpjSpdWHa+X/wRUfgq5b0Mn1wKXxpEDICJ5U,PARTNER_ADMIN,1
+U007,diego.sanchez@cecit.edu.ar,$argon2id$v=19$m=65536,t=3,p=4$Y9G8LOlZMvjJm2mhqUzoRQ$GTRc2VNGpjSpdWHa+X/wRUfgq5b0Mn1wKXxpEDICJ5U,PARTNER_ADMIN,1
+U008,sofia.ramirez@cecit.edu.ar,$argon2id$v=19$m=65536,t=3,p=4$Y9G8LOlZMvjJm2mhqUzoRQ$GTRc2VNGpjSpdWHa+X/wRUfgq5b0Mn1wKXxpEDICJ5U,USER,1
+U009,pablo.torres@cecit.edu.ar,$argon2id$v=19$m=65536,t=3,p=4$Y9G8LOlZMvjJm2mhqUzoRQ$GTRc2VNGpjSpdWHa+X/wRUfgq5b0Mn1wKXxpEDICJ5U,USER,1
+U010,valentina.flores@cecit.edu.ar,$argon2id$v=19$m=65536,t=3,p=4$Y9G8LOlZMvjJm2mhqUzoRQ$GTRc2VNGpjSpdWHa+X/wRUfgq5b0Mn1wKXxpEDICJ5U,USER,1

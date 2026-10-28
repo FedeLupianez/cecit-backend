@@ -1,0 +1,16 @@
+id_benefit,id_admin,id_partner,date_entered,start_date,end_date,image,title,description,status,id_type,max_coupons,coupons,max_per_user
+B001,U006,P001,2026-08-01,2026-08-01,2026-09-30,https://placehold.co/600x400?text=Menu,20% de descuento en menú ejecutivo,Beneficio exclusivo para socios CECIT,ACTIVE,1,100,60,3
+B002,U006,P002,2026-08-05,2026-08-05,2026-10-31,https://placehold.co/600x400?text=Accesorios,10% off en accesorios de tecnología,Oferta en periféricos y accesorios,ACTIVE,1,80,45,2
+B003,U007,P003,2026-08-10,2026-08-10,2026-09-15,https://placehold.co/600x400?text=Prendas,2x1 en segunda prenda,Promoción válida en toda la temporada,ACTIVE,4,50,20,1
+B004,U007,P004,2026-08-15,2026-08-15,2026-12-31,https://placehold.co/600x400?text=Gym,Pase libre por un mes gratis,Inscripción anual con mes de regalo,PENDING,2,30,10,1
+B005,U005,P005,2026-08-20,2026-08-20,2026-11-30,https://placehold.co/600x400?text=Curso,25% en cursos de programación,Beneficio para estudiantes de la comunidad,ACTIVE,1,200,150,3
+B006,U006,P006,2026-08-25,2026-08-25,2026-10-15,https://placehold.co/600x400?text=Café,15% de descuento en café y pastelería,Oferta válida de lunes a viernes,ACTIVE,1,120,80,2
+B007,U007,P007,2026-09-01,2026-09-01,2026-12-31,https://placehold.co/600x400?text=Farmacia,10% off en productos de farmacia,Descuento en medicamentos y cosméticos,ACTIVE,1,150,95,3
+B008,U005,P008,2026-09-05,2026-09-05,2026-11-15,https://placehold.co/600x400?text=Librería,2x1 en libros de tecnología,Promoción en títulos seleccionados,PENDING,4,60,25,1
+B009,U006,P009,2026-09-10,2026-09-10,2026-10-31,https://placehold.co/600x400?text=Deporte,20% en ropa deportiva,Oferta en marcas seleccionadas,ACTIVE,1,100,70,2
+B010,U007,P010,2026-09-15,2026-09-15,2026-12-15,https://placehold.co/600x400?text=Mascota,15% de descuento en productos para mascotas,Alimentos y accesorios con beneficio,ACTIVE,2,80,40,2
+B011,U005,P011,2026-09-20,2026-09-20,2026-11-30,https://placehold.co/600x400?text=Auto,10% off en servicio automotriz,Mantenimiento preventivo con descuento,ACTIVE,1,70,35,1
+B012,U006,P012,2026-09-25,2026-09-25,2026-12-31,https://placehold.co/600x400?text=Viaje,12% en paquetes turísticos,Descuento en destinos nacionales,ACTIVE,4,40,15,1
+B013,U007,P013,2026-10-01,2026-10-01,2026-12-01,https://placehold.co/600x400?text=Salud,15% en consultas médicas,Agendación online con beneficio,PENDING,2,90,50,2
+B014,U005,P014,2026-10-05,2026-10-05,2026-11-30,https://placehold.co/600x400?text=Hogar,20% en electrodomésticos,Oferta en línea blanca y small appliances,ACTIVE,1,110,65,2
+B015,U006,P015,2026-10-10,2026-10-10,2026-12-31,https://placehold.co/600x400?text=Educación,30% en cursos online,Acceso a plataformas de aprendizaje,ACTIVE,1,250,180,3

@@ -1,20 +1,37 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    Patch,
+    Post,
+    Query,
+    Req,
+    UseGuards,
+} from '@nestjs/common';
 import { PartnersService } from './partners.service';
 import { PartnersAdminsService } from '../partnersadmins/partnersadmins.service';
-import { PartnersCreateDTO, PartnersUpdateLogoDTO, PartnersUpdateNameDTO } from './partners.dto';
+import {
+    AddEmployeeDTO,
+    AddLocationDTO,
+    CreateEmployeeDTO,
+    PartnersCreateDTO,
+    PartnersUpdateLogoDTO,
+    PartnersUpdateNameDTO,
+} from './partners.dto';
 import { AdminGuard } from 'src/auth/admin.guard';
+import { CecitAdminGuard } from 'src/auth/cecitadmin.guard';
 import { AuthGuard } from '@nestjs/passport';
-
 
 @Controller('partners')
 export class PartnersController {
-
     constructor(
         private readonly partnersService: PartnersService,
-        private readonly adminsService: PartnersAdminsService
+        private readonly adminsService: PartnersAdminsService,
     ) { }
 
-    @Get("all")
+    @Get('all')
     async get_all() {
         return await this.partnersService.get_all();
     }
@@ -25,27 +42,74 @@ export class PartnersController {
         await this.adminsService.create({
             partner_name: dto.partner_name.toLowerCase(),
             email: dto.email,
-            password: dto.password
+            password: dto.password,
         });
         return partner;
     }
 
-    @Delete(':id')
-    async remove(@Param('id') id: string) {
-        return this.partnersService.remove(id);
-    }
-
     @UseGuards(AuthGuard('jwt'), AdminGuard)
     @Patch('logo')
-    async updateLogo(@Body() body: PartnersUpdateLogoDTO) {
-        return this.partnersService.updateLogo(body);
+    async updateLogo(@Body() body: PartnersUpdateLogoDTO, @Req() req) {
+        return await this.partnersService.updateLogo(body, req.user?.user_id);
     }
-
 
     @UseGuards(AuthGuard('jwt'), AdminGuard)
     @Patch('name')
-    async updateName(@Body() body: PartnersUpdateNameDTO) {
-        return this.partnersService.updateName(body);
+    async updateName(@Body() body: PartnersUpdateNameDTO, @Req() req) {
+        return await this.partnersService.updateName(body, req.user?.user_id);
     }
 
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    @Get('locations')
+    async getLocations(@Query('id_partner') id_partner: string) {
+        return await this.partnersService.getLocations(id_partner);
+    }
+
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    @Post('locations')
+    async addLocation(@Body() body: AddLocationDTO, @Req() req) {
+        return this.partnersService.addLocation(body, req.user?.user_id);
+    }
+
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    @Get('employees')
+    async getEmployees(@Query('id_partner') id_partner: string) {
+        return await this.partnersService.getEmployees(id_partner);
+    }
+
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    @Post('employees')
+    async addEmployee(@Req() req, @Body() dto: AddEmployeeDTO) {
+        return await this.partnersService.addEmployee(req.user.user_id, dto);
+    }
+
+    /**
+     * Alta de empleado: crea el User si el dni no existe y lo asocia al partner.
+     * Distinto de POST /employees, que solo asocia un User ya existente.
+     */
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    @Post('employees/new')
+    async createEmployee(@Req() req, @Body() dto: CreateEmployeeDTO) {
+        return await this.partnersService.createEmployee(req.user.user_id, dto);
+    }
+
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    @Delete('employees')
+    async removeEmployee(
+        @Query('id_partner') id_partner: string,
+        @Query('dni') dni: string,
+        @Req() req,
+    ) {
+        return await this.partnersService.removeEmployee(
+            id_partner,
+            req.user.user_id,
+            dni,
+        );
+    }
+
+    @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
+    @Delete('id/:id')
+    async remove(@Param('id') id: string) {
+        return await this.partnersService.remove(id);
+    }
 }

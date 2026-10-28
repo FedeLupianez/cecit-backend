@@ -4,7 +4,7 @@
 Gestionar la relación entre los administradores y los negocios (partners) a los que pertenecen. Un administrador de negocio tiene permisos para gestionar beneficios y datos de su negocio asociado.
 
 ## Actores:
-- Administradores de CeCIT (crean la relación)
+- Administradores de CeCIT (gestionan la relación)
 - Administradores de negocios (gestionan su negocio)
 
 ---
@@ -14,8 +14,33 @@ Gestionar la relación entre los administradores y los negocios (partners) a los
 ### `POST /partners-admins/create`
 Crea una relación administrador-negocio.
 - **Auth:** JWT + `AdminGuard`
-- **Body:** `PartnersAdminsCreateDTO`
-- **Respuesta:** `{ id_admin, id_partner }`
+- **Body:** `PartnersAdminsCreateDTO` (`partner_name`, `email`, `password`)
+- **Respuesta:** `201 { id_account, id_partner }`
+
+**Nota:** `email` y `password` se reciben pero **se descartan**. El servicio
+genera un `id_account` nuevo y solo escribe la fila de `Partners_Admins`; no
+crea ni modifica una cuenta en `Accounts`. Para dar de alta una cuenta real
+existe `POST /auth/register`, que además crea la relación automáticamente si el
+socio es dueño del negocio.
+
+### `GET /partners-admins/me`
+Devuelve el primer negocio que administra el usuario autenticado.
+- **Auth:** JWT
+- **Respuesta:** `{ id_partner, name, logo, id_owner, active, directions[] }`
+- **Errores:** `401` si no hay `request.user`, `404 Admin does not exists` si
+  la relación no existe, `401 Partner not found` si el partner referenciado
+  falta.
+
+### `GET /partners-admins/me/all`
+Devuelve **todos** los negocios que administra el usuario autenticado. Es lo que
+permite el panel multi-negocio.
+- **Auth:** JWT
+- **Respuesta:** `[{ id_partner, name, logo, id_owner, active, directions[] }]`
+- **Errores:** `401` si no hay `request.user`.
+
+El `id_partner` seleccionado por el frontend se luego pasa a
+`GET /benefits/partner`, `GET /vouchers/redeemed`, etc., donde `AdminGuard`
+verifica que el usuario realmente administra ese negocio.
 
 ---
 
@@ -25,10 +50,12 @@ Crea una relación administrador-negocio.
 | Campo | Tipo | Validación | Descripción |
 |-------|------|------------|-------------|
 | `partner_name` | string | Obligatorio | Nombre del negocio (se busca en `Partners`) |
-| `email` | string | Obligatorio, email | Email del admin |
-| `password` | string | Obligatorio | Password del admin |
+| `email` | string | Obligatorio, email | **Ignorado** |
+| `password` | string | Obligatorio | **Ignorado** |
 
-**Nota:** Al crear un partner via `POST /partners`, automáticamente se crea el admin de ese partner con los mismos datos.
+**Nota:** Al crear un partner via `POST /partners`, automáticamente se crea el
+admin de ese partner con los mismos datos. Al registrarse un socio que ya es
+dueño de un partner, también se crea la relación.
 
 ---
 
@@ -36,10 +63,16 @@ Crea una relación administrador-negocio.
 
 | Columna | Tipo | Descripción |
 |---------|------|-------------|
-| `id_user` | VARCHAR(4) PK | ID del administrador (FK → Accounts) |
-| `id_partner` | VARCHAR(4) PK | ID del negocio (FK → Partners) |
+| `id_account` | VARCHAR(4) PK | ID de la cuenta administradora (FK → `Accounts`) |
+| `id_partner` | VARCHAR(4) PK | ID del negocio (FK → `Partners`) |
 
-- Tabla intermedia (relación muchos a muchos entre Accounts y Partners).
+Es una entidad propia (no un `@ManyToMany`) porque la fila se consulta de forma
+independiente para resolver `/me` y `/me/all`.
+
+Cambio reciente: ambas columnas se renombraron de `id_user` a `id_account`, y
+la FK pasó a apuntar a `Accounts.id_account` en lugar de `Users.id_user`. Ver
+[`tecnical/future.md`](../tecnical/future.md) — esta parte de la migración no
+está cubierta por las migraciones.
 
 ---
 
@@ -47,8 +80,11 @@ Crea una relación administrador-negocio.
 
 | Método | Descripción |
 |--------|-------------|
-| `create(dto)` | Crea una nueva relación admin-partner (genera ID autoincremental) |
-| `get_by_id(id_admin)` | Obtiene la relación por ID del admin |
+| `create(dto)` | Resuelve el partner por nombre y genera un `id_account` nuevo. |
+| `createByOwner(id_account, id_partner)` | Crea la relación dueño ↔ negocio. **Idempotente**: si ya existe, la devuelve sin error. |
+| `get_by_id(id_admin)` | Relación con `partner`, `partner.directions` y `account`. `404` si no existe. |
+| `get_all_by_account(id_account)` | Todas las relaciones del usuario, para el panel multi-negocio. |
+| `verify_admin(id_admin, id_partner)` | Verificación de autorización **con cache** (60 s). Lanza `401` si la cuenta no existe, si es `USER`, o si no hay relación con ese partner. `CECIT_ADMIN` siempre pasa. |
 
 ## Tabla en DB
 
@@ -56,4 +92,6 @@ Crea una relación administrador-negocio.
 
 ## Dependencias
 - `PartnersService` — para obtener partner por nombre
-- `DbService` — para generar IDs secuenciales
+- `AccountsService` — para resolver el rol antes de autorizar
+- `cache-manager` (`CACHE_MANAGER`) — cache de `verify_admin`
+- `src/common/utils/id-generator.ts` — generación de IDs (reemplaza a `DbService`)
