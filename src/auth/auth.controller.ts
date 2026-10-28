@@ -32,12 +32,23 @@ export class AuthController {
         return this.configService.get<string>('NODE_ENV') === 'production';
     }
 
+    private get cookieDomain(): string | undefined {
+        const frontUrl = this.configService.get<string>('FRONT_URL');
+        if (!frontUrl) return undefined;
+        try {
+            return new URL(frontUrl).hostname;
+        } catch {
+            return undefined;
+        }
+    }
+
     private setRefreshCookie(res, refreshToken: string): void {
         res.cookie(REFRESH_COOKIE, refreshToken, {
             httpOnly: true,
             secure: this.isProd,
             sameSite: this.isProd ? 'strict' : 'lax',
             path: '/',
+            domain: this.cookieDomain,
             maxAge: REFRESH_DAYS * 24 * 60 * 60 * 1000,
         });
     }
@@ -85,7 +96,7 @@ export class AuthController {
     async logout(@Req() req, @Res({ passthrough: true }) res) {
         const token = req.cookies[REFRESH_COOKIE];
         await this.authService.logout(token);
-        res.clearCookie(REFRESH_COOKIE, { path: '/' });
+        res.clearCookie(REFRESH_COOKIE, { path: '/', domain: this.cookieDomain });
         return { ok: true };
     }
 
