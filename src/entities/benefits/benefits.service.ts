@@ -20,7 +20,6 @@ import {
     In,
     LessThanOrEqual,
     MoreThan,
-    MoreThanOrEqual,
     Repository,
 } from 'typeorm';
 import { PartnersService } from '../partners/partners.service';

@@ -5,6 +5,7 @@ import {
     IsString,
     IsUrl,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { BenefitsEntity } from './benefits.entity';
 
 export interface BenefitsDTO {
@@ -23,18 +24,53 @@ export interface BenefitsDTO {
     max_coupons: number;
 }
 
-export interface BenefitsCreateDTO {
+export class BenefitsCreateDTO {
+    @IsNotEmpty()
+    @IsString()
     id_admin: string;
+
+    @IsNotEmpty()
+    @IsString()
     id_partner: string;
+
+    @IsNotEmpty()
+    @IsNumber()
     id_type: number;
+
+    @Type(() => Date)
+    @IsNotEmpty()
     start_date: Date;
+
+    @Type(() => Date)
+    @IsNotEmpty()
     end_date: Date;
-    image: string;
+
+    @IsOptional()
+    @IsUrl()
+    image?: string = '';
+
+    @IsNotEmpty()
+    @IsString()
     title: string;
+
+    @IsNotEmpty()
+    @IsString()
     description: string;
+
+    @IsNotEmpty()
+    @IsNumber()
     max_coupons: number;
+
+    @IsNotEmpty()
+    @IsNumber()
     max_per_user: number;
+
+    @IsNotEmpty()
+    @IsString({ each: true })
     payment_methods: string[];
+
+    @IsOptional()
+    @IsNumber()
     refund_limit: number | null;
 }
 
@@ -60,9 +96,11 @@ export class BenefitsUpdateDTO {
     image?: string;
 
     @IsOptional()
+    @Type(() => Date)
     start_date?: Date;
 
     @IsOptional()
+    @Type(() => Date)
     end_date?: Date;
 
     @IsOptional()
