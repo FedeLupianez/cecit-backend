@@ -58,6 +58,8 @@ import { LoggerModule } from './logger/logger.module';
             // túnel cierren conexiones idle del pool.
             enableKeepAlive: true,
             keepAliveInitialDelay: 10000,
+            // Force UTC for DATETIME columns (no timezone conversion)
+            timezone: 'Z',
           },
         };
       },

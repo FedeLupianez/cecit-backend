@@ -11,7 +11,7 @@ import {
 import { BenefitsService } from './benefits.service';
 import {
     BenefitsMapper,
-    type BenefitsCreateDTO,
+    BenefitsCreateDTO,
     BenefitIDTO,
     BenefitsUpdateDTO,
     BenefitsSearchDTO,
