@@ -32,10 +32,10 @@ export interface BenefitsCreateDTO {
     image: string;
     title: string;
     description: string;
-    coupons: number;
     max_coupons: number;
     max_per_user: number;
     payment_methods: string[];
+    refund_limit: number | null;
 }
 
 export class BenefitIDTO {
@@ -76,6 +76,10 @@ export class BenefitsUpdateDTO {
     @IsOptional()
     @IsNumber()
     max_per_user?: number;
+
+    @IsOptional()
+    @IsNumber()
+    refund_limit?: number | null;
 
     @IsOptional()
     @IsString()

@@ -18,6 +18,7 @@ import {
     FindManyOptions,
     FindOneOptions,
     In,
+    LessThanOrEqual,
     MoreThan,
     MoreThanOrEqual,
     Repository,
@@ -214,6 +215,7 @@ export class BenefitsService {
         if (dto.coupons !== undefined) benefit.coupons = dto.coupons;
         if (dto.max_coupons !== undefined) benefit.max_coupons = dto.max_coupons;
         if (dto.max_per_user !== undefined) benefit.max_per_user = dto.max_per_user;
+        if (dto.refund_limit !== undefined) benefit.refund_limit = dto.refund_limit;
         if (dto.status !== undefined) benefit.status = dto.status as BenefitStatus;
 
         await this.benefitsRepository.save(benefit);
@@ -448,10 +450,10 @@ export class BenefitsService {
         const today = new Date();
         await this.benefitsRepository.update(
             {
-                start_date: MoreThanOrEqual(today)
+                start_date: LessThanOrEqual(today),
+                status: BenefitStatus.INACTIVE
             },
-            { start_date: BenefitStatus.ACTIVE }
-        )
-
+            { status: BenefitStatus.ACTIVE }
+        );
     }
 }

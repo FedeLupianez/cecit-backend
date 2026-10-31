@@ -83,7 +83,7 @@ export class BenefitsEntity {
     max_per_user: number = 3;
 
     @Column({ type: 'float', name: 'refund_limit', nullable: true })
-    refund_limit: number;
+    refund_limit: number | null;
 
     @ManyToMany(() => PaymentMethodsEntity, (pm) => pm.benefits)
     @JoinTable({
