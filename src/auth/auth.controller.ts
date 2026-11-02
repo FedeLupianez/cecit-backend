@@ -36,7 +36,13 @@ export class AuthController {
         const frontUrl = this.configService.get<string>('FRONT_URL');
         if (!frontUrl) return undefined;
         try {
-            return new URL(frontUrl).hostname;
+            const hostname = new URL(frontUrl).hostname;
+            // No set domain for localhost/IPs: browsers reject 'Domain=localhost'
+            // and treat it as host-only anyway. Only set for real domains in prod.
+            if (hostname === 'localhost' || /^\d+(\.\d+){3}$/.test(hostname)) {
+                return undefined;
+            }
+            return this.isProd ? hostname : undefined;
         } catch {
             return undefined;
         }
