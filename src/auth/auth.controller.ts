@@ -51,10 +51,9 @@ export class AuthController {
     private setRefreshCookie(res, refreshToken: string): void {
         res.cookie(REFRESH_COOKIE, refreshToken, {
             httpOnly: true,
-            secure: false,
-            sameSite: this.isProd ? 'strict' : 'lax',
+            secure: true,
+            sameSite: 'none',
             path: '/',
-            domain: this.cookieDomain,
             maxAge: REFRESH_DAYS * 24 * 60 * 60 * 1000,
         });
     }
