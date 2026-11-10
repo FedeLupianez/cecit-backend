@@ -648,31 +648,14 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
         // Dark background
         doc.rect(0, footerY, A6_WIDTH, footerHeight).fill(DARK_BLUE);
 
-        const recurso6 = this.staticImageBuffers.get('recurso6');
-        const recurso8 = this.staticImageBuffers.get('recurso8');
+        const cecitLogo = this.staticImageBuffers.get('cecitLogo');
 
-        // Fixed height, preserve aspect ratio for each image
-        const imgHeight = 40;
-        const gap = 35;
-
-        let totalWidth = 0;
-        const dims6 = recurso6 ? this.getImageDimensions(recurso6) : null;
-        const dims8 = recurso8 ? this.getImageDimensions(recurso8) : null;
-        const w6 = dims6 ? (dims6.width / dims6.height) * imgHeight : 80;
-        const w8 = dims8 ? (dims8.width / dims8.height) * imgHeight : 80;
-
-        if (recurso6) totalWidth += w6;
-        if (recurso8) totalWidth += w8;
-        if (recurso6 && recurso8) totalWidth += gap;
-
-        let startX = (A6_WIDTH - totalWidth) / 2;
-
-        if (recurso6) {
-            doc.image(recurso6, startX, footerY + (footerHeight - imgHeight) / 2, { width: w6, height: imgHeight });
-            startX += w6 + gap;
-        }
-        if (recurso8) {
-            doc.image(recurso8, startX, footerY + (footerHeight - imgHeight) / 2, { width: w8, height: imgHeight });
+        if (cecitLogo) {
+            const dims = this.staticImageDims.get('cecitLogo') || { width: 200, height: 46 };
+            const imgHeight = 40;
+            const imgWidth = (dims.width / dims.height) * imgHeight;
+            const x = (A6_WIDTH - imgWidth) / 2;
+            doc.image(cecitLogo, x, footerY + (footerHeight - imgHeight) / 2, { width: imgWidth, height: imgHeight });
         }
     }
 }
