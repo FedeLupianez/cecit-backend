@@ -52,7 +52,7 @@ export class AuthController {
         res.cookie(REFRESH_COOKIE, refreshToken, {
             httpOnly: true,
             secure: true,
-            sameSite: this.isProd ? 'none' : 'lax',
+            sameSite: 'none',
             path: '/',
             maxAge: REFRESH_DAYS * 24 * 60 * 60 * 1000,
         });
