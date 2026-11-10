@@ -68,12 +68,16 @@ export class PartnersService {
         return partners.map((partner) => PartnersMapper.entityToDto(partner));
     }
 
-    async create(partner: PartnersCreateDTO): Promise<PartnersEntity> {
+    async create(
+        partner: PartnersCreateDTO,
+        owner_id_user: string,
+    ): Promise<PartnersEntity> {
         const newId = await generateUniqueId(this.partnersRepo, 'id_partner');
         const newPartner = this.partnersRepo.create({
             id_partner: newId,
             name: partner.partner_name.toLowerCase(),
             logo: partner.logo,
+            id_owner: owner_id_user,
         });
         const storedPartner = await this.partnersRepo.save(newPartner);
         if (!storedPartner) {
@@ -82,16 +86,39 @@ export class PartnersService {
         if (partner.directions?.length) {
             await this.directionsService.createMany(newId, partner.directions);
         }
+        // Also associate owner as employee and as admin of this partner
+        const owner = await this.usersService.get_by_user_id(owner_id_user);
+        await this.attachEmployee(storedPartner!, owner);
+        // Create the PartnersAdmins relation so the owner sees this partner in their admin panel
+        await this.partnersAdminsService.createByOwner(owner_id_user, newId);
         return storedPartner;
     }
 
     async remove(id: string): Promise<boolean> {
         if (!id) throw new BadRequestException('id is empty');
+        // En lugar de borrar el partner, lo desactivamos físicamente
         const partner = await this.partnersRepo.findOneBy({ id_partner: id });
         if (!partner) throw new NotFoundException('Partner not found');
-        const result = await this.partnersRepo.delete(partner);
-        if (!result)
-            throw new InternalServerErrorException('Error deleting partner');
+        partner.active = false;
+        await this.partnersRepo.save(partner);
+        // Desactivar cuentas de empleados que ya no tienen otro negocio
+        const employees = await this.getEmployees(id);
+        for (const emp of employees) {
+            // Si el empleado no tiene cuenta, nothing to do
+            const hasAccount = await this.accountsRepo.exists({
+                where: { user: { id_user: emp.id_user } },
+            });
+            if (!hasAccount) continue;
+            // Si ya no trabaja en ningún otro negocio, desactivar su cuenta
+            const worksElsewhere =
+                await this.usersService.is_employee_of_other_partner(
+                    emp.id_user,
+                    id,
+                );
+            if (!worksElsewhere) {
+                await this.accountsService.deactivate(emp.id_user);
+            }
+        }
         return true;
     }
 
@@ -274,10 +301,12 @@ export class PartnersService {
      * Asocia un User al partner, rechazando el duplicado. Envuelve la escritura de
      * la relación para que addEmployee y createEmployee no diverjan.
      */
-    private async attachEmployee(
+    async attachEmployee(
         partner: PartnersEntity,
         user: UsersEntity,
     ): Promise<EmployeeWithAccount[]> {
+        // Inicializar employees si no está cargado (partner recién creado)
+        if (!partner.employees) partner.employees = [];
         if (partner.employees.some((e) => e.id_user === user.id_user)) {
             throw new BadRequestException(
                 'User is already an employee of this partner',

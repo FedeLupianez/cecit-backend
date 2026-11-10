@@ -3,6 +3,7 @@ import {
     Controller,
     Delete,
     Get,
+    NotFoundException,
     Param,
     Patch,
     Post,
@@ -10,8 +11,12 @@ import {
     Req,
     UseGuards,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { PartnersService } from './partners.service';
 import { PartnersAdminsService } from '../partnersadmins/partnersadmins.service';
+import { UsersService } from '../users/users.service';
+import { PartnersEntity } from './partners.entity';
 import {
     AddEmployeeDTO,
     AddLocationDTO,
@@ -29,6 +34,9 @@ export class PartnersController {
     constructor(
         private readonly partnersService: PartnersService,
         private readonly adminsService: PartnersAdminsService,
+        private readonly usersService: UsersService,
+        @InjectRepository(PartnersEntity)
+        private readonly partnersRepo: Repository<PartnersEntity>,
     ) { }
 
     @Get('all')
@@ -38,12 +46,14 @@ export class PartnersController {
 
     @Post()
     async create(@Body() dto: PartnersCreateDTO) {
-        const partner = await this.partnersService.create(dto);
-        await this.adminsService.create({
-            partner_name: dto.partner_name.toLowerCase(),
-            email: dto.email,
-            password: dto.password,
-        });
+        // Find user by DNI to set as owner
+        const owner = await this.usersService.get_by_dni(dto.owner_dni);
+        if (!owner) {
+            throw new NotFoundException(
+                `No existe un usuario con DNI ${dto.owner_dni}`,
+            );
+        }
+        const partner = await this.partnersService.create(dto, owner.id_user);
         return partner;
     }
 
@@ -91,6 +101,29 @@ export class PartnersController {
     @Post('employees/new')
     async createEmployee(@Req() req, @Body() dto: CreateEmployeeDTO) {
         return await this.partnersService.createEmployee(req.user.user_id, dto);
+    }
+
+    /**
+     * CECIT_ADMIN crea un usuario (User) y lo asocia a un partner como empleado.
+     * No crea Account (eso ocurre cuando el usuario se registra).
+     */
+    @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
+    @Post('employees/cecit-create')
+    async createEmployeeByCecitAdmin(@Body() dto: CreateEmployeeDTO) {
+        // CECIT_ADMIN no necesita validar acceso al partner
+        const partner = await this.partnersRepo.findOne({
+            where: { id_partner: dto.id_partner },
+            relations: ['employees'],
+        });
+        if (!partner) throw new NotFoundException('Partner not found');
+
+        const user = await this.usersService.create({
+            name: dto.name,
+            lastname: dto.lastname,
+            dni: dto.dni,
+        });
+
+        return await this.partnersService.attachEmployee(partner, user);
     }
 
     @UseGuards(AuthGuard('jwt'), AdminGuard)
