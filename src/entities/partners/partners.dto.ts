@@ -35,12 +35,8 @@ export class PartnersCreateDTO {
     partner_name: string;
 
     @IsNotEmpty()
-    @IsEmail()
-    email: string;
-
-    @IsNotEmpty()
     @IsString()
-    password: string;
+    owner_dni: string;
 
     @IsNotEmpty()
     @IsUrl()

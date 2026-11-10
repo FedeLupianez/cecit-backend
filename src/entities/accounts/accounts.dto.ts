@@ -80,3 +80,33 @@ export class AccountsUpdateDTO {
     @IsBoolean()
     active?: boolean;
 }
+
+export class CreateUserWithPartnerDTO {
+    @IsNotEmpty()
+    @IsString()
+    name: string;
+
+    @IsNotEmpty()
+    @IsString()
+    lastname: string;
+
+    @IsNotEmpty()
+    @IsString()
+    dni: string;
+
+    @IsNotEmpty()
+    @IsEmail()
+    email: string;
+
+    @IsNotEmpty()
+    @IsString()
+    password: string;
+
+    @IsNotEmpty()
+    @IsString()
+    id_partner: string;
+
+    @IsNotEmpty()
+    @IsEnum(AccountRole)
+    role: AccountRole;
+}

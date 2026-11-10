@@ -79,6 +79,7 @@ describe('PartnersService empleados', () => {
       accountsService as never,
       usersService as never,
       partnersAdminsService as never,
+      {} as never,
     );
 
     return { service, partner, accountsRepo, accountsService, usersService };
