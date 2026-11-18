@@ -100,28 +100,29 @@ export class AuthService {
         if (token.revoked) {
             throw new UnauthorizedException('Refresh token revoked');
         }
-        const expires_at: Date = new Date(token.expires_at);
-        if (expires_at.getTime() <= Date.now()) {
+        if (token.expires_at.getTime() <= Date.now()) {
             throw new UnauthorizedException('Refresh token expired');
         }
         return true;
     }
     async register(account: AccountCreateDTO): Promise<TokensInterface> {
         this.logger.info(`Registering new account: ${account.email}`);
-        const partner = await this.userService.get_by_user_id(account.id_account);
-        if (!partner) throw new NotFoundException('User is not cecit partner');
+        // Normalize ID (generated as uppercase hex) to avoid case-sensitivity issues
+        const normalizedId = account.id_account.trim().toUpperCase();
+        const user = await this.userService.get_by_user_id(normalizedId);
+        if (!user) throw new NotFoundException('User not found');
         if (await this.accountService.has_account(account.email))
-            throw new BadRequestException('User alredy has an account');
+            throw new BadRequestException('User already has an account');
 
-        const ownedPartner = await this.partnersService.getByOwnerId(
-            account.id_account,
-        );
+        const ownedPartner = await this.partnersService.getByOwnerId(normalizedId);
         const newUser = await this.accountService.create({
             ...account,
+            id_account: normalizedId,
             role: ownedPartner ? AccountRole.PARTNER_ADMIN : AccountRole.USER,
         });
 
         if (ownedPartner) {
+            this.logger.info('Account is PARTNER_ADMIN');
             await this.partnersAdminsService.createByOwner(
                 newUser.id_account,
                 ownedPartner.id_partner,
@@ -142,6 +143,9 @@ export class AuthService {
         const account = actualToken.account;
         if (!account) throw new UnauthorizedException('Invalid token');
 
+        const now = Date.now();
+        const expiresAt = actualToken.expires_at.getTime();
+
         try {
             await this.validateRefreshToken(actualToken);
         } catch {
@@ -156,7 +160,7 @@ export class AuthService {
         // REFRESH_GRACE_MS para que los refresh concurrentes (el layout del
         // frontend refresca en cada navegación) no fallen con "Token not
         // found". Solo se acorta la vigencia, nunca se extiende.
-        const remaining = new Date(actualToken.expires_at).getTime() - Date.now();
+        const remaining = expiresAt - now;
         const graceExpiresAt =
             remaining > REFRESH_GRACE_MS
                 ? new Date(Date.now() + REFRESH_GRACE_MS)
@@ -206,7 +210,11 @@ export class AuthService {
 
     @Cron(CronExpression.EVERY_DAY_AT_3AM)
     async purgeExpiredRefreshTokens(): Promise<void> {
-        await this.refreshTokenRepo.delete({ expires_at: LessThan(new Date()) });
+        const BATCH = 500;
+        await this.refreshTokenRepo.query(
+            'DELETE FROM RefreshTokens WHERE expires_at < ? LIMIT ?',
+            [new Date(), BATCH]
+        );
     }
 
     private generateRefreshToken(): string {
@@ -253,13 +261,16 @@ export class AuthService {
     async saveRefreshToken(
         token: RefreshTokenSaveDTO,
     ): Promise<RefreshTokenEntity> {
-        const newRegister = this.refreshTokenRepo.create({
-            email: token.email,
-            token_hash: this.hashToken(token.token)
-        });
-        const stored = await this.refreshTokenRepo.save(newRegister);
-        if (!stored) throw new InternalServerErrorException('Error saving token');
-        return stored;
+        const days = Number(process.env.REFRESH_TOKEN_EXPIRES) || 7;
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + days);
+
+        const stored = await this.refreshTokenRepo.createQueryBuilder()
+            .insert().into(RefreshTokenEntity).values({ email: token.email, token_hash: this.hashToken(token.token), expires_at: expiresAt })
+            .returning('token_hash, email, expires_at, created_at')
+            .execute();
+        if (!stored.raw[0]) throw new InternalServerErrorException('Error saving token');
+        return stored.raw[0];
     }
 
     getEmail(token: string) {

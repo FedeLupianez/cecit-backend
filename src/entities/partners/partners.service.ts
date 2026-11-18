@@ -30,6 +30,7 @@ import { PartnersAdminsService } from '../partnersadmins/partnersadmins.service'
 import { UsersEntity } from '../users/users.entity';
 import { UsersService } from '../users/users.service';
 import { PinoLogger } from 'nestjs-pino';
+import { LocationItem } from './directions.dto';
 
 @Injectable()
 export class PartnersService {
@@ -86,11 +87,10 @@ export class PartnersService {
         if (partner.directions?.length) {
             await this.directionsService.createMany(newId, partner.directions);
         }
-        // Also associate owner as employee and as admin of this partner
+        // Also associate owner as employee of this partner
         const owner = await this.usersService.get_by_user_id(owner_id_user);
         await this.attachEmployee(storedPartner!, owner);
-        // Create the PartnersAdmins relation so the owner sees this partner in their admin panel
-        await this.partnersAdminsService.createByOwner(owner_id_user, newId);
+        // PartnersAdmins relation is created in AuthService.register() when the owner creates their account
         return storedPartner;
     }
 
@@ -190,12 +190,16 @@ export class PartnersService {
     async addLocation(
         { id_partner, direction }: AddLocationDTO,
         callerId: string,
-    ): Promise<boolean> {
+    ): Promise<LocationItem> {
         await this.assertPartnerAccess(callerId, id_partner);
         const partner = await this.partnersRepo.findOneBy({ id_partner });
         if (!partner) throw new NotFoundException('Partner not found');
-        await this.directionsService.create({ id_partner, direction }, callerId);
-        return true;
+        const location = await this.directionsService.create({ id_partner, direction }, callerId);
+        return {
+            id_location: location.id_direction,
+            id_partner: location.id_partner,
+            direction: location.direction
+        }
     }
 
     async getLocations(id_partner: string): Promise<GetLocationsReturn[]> {
