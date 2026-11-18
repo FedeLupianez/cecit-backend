@@ -122,6 +122,7 @@ export class AuthService {
         });
 
         if (ownedPartner) {
+            this.logger.info('Account is PARTNER_ADMIN');
             await this.partnersAdminsService.createByOwner(
                 newUser.id_account,
                 ownedPartner.id_partner,
