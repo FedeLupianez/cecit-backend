@@ -78,7 +78,7 @@ export class PartnersController {
     @UseGuards(AuthGuard('jwt'), AdminGuard)
     @Post('locations')
     async addLocation(@Body() body: AddLocationDTO, @Req() req) {
-        return this.partnersService.addLocation(body, req.user?.user_id);
+        return await this.partnersService.addLocation(body, req.user?.user_id);
     }
 
     @UseGuards(AuthGuard('jwt'), AdminGuard)

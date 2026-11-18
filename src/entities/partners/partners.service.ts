@@ -30,6 +30,7 @@ import { PartnersAdminsService } from '../partnersadmins/partnersadmins.service'
 import { UsersEntity } from '../users/users.entity';
 import { UsersService } from '../users/users.service';
 import { PinoLogger } from 'nestjs-pino';
+import { LocationItem } from './directions.dto';
 
 @Injectable()
 export class PartnersService {
@@ -189,12 +190,16 @@ export class PartnersService {
     async addLocation(
         { id_partner, direction }: AddLocationDTO,
         callerId: string,
-    ): Promise<boolean> {
+    ): Promise<LocationItem> {
         await this.assertPartnerAccess(callerId, id_partner);
         const partner = await this.partnersRepo.findOneBy({ id_partner });
         if (!partner) throw new NotFoundException('Partner not found');
-        await this.directionsService.create({ id_partner, direction }, callerId);
-        return true;
+        const location = await this.directionsService.create({ id_partner, direction }, callerId);
+        return {
+            id_location: location.id_direction,
+            id_partner: location.id_partner,
+            direction: location.direction
+        }
     }
 
     async getLocations(id_partner: string): Promise<GetLocationsReturn[]> {
