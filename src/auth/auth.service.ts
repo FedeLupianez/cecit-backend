@@ -108,16 +108,17 @@ export class AuthService {
     }
     async register(account: AccountCreateDTO): Promise<TokensInterface> {
         this.logger.info(`Registering new account: ${account.email}`);
-        const partner = await this.userService.get_by_user_id(account.id_account);
-        if (!partner) throw new NotFoundException('User is not cecit partner');
+        // Normalize ID (generated as uppercase hex) to avoid case-sensitivity issues
+        const normalizedId = account.id_account.trim().toUpperCase();
+        const user = await this.userService.get_by_user_id(normalizedId);
+        if (!user) throw new NotFoundException('User not found');
         if (await this.accountService.has_account(account.email))
-            throw new BadRequestException('User alredy has an account');
+            throw new BadRequestException('User already has an account');
 
-        const ownedPartner = await this.partnersService.getByOwnerId(
-            account.id_account,
-        );
+        const ownedPartner = await this.partnersService.getByOwnerId(normalizedId);
         const newUser = await this.accountService.create({
             ...account,
+            id_account: normalizedId,
             role: ownedPartner ? AccountRole.PARTNER_ADMIN : AccountRole.USER,
         });
 

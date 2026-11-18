@@ -86,11 +86,10 @@ export class PartnersService {
         if (partner.directions?.length) {
             await this.directionsService.createMany(newId, partner.directions);
         }
-        // Also associate owner as employee and as admin of this partner
+        // Also associate owner as employee of this partner
         const owner = await this.usersService.get_by_user_id(owner_id_user);
         await this.attachEmployee(storedPartner!, owner);
-        // Create the PartnersAdmins relation so the owner sees this partner in their admin panel
-        await this.partnersAdminsService.createByOwner(owner_id_user, newId);
+        // PartnersAdmins relation is created in AuthService.register() when the owner creates their account
         return storedPartner;
     }
 
