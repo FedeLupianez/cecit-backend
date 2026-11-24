@@ -27,6 +27,7 @@ export interface ProfilePayload {
 // un segundo request a GET /auth/profile.
 export interface RefreshResult extends TokensInterface {
     profile: ProfilePayload;
+    expires_at: string; // ISO8601
 }
 
 export class RefreshTokenSaveDTO {
