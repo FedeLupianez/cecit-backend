@@ -1,10 +1,10 @@
 {
   "name": "cecit-backend",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "API de la plataforma de beneficios del Centro de Comercio de Alta Gracia (CeCIT)",
+  "author": "Binar Studio (Lupiañez Federico, Carranza Thiago, Oliva Katerine, Catelani Sacha, Mentzel Ignacio, Ceballos Agustín)",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "SEE LICENCE IN LICENCE",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
