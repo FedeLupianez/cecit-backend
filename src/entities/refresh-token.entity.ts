@@ -17,6 +17,7 @@ export class RefreshTokenEntity {
     token_hash: Buffer;
 
     @Index()
+    @Index(['email', 'expires_at'])
     @Column({ type: 'varchar', length: 50, nullable: false })
     email: string;
 

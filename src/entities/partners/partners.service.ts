@@ -30,6 +30,7 @@ import { PartnersAdminsService } from '../partnersadmins/partnersadmins.service'
 import { UsersEntity } from '../users/users.entity';
 import { UsersService } from '../users/users.service';
 import { PinoLogger } from 'nestjs-pino';
+import { LocationItem } from './directions.dto';
 
 @Injectable()
 export class PartnersService {
@@ -68,12 +69,16 @@ export class PartnersService {
         return partners.map((partner) => PartnersMapper.entityToDto(partner));
     }
 
-    async create(partner: PartnersCreateDTO): Promise<PartnersEntity> {
+    async create(
+        partner: PartnersCreateDTO,
+        owner_id_user: string,
+    ): Promise<PartnersEntity> {
         const newId = await generateUniqueId(this.partnersRepo, 'id_partner');
         const newPartner = this.partnersRepo.create({
             id_partner: newId,
             name: partner.partner_name.toLowerCase(),
             logo: partner.logo,
+            id_owner: owner_id_user,
         });
         const storedPartner = await this.partnersRepo.save(newPartner);
         if (!storedPartner) {
@@ -82,6 +87,10 @@ export class PartnersService {
         if (partner.directions?.length) {
             await this.directionsService.createMany(newId, partner.directions);
         }
+        // Also associate owner as employee of this partner
+        const owner = await this.usersService.get_by_user_id(owner_id_user);
+        await this.attachEmployee(storedPartner!, owner);
+        // PartnersAdmins relation is created in AuthService.register() when the owner creates their account
         return storedPartner;
     }
 
@@ -89,9 +98,40 @@ export class PartnersService {
         if (!id) throw new BadRequestException('id is empty');
         const partner = await this.partnersRepo.findOneBy({ id_partner: id });
         if (!partner) throw new NotFoundException('Partner not found');
-        const result = await this.partnersRepo.delete(partner);
-        if (!result)
-            throw new InternalServerErrorException('Error deleting partner');
+        partner.active = false;
+        await this.partnersRepo.save(partner);
+
+        const employees = await this.getEmployees(id);
+        if (!employees.length) return true;
+
+        // Batch: single query for all employee accounts
+        const employeeIds = employees.map((e) => e.id_user);
+        const accounts = await this.accountsRepo.find({
+            where: { user: { id_user: In(employeeIds) } },
+            relations: ['user'],
+        });
+        const accountByUserId = new Map(
+            accounts.map((a) => [a.user.id_user, a]),
+        );
+
+        // Batch: single query to check who works elsewhere
+        const worksElsewhereMap = new Map<string, boolean>();
+        await Promise.all(
+            employeeIds.map(async (userId) => {
+                worksElsewhereMap.set(
+                    userId,
+                    await this.usersService.is_employee_of_other_partner(userId, id),
+                );
+            }),
+        );
+
+        for (const emp of employees) {
+            const account = accountByUserId.get(emp.id_user);
+            if (!account) continue;
+            if (!worksElsewhereMap.get(emp.id_user)) {
+                await this.accountsService.deactivate(emp.id_user);
+            }
+        }
         return true;
     }
 
@@ -163,12 +203,16 @@ export class PartnersService {
     async addLocation(
         { id_partner, direction }: AddLocationDTO,
         callerId: string,
-    ): Promise<boolean> {
+    ): Promise<LocationItem> {
         await this.assertPartnerAccess(callerId, id_partner);
         const partner = await this.partnersRepo.findOneBy({ id_partner });
         if (!partner) throw new NotFoundException('Partner not found');
-        await this.directionsService.create({ id_partner, direction }, callerId);
-        return true;
+        const location = await this.directionsService.create({ id_partner, direction }, callerId);
+        return {
+            id_location: location.id_direction,
+            id_partner: location.id_partner,
+            direction: location.direction
+        }
     }
 
     async getLocations(id_partner: string): Promise<GetLocationsReturn[]> {
@@ -274,10 +318,12 @@ export class PartnersService {
      * Asocia un User al partner, rechazando el duplicado. Envuelve la escritura de
      * la relación para que addEmployee y createEmployee no diverjan.
      */
-    private async attachEmployee(
+    async attachEmployee(
         partner: PartnersEntity,
         user: UsersEntity,
     ): Promise<EmployeeWithAccount[]> {
+        // Inicializar employees si no está cargado (partner recién creado)
+        if (!partner.employees) partner.employees = [];
         if (partner.employees.some((e) => e.id_user === user.id_user)) {
             throw new BadRequestException(
                 'User is already an employee of this partner',

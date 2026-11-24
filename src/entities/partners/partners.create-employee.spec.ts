@@ -42,6 +42,7 @@ describe('PartnersService.createEmployee', () => {
       accountsService as never,
       usersService as never,
       partnersAdminsService as never,
+      {} as never,
     );
 
     return { service, partner, usersService, accountsService };
