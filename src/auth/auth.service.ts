@@ -170,8 +170,9 @@ export class AuthService {
         // distintas, así que van en paralelo: una sola ida y vuelta en vez
         // de dos. Si el update falla, el token nuevo queda huérfano y el cron
         // lo purga; no se emite nada inconsistente.
+        const saved = await this.saveRefreshToken({ token: newToken, email: actualToken.email });
         await Promise.all([
-            this.saveRefreshToken({ token: newToken, email: actualToken.email }),
+            Promise.resolve(saved),
             graceExpiresAt
                 ? this.refreshTokenRepo.update(
                     { token_hash: actualToken.token_hash },
@@ -195,6 +196,7 @@ export class AuthService {
                 email: account.email,
                 role: account.role,
             },
+            expires_at: saved.expires_at.toISOString(),
         };
     }
 
