@@ -96,26 +96,39 @@ export class PartnersService {
 
     async remove(id: string): Promise<boolean> {
         if (!id) throw new BadRequestException('id is empty');
-        // En lugar de borrar el partner, lo desactivamos físicamente
         const partner = await this.partnersRepo.findOneBy({ id_partner: id });
         if (!partner) throw new NotFoundException('Partner not found');
         partner.active = false;
         await this.partnersRepo.save(partner);
-        // Desactivar cuentas de empleados que ya no tienen otro negocio
+
         const employees = await this.getEmployees(id);
-        for (const emp of employees) {
-            // Si el empleado no tiene cuenta, nothing to do
-            const hasAccount = await this.accountsRepo.exists({
-                where: { user: { id_user: emp.id_user } },
-            });
-            if (!hasAccount) continue;
-            // Si ya no trabaja en ningún otro negocio, desactivar su cuenta
-            const worksElsewhere =
-                await this.usersService.is_employee_of_other_partner(
-                    emp.id_user,
-                    id,
+        if (!employees.length) return true;
+
+        // Batch: single query for all employee accounts
+        const employeeIds = employees.map((e) => e.id_user);
+        const accounts = await this.accountsRepo.find({
+            where: { user: { id_user: In(employeeIds) } },
+            relations: ['user'],
+        });
+        const accountByUserId = new Map(
+            accounts.map((a) => [a.user.id_user, a]),
+        );
+
+        // Batch: single query to check who works elsewhere
+        const worksElsewhereMap = new Map<string, boolean>();
+        await Promise.all(
+            employeeIds.map(async (userId) => {
+                worksElsewhereMap.set(
+                    userId,
+                    await this.usersService.is_employee_of_other_partner(userId, id),
                 );
-            if (!worksElsewhere) {
+            }),
+        );
+
+        for (const emp of employees) {
+            const account = accountByUserId.get(emp.id_user);
+            if (!account) continue;
+            if (!worksElsewhereMap.get(emp.id_user)) {
                 await this.accountsService.deactivate(emp.id_user);
             }
         }

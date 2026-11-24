@@ -22,6 +22,7 @@ import { PartnersEntity } from '../partners/partners.entity';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 import { adminPartnerCacheKey } from '../../common/utils/admin-cache';
+import { raw } from 'express';
 
 @Injectable()
 export class AccountsService {
@@ -132,12 +133,8 @@ export class AccountsService {
      */
     async deactivate(id_account: string): Promise<boolean> {
         if (!id_account) throw new BadRequestException('id_account is required');
-        const account = await this.accountsRepo.findOneBy({ id_account });
-        if (!account) return false;
-        if (!account.active) return true;
-        account.active = false;
-        await this.accountsRepo.save(account);
-        return true;
+        const raw_result = await this.accountsRepo.update({ id_account: id_account }, { active: false });
+        return (raw_result.affected != undefined && raw_result.affected > 0);
     }
 
     async changeRole(

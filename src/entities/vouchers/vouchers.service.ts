@@ -281,9 +281,10 @@ export class VouchersService {
         if (!voucher.id_benefit)
             throw new BadRequestException('id_benefit is required');
 
-        const benefit = await this.benefitsService.findOneActive({
-            where: { id_benefit: voucher.id_benefit },
-        });
+        const benefit = await this.benefitsService.findOneActive(
+            { where: { id_benefit: voucher.id_benefit } },
+            false,
+        );
 
         if (!benefit) throw new NotFoundException('Benefit not found');
 

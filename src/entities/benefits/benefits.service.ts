@@ -55,6 +55,11 @@ export class BenefitsService {
         'payment_methods',
     ];
 
+    private readonly lightRelations = [
+        'partner',
+        'type',
+    ];
+
     private async findActives(options?: FindManyOptions<BenefitsEntity>) {
         const today = new Date();
         const benefits = await this.benefitsRepository.find({
@@ -74,10 +79,11 @@ export class BenefitsService {
 
     async findOneActive(
         options?: FindOneOptions<BenefitsEntity>,
+        allRelations = true,
     ): Promise<BenefitsEntity> {
         const today = new Date();
         const benefit = await this.benefitsRepository.findOne({
-            relations: this.defaultRelations,
+            relations: allRelations ? this.defaultRelations : this.lightRelations,
             ...options,
             where: {
                 ...(options?.where as object),
@@ -387,11 +393,11 @@ export class BenefitsService {
         return (benefit?.payment_methods ?? []).map((p) => p.name);
     }
 
-    async getMappedByIds(ids: string[]): Promise<Map<string, BenefitsReturn>> {
+    async getMappedByIds(ids: string[], allRelations = true): Promise<Map<string, BenefitsReturn>> {
         const unique = [...new Set(ids)];
         if (unique.length === 0) return new Map();
         const benefits: BenefitsEntity[] = await this.benefitsRepository.find({
-            relations: this.defaultRelations,
+            relations: allRelations ? this.defaultRelations : this.lightRelations,
             where: {
                 id_benefit: In(unique),
                 status: BenefitStatus.ACTIVE,
@@ -402,18 +408,20 @@ export class BenefitsService {
         return new Map(mapped.map((m) => [m.id_benefit, m]));
     }
 
-    async get_benefit(id_benefit: string): Promise<BenefitsReturn> {
-        const benefit = await this.findOneActive({
-            where: { id_benefit: id_benefit },
-        });
+    async get_benefit(id_benefit: string, allRelations = true): Promise<BenefitsReturn> {
+        const benefit = await this.findOneActive(
+            { where: { id_benefit: id_benefit } },
+            allRelations,
+        );
         if (!benefit) throw new NotFoundException('Benefit not found');
         return await this.mapBenefit(benefit);
     }
 
     async get_coupons(id_benefit: string): Promise<CouponsReturn> {
-        const benefit = await this.findOneActive({
-            where: { id_benefit: id_benefit },
-        });
+        const benefit = await this.findOneActive(
+            { where: { id_benefit: id_benefit } },
+            false,
+        );
         if (!benefit) throw new NotFoundException('Benefit not found');
         return {
             coupons: benefit.coupons,
