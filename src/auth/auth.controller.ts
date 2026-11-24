@@ -1,15 +1,62 @@
-import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+    BadRequestException,
+    Body,
+    Controller,
+    Get,
+    Patch,
+    Post,
+    Req,
+    Res,
+    UnauthorizedException,
+    UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { TokensInterface } from './auth.dto';
+import { TokensInterface, UpdateProfileAdminDTO, UpdateProfileDTO } from './auth.dto';
 import { Throttle } from '@nestjs/throttler';
 import { AccountCreateDTO, LoginDTO } from 'src/entities/accounts/accounts.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { ConfigService } from '@nestjs/config';
+import { CecitAdminGuard } from './cecitadmin.guard';
 
-const secure_cookies = (process.env.NODE_ENV === 'production');
+const REFRESH_COOKIE = 'refresh_token_cecit';
+const REFRESH_DAYS = 7;
 
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) { }
+    constructor(
+        private readonly authService: AuthService,
+        private readonly configService: ConfigService,
+    ) { }
+
+    private get isProd(): boolean {
+        return this.configService.get<string>('NODE_ENV') === 'production';
+    }
+
+    private get cookieDomain(): string | undefined {
+        const frontUrl = this.configService.get<string>('FRONT_URL');
+        if (!frontUrl) return undefined;
+        try {
+            const hostname = new URL(frontUrl).hostname;
+            // No set domain for localhost/IPs: browsers reject 'Domain=localhost'
+            // and treat it as host-only anyway. Only set for real domains in prod.
+            if (hostname === 'localhost' || /^\d+(\.\d+){3}$/.test(hostname)) {
+                return undefined;
+            }
+            return this.isProd ? hostname : undefined;
+        } catch {
+            return undefined;
+        }
+    }
+
+    private setRefreshCookie(res, refreshToken: string): void {
+        res.cookie(REFRESH_COOKIE, refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            path: '/',
+            maxAge: REFRESH_DAYS * 24 * 60 * 60 * 1000,
+        });
+    }
 
     @Get('profile')
     @UseGuards(AuthGuard('jwt'))
@@ -18,58 +65,77 @@ export class AuthController {
     }
 
     @Post('register')
-    async register(@Body() body: AccountCreateDTO, @Res({ passthrough: true }) res) {
+    async register(
+        @Body() body: AccountCreateDTO,
+        @Res({ passthrough: true }) res,
+    ) {
         const newTokens: TokensInterface = await this.authService.register(body);
-        const days: number = 7;
-        res.cookie('refresh_token_cecit', newTokens.refresh_token, {
-            httpOnly: true,
-            secure: secure_cookies,
-            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-            path: '/',
-            maxAge: days * 24 * 60 * 60 * 1000
-        });
+        this.setRefreshCookie(res, newTokens.refresh_token);
         return {
-            access_token: newTokens.access_token
-        }
+            access_token: newTokens.access_token,
+        };
     }
 
     @Post('login')
     @Throttle({ default: { limit: 3, ttl: 60000 } })
     async login(@Body() body: LoginDTO, @Res({ passthrough: true }) res) {
         const newTokens: TokensInterface = await this.authService.login(body);
-        const days: number = 7;
-        res.cookie('refresh_token_cecit', newTokens.refresh_token, {
-            httpOnly: true,
-            secure: secure_cookies,
-            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-            path: '/',
-            maxAge: days * 24 * 60 * 60 * 1000
-        });
+        this.setRefreshCookie(res, newTokens.refresh_token);
         return {
-            access_token: newTokens.access_token
-        }
+            access_token: newTokens.access_token,
+        };
     }
 
     @Post('refresh')
     async refresh(@Req() req, @Res({ passthrough: true }) res) {
-        const token = req.cookies['refresh_token_cecit'];
-        const newTokens: TokensInterface = await this.authService.refresh(token);
-        const days: number = 7;
-        res.cookie('refresh_token_cecit', newTokens.refresh_token, {
-            httpOnly: true,
-            secure: secure_cookies,
-            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-            path: '/',
-            maxAge: days * 24 * 60 * 60 * 1000
-        });
+        const token = req.cookies[REFRESH_COOKIE];
+        const newTokens = await this.authService.refresh(token);
+        this.setRefreshCookie(res, newTokens.refresh_token);
         return {
-            access_token: newTokens.access_token
-        }
+            access_token: newTokens.access_token,
+            profile: newTokens.profile,
+        };
     }
 
     @Post('logout')
-    async logout(@Req() req) {
-        const token = req.cookies['refresh_token_cecit'];
+    async logout(@Req() req, @Res({ passthrough: true }) res) {
+        const token = req.cookies[REFRESH_COOKIE];
         await this.authService.logout(token);
+        res.clearCookie(REFRESH_COOKIE, { path: '/', domain: this.cookieDomain });
+        return { ok: true };
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Patch('update')
+    async updateProfile(@Body() body: UpdateProfileDTO) {
+        const validUser = await this.authService.validateUser(
+            body.email,
+            body.current_password,
+        );
+        if (!validUser) throw new UnauthorizedException('Invalid Credentials');
+        switch (body.process) {
+            case 'PASSWD':
+                if (!body.new_password)
+                    throw new BadRequestException('Current Password is empty');
+                return await this.authService.updatePasswd(
+                    validUser.id_account,
+                    body.new_password,
+                );
+            case 'EMAIL':
+                if (!body.new_email)
+                    throw new BadRequestException('New email is empty');
+                return await this.authService.updateEmail(
+                    validUser.id_account,
+                    validUser.email,
+                    body.new_email,
+                );
+        }
+    }
+
+    // Controller para editar perfil siendo CECIT_ADMIN
+    @UseGuards(AuthGuard('jwt'), CecitAdminGuard)
+    @Patch('update-profile-admin')
+    async updatProfileAdmin(@Body() body: UpdateProfileAdminDTO) {
+        return await this.authService.updateEmail(body.id_account, body.email, body.new_email);
     }
 }

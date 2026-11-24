@@ -1,22 +1,27 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm'
-import { BenefitTypeEntity } from '../benefit-types/benefit-types.entity'
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { BenefitsEntity } from './benefits.entity';
 import { BenefitsService } from './benefits.service';
 import { BenefitsController } from './benefits.controller';
-import { DbModule } from 'src/common/database/db.module';
 import { CategoriesModule } from '../categories/categories.module';
 import { PartnersModule } from '../partners/partners.module';
-import { PartnersCategoriesEntity } from '../partners_categories/partners_categories.entity';
 import { AccountsModule } from '../accounts/accounts.module';
-import { PassportModule } from '@nestjs/passport';
-import { PaymentBenefitEntity } from '../payment_benefit/payment_benefit.entity';
-
+import { BenefitTypeModule } from '../benefit-types/benefit-types.module';
+import { PaymentMethodsEntity } from '../payment-methods/payment-methods.entity';
+import { AdminGuard } from 'src/auth/admin.guard';
+import { PartnersAdminsModule } from '../partnersadmins/partnersadmins.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([BenefitsEntity, BenefitTypeEntity, PartnersCategoriesEntity, PaymentBenefitEntity]), DbModule, CategoriesModule, PartnersModule, AccountsModule, PassportModule],
-    providers: [BenefitsService],
-    controllers: [BenefitsController],
-    exports: [BenefitsService]
+  imports: [
+    TypeOrmModule.forFeature([BenefitsEntity, PaymentMethodsEntity]),
+    CategoriesModule,
+    PartnersModule,
+    AccountsModule,
+    BenefitTypeModule,
+    PartnersAdminsModule,
+  ],
+  providers: [BenefitsService, AdminGuard],
+  controllers: [BenefitsController],
+  exports: [BenefitsService],
 })
-export class BenefitsModule { }
+export class BenefitsModule {}
