@@ -33,7 +33,6 @@ import { AuthGuard } from '@nestjs/passport';
 export class PartnersController {
     constructor(
         private readonly partnersService: PartnersService,
-        private readonly adminsService: PartnersAdminsService,
         private readonly usersService: UsersService,
         @InjectRepository(PartnersEntity)
         private readonly partnersRepo: Repository<PartnersEntity>,
