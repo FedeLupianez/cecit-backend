@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import {
     BadRequestException,
     Injectable,
@@ -218,7 +218,7 @@ export class AuthService {
     }
 
     private generateRefreshToken(): string {
-        return randomUUID() + '-' + randomUUID();
+        return randomBytes(32).toString('base64url');
     }
 
     /**
