@@ -16,7 +16,6 @@ import {
     RefreshResult,
     RefreshTokenSaveDTO,
 } from './auth.dto';
-import { TokensInterface } from './auth.dto';
 import { AccountsService } from 'src/entities/accounts/accounts.service';
 import { AccountsEntity } from 'src/entities/accounts/accounts.entity';
 import {
@@ -105,7 +104,7 @@ export class AuthService {
         }
         return true;
     }
-    async register(account: AccountCreateDTO): Promise<TokensInterface> {
+    async register(account: AccountCreateDTO): Promise<RefreshResult> {
         this.logger.info(`Registering new account: ${account.email}`);
         // Normalize ID (generated as uppercase hex) to avoid case-sensitivity issues
         const normalizedId = account.id_account.trim().toUpperCase();
@@ -131,7 +130,7 @@ export class AuthService {
         return this.generateTokens(newUser);
     }
 
-    async login(userLogin: LoginDTO): Promise<TokensInterface> {
+    async login(userLogin: LoginDTO): Promise<RefreshResult> {
         this.logger.info(`Login attempt: ${userLogin.email}`);
         const user = await this.validateUser(userLogin.email, userLogin.password);
         if (!user) throw new UnauthorizedException('Invalid credentials');
@@ -242,9 +241,9 @@ export class AuthService {
         id_account: string;
         email: string;
         role: string;
-    }): Promise<TokensInterface> {
+    }): Promise<RefreshResult> {
         const refresh_token = this.generateRefreshToken();
-        await this.saveRefreshToken({
+        const saved = await this.saveRefreshToken({
             token: refresh_token,
             email: account.email,
         });
@@ -257,6 +256,12 @@ export class AuthService {
         return {
             access_token: this.signAccessToken(payload),
             refresh_token,
+            profile: {
+                user_id: account.id_account,
+                email: account.email,
+                role: account.role,
+            },
+            expires_at: saved.expires_at.toISOString(),
         };
     }
 

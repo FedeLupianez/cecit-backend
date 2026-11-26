@@ -11,7 +11,7 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { TokensInterface, UpdateProfileAdminDTO, UpdateProfileDTO } from './auth.dto';
+import { RefreshResult, UpdateProfileAdminDTO, UpdateProfileDTO } from './auth.dto';
 import { Throttle } from '@nestjs/throttler';
 import { AccountCreateDTO, LoginDTO } from 'src/entities/accounts/accounts.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -69,20 +69,22 @@ export class AuthController {
         @Body() body: AccountCreateDTO,
         @Res({ passthrough: true }) res,
     ) {
-        const newTokens: TokensInterface = await this.authService.register(body);
+        const newTokens: RefreshResult = await this.authService.register(body);
         this.setRefreshCookie(res, newTokens.refresh_token);
         return {
             access_token: newTokens.access_token,
+            profile: newTokens.profile,
         };
     }
 
     @Post('login')
     @Throttle({ default: { limit: 3, ttl: 60000 } })
     async login(@Body() body: LoginDTO, @Res({ passthrough: true }) res) {
-        const newTokens: TokensInterface = await this.authService.login(body);
+        const newTokens: RefreshResult = await this.authService.login(body);
         this.setRefreshCookie(res, newTokens.refresh_token);
         return {
             access_token: newTokens.access_token,
+            profile: newTokens.profile,
         };
     }
 
